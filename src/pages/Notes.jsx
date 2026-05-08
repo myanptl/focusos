@@ -320,15 +320,6 @@ export default function Notes() {
             padding: '7px 20px', borderBottom: '1px solid var(--border)',
             display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap',
           }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => insertAtCursor('## ', '')} title="Heading"
-              style={{ fontSize: 12, fontWeight: 700, minWidth: 30 }}>H</button>
-            <button className="btn btn-ghost btn-sm" onClick={() => insertAtCursor('**', '**')} title="Bold"
-              style={{ fontSize: 13, fontWeight: 900, minWidth: 30 }}>B</button>
-            <button className="btn btn-ghost btn-sm" onClick={() => insertAtCursor('- ', '')} title="Bullet"
-              style={{ fontSize: 14, minWidth: 30 }}>•</button>
-
-            <div style={{ width: 1, height: 18, background: 'var(--border)', margin: '0 2px' }} />
-
             <button className="btn btn-ghost btn-sm"
               onClick={() => navigate('/quiz', { state: { prefillNotes: selectedNote.content, prefillSubject: selectedNote.subject } })}
               disabled={!selectedNote.content?.trim()} style={{ fontSize: 12 }}>
