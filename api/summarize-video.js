@@ -49,7 +49,7 @@ Return ONLY valid JSON, no markdown fences, no prose:
 }
 Include 5-8 keyPoints, 5-10 keyTerms, and exactly 5 questions.
 
-Transcript: ${transcript.slice(0, 8000)}`
+Transcript: ${transcript.slice(0, 12000)}`
 
   try {
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {

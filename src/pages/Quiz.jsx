@@ -489,6 +489,17 @@ export default function Quiz() {
               />
             </div>
 
+            {videoUrl.trim() && (
+              <div style={{
+                background: 'rgba(242,199,90,0.06)', border: '1px solid rgba(242,199,90,0.2)',
+                borderRadius: 8, padding: '9px 13px', fontSize: 12, color: 'var(--amber)',
+                display: 'flex', alignItems: 'flex-start', gap: 8,
+              }}>
+                <span>⚠️</span>
+                <span>This video is long — only the first ~45 minutes will be summarized. For best results use videos under 45 minutes.</span>
+              </div>
+            )}
+
             {!videoNoTranscript ? (
               <>
                 <div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 
@@ -160,6 +160,7 @@ function buildDateStr(d) {
 
 export default function Progress() {
   const { profile, user } = useAuth()
+  const navigate = useNavigate()
   const [weekData,       setWeekData]       = useState(Array(7).fill(null).map(() => ({ mins: 0 })))
   const [hourlyMins,     setHourlyMins]     = useState(Array(24).fill(0))
   const [goalsCount,     setGoalsCount]     = useState(0)
@@ -258,25 +259,23 @@ export default function Progress() {
 
   return (
     <div className="page-fade">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
         <h1 style={{ fontSize: 32, fontWeight: 700 }}>Progress</h1>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Link to="/planner" style={{
-            fontSize: 13, fontWeight: 600, color: 'var(--cyan)',
-            textDecoration: 'none', padding: '7px 14px',
-            background: 'rgba(96,211,248,0.08)', border: '1px solid rgba(96,211,248,0.2)',
-            borderRadius: 8,
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button onClick={() => navigate('/planner')} style={{
+            background: 'var(--card2)', border: '1px solid var(--border)',
+            color: 'var(--text)', padding: '8px 16px', borderRadius: 8,
+            fontSize: 13, fontWeight: 600, cursor: 'pointer',
           }}>
-            AI Study Planner →
-          </Link>
-          <Link to="/review" style={{
-            fontSize: 13, fontWeight: 600, color: 'var(--accent)',
-            textDecoration: 'none', padding: '7px 14px',
-            background: 'rgba(181,242,58,0.08)', border: '1px solid rgba(181,242,58,0.2)',
-            borderRadius: 8,
+            📅 Study Planner
+          </button>
+          <button onClick={() => navigate('/review')} style={{
+            background: 'var(--card2)', border: '1px solid var(--border)',
+            color: 'var(--text)', padding: '8px 16px', borderRadius: 8,
+            fontSize: 13, fontWeight: 600, cursor: 'pointer',
           }}>
-            Weekly Review →
-          </Link>
+            📊 Weekly Review
+          </button>
         </div>
       </div>
 
