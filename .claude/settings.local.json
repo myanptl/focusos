@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm config *)",
+      "Bash(npm list *)",
+      "Bash(vercel *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\myan_\\\\Claude Project\\\\focusos\" -Recurse -Name)",
+      "Bash(Start-Sleep -Seconds 3)",
+      "mcp__ide__getDiagnostics",
+      "Bash(npm install *)"
+    ]
+  }
+}

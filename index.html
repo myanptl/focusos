@@ -2,9 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='20' fill='%23b5f23a'>⟳</text></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>focusos</title>
+    <title>FocusOS</title>
+    <script>
+      (function() {
+        var c = localStorage.getItem('focusos_accent');
+        if (c) {
+          document.documentElement.style.setProperty('--accent', c);
+          document.documentElement.style.setProperty('--lime', c);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
