@@ -1,15 +1,4 @@
-const rateLimitMap = new Map()
-const WINDOW_MS = 60 * 60 * 1000
-const MAX_REQUESTS = 30
-
-function checkRateLimit(ip) {
-  const now = Date.now()
-  const cutoff = now - WINDOW_MS
-  const timestamps = (rateLimitMap.get(ip) || []).filter(t => t > cutoff)
-  if (timestamps.length >= MAX_REQUESTS) return false
-  rateLimitMap.set(ip, [...timestamps, now])
-  return true
-}
+import { verifyAuth, checkRateLimit } from './_auth.js'
 
 function buildHarderPrompt(question, answer, subject, currentDifficulty, mode) {
   const nextLevel = { Basic: 'Standard', Standard: 'Hard', Hard: 'Exam Style', 'Exam Style': 'Exam Style' }
@@ -47,8 +36,12 @@ Return ONLY valid JSON (no markdown): {"lesson":"..."}`
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket?.remoteAddress || 'unknown'
-  if (!checkRateLimit(ip)) return res.status(429).json({ error: 'Too many follow-up requests. Try again later.' })
+  const auth = await verifyAuth(req, res)
+  if (!auth) return
+
+  const { user, supabase } = auth
+  const allowed = await checkRateLimit(supabase, user.id, 'quiz-followup')
+  if (!allowed) return res.status(429).json({ error: 'Rate limit exceeded. Max 30 follow-up requests per hour.' })
 
   const { action, question, answer, userAnswer, subject, difficulty, mode } = req.body || {}
 
@@ -66,7 +59,7 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-4-6',
         max_tokens: 800,
         messages: [{ role: 'user', content: prompt }],
       }),

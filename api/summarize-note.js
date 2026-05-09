@@ -1,5 +1,14 @@
+import { verifyAuth, checkRateLimit } from './_auth.js'
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+
+  const auth = await verifyAuth(req, res)
+  if (!auth) return
+
+  const { user, supabase } = auth
+  const allowed = await checkRateLimit(supabase, user.id, 'summarize-note')
+  if (!allowed) return res.status(429).json({ error: 'Rate limit exceeded. Max 15 note summaries per hour.' })
 
   const { text, subject } = req.body || {}
   if (!text?.trim()) return res.status(400).json({ error: 'Text is required.' })
@@ -29,7 +38,7 @@ ${text.slice(0, 6000)}`
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-4-6',
         max_tokens: 800,
         messages: [{ role: 'user', content: prompt }],
       }),

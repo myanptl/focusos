@@ -1,15 +1,4 @@
-const rateLimitMap = new Map()
-const WINDOW_MS = 60 * 60 * 1000
-const MAX_REQUESTS = 15
-
-function checkRateLimit(ip) {
-  const now = Date.now()
-  const cutoff = now - WINDOW_MS
-  const timestamps = (rateLimitMap.get(ip) || []).filter(t => t > cutoff)
-  if (timestamps.length >= MAX_REQUESTS) return false
-  rateLimitMap.set(ip, [...timestamps, now])
-  return true
-}
+import { verifyAuth, checkRateLimit } from './_auth.js'
 
 function buildMixedPrompt(notes, subject, numQuestions) {
   return `Generate ${numQuestions} active recall questions in MIXED format from these notes.
@@ -41,7 +30,7 @@ Return ONLY valid JSON: {"correct":boolean,"feedback":"1-2 sentence feedback","s
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-4-6',
       max_tokens: 200,
       messages: [{ role: 'user', content: prompt }],
     }),
@@ -205,8 +194,12 @@ Return ONLY valid JSON:
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket?.remoteAddress || 'unknown'
-  if (!checkRateLimit(ip)) return res.status(429).json({ error: 'Too many requests. Max 15 quiz generations per hour.' })
+  const auth = await verifyAuth(req, res)
+  if (!auth) return
+
+  const { user, supabase } = auth
+  const allowed = await checkRateLimit(supabase, user.id, 'generate-quiz')
+  if (!allowed) return res.status(429).json({ error: 'Rate limit exceeded. Max 20 quiz generations per hour.' })
 
   const {
     notes, subject, subjectType = 'Other', numQuestions = 10,
@@ -238,7 +231,7 @@ export default async function handler(req, res) {
       const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 4000, messages: [{ role: 'user', content: prompt }] }),
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4000, messages: [{ role: 'user', content: prompt }] }),
       })
       if (!anthropicRes.ok) {
         const err = await anthropicRes.json().catch(() => ({}))
@@ -262,7 +255,7 @@ export default async function handler(req, res) {
       const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 4000, messages: [{ role: 'user', content: prompt }] }),
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4000, messages: [{ role: 'user', content: prompt }] }),
       })
       if (!anthropicRes.ok) {
         const err = await anthropicRes.json().catch(() => ({}))
@@ -291,7 +284,7 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-4-6',
         max_tokens: 4000,
         messages: [{ role: 'user', content: prompt }],
       }),

@@ -38,6 +38,7 @@ export default function Notes() {
   const [exportOpen,     setExportOpen]     = useState(false)
   const [summaryPanel,   setSummaryPanel]   = useState(null)
   const [summaryLoading, setSummaryLoading] = useState(false)
+  const [previewMode,    setPreviewMode]    = useState(false)
 
   const textareaRef = useRef(null)
   const timerRef    = useRef(null)
@@ -133,15 +134,32 @@ export default function Notes() {
     }, 0)
   }
 
+  function renderMarkdown(text) {
+    return (text || '')
+      .replace(/^### (.*)/gm, '<h3 style="font-size:16px;font-weight:700;color:white;margin:14px 0 6px">$1</h3>')
+      .replace(/^## (.*)/gm,  '<h2 style="font-size:20px;font-weight:700;color:white;margin:16px 0 8px">$1</h2>')
+      .replace(/^# (.*)/gm,   '<h1 style="font-size:24px;font-weight:700;color:white;margin:20px 0 10px">$1</h1>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong style="color:white;font-weight:700">$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em style="color:#c0c0cc">$1</em>')
+      .replace(/^- (.*)/gm, '<li style="margin:4px 0 4px 16px;color:#f0f0f2;list-style:disc">$1</li>')
+      .replace(/\n\n/g, '<br/><br/>')
+      .replace(/\n/g, '<br/>')
+  }
+
   // ── Summarize ────────────────────────────────────────────
   const handleSummarize = async () => {
     if (!selectedNote?.content?.trim()) return
     setSummaryLoading(true)
     setSummaryPanel(null)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
       const res  = await fetch('/api/summarize-note', {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body:    JSON.stringify({ text: selectedNote.content, subject: selectedNote.subject }),
       })
       const data = await res.json()
@@ -331,6 +349,9 @@ export default function Notes() {
                 ? <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span className="spinner" style={{ width: 12, height: 12 }} /> Summarizing...</span>
                 : '📊 Summarize'}
             </button>
+            <button className="btn btn-ghost btn-sm" onClick={() => setPreviewMode(m => !m)} style={{ fontSize: 12 }}>
+              {previewMode ? '✏️ Edit' : '👁 Preview'}
+            </button>
 
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 6, alignItems: 'center', position: 'relative' }}>
               <button
@@ -395,26 +416,36 @@ export default function Notes() {
                   fontFamily: "'DM Sans', sans-serif", width: '100%',
                 }}
               />
-              <textarea
-                ref={textareaRef}
-                value={selectedNote.content || ''}
-                onChange={e => {
-                  const updated = {
-                    ...selectedNote,
-                    content:    e.target.value,
-                    word_count: e.target.value.trim().split(/\s+/).filter(Boolean).length,
-                  }
-                  setSelectedNote(updated)
-                  debouncedSave(updated)
-                }}
-                placeholder="Start writing... Use ## for headers, **text** for bold, - for bullets"
-                style={{
-                  flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                  resize: 'none', color: 'var(--text)', fontSize: 14, lineHeight: 1.75,
-                  fontFamily: "'DM Sans', sans-serif", minHeight: 360,
-                  padding: 0, width: '100%',
-                }}
-              />
+              {previewMode ? (
+                <div
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(selectedNote.content) }}
+                  style={{
+                    flex: 1, minHeight: 360, fontSize: 14, lineHeight: 1.75,
+                    color: '#f0f0f2', padding: 0,
+                  }}
+                />
+              ) : (
+                <textarea
+                  ref={textareaRef}
+                  value={selectedNote.content || ''}
+                  onChange={e => {
+                    const updated = {
+                      ...selectedNote,
+                      content:    e.target.value,
+                      word_count: e.target.value.trim().split(/\s+/).filter(Boolean).length,
+                    }
+                    setSelectedNote(updated)
+                    debouncedSave(updated)
+                  }}
+                  placeholder="Start writing... Use ## for headers, **text** for bold, - for bullets"
+                  style={{
+                    flex: 1, background: 'transparent', border: 'none', outline: 'none',
+                    resize: 'none', color: 'var(--text)', fontSize: 14, lineHeight: 1.75,
+                    fontFamily: "'DM Sans', sans-serif", minHeight: 360,
+                    padding: 0, width: '100%',
+                  }}
+                />
+              )}
               <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 10 }}>
                 {wordCount} word{wordCount !== 1 ? 's' : ''}
               </div>

@@ -22,7 +22,6 @@ function isOnline(last_seen) {
 }
 
 const DEFAULT_ROOMS = [
-  { name: 'Late Night Grind', description: 'For night owls studying after 9pm', room_code: 'NIGHT1' },
   { name: 'SAT Prep Squad', description: 'SAT/ACT focused study sessions', room_code: 'SATPQ1' },
   { name: 'AP Gauntlet', description: 'AP exam preparation', room_code: 'APGNT1' },
   { name: 'General Focus', description: 'Open to everyone', room_code: 'FOCUS1' },
@@ -49,6 +48,7 @@ export default function Rooms() {
 
   const [joinCode, setJoinCode] = useState('')
   const [joining, setJoining] = useState(false)
+  const [hoveredRoom, setHoveredRoom] = useState(null)
 
   useEffect(() => {
     seedAndLoad()
@@ -56,6 +56,7 @@ export default function Rooms() {
 
   async function seedAndLoad() {
     setLoading(true)
+    await supabase.from('study_rooms').delete().eq('name', 'Late Night Grind')
     try {
       const { data: existing, error: checkErr } = await supabase
         .from('study_rooms')
@@ -91,11 +92,18 @@ export default function Rooms() {
   }
 
   async function loadRooms() {
-    const { data, error } = await supabase
+    let query = supabase
       .from('study_rooms')
       .select('*, room_members(user_id, display_name, is_focusing, last_seen)')
-      .eq('is_public', true)
       .order('created_at')
+
+    if (user?.id) {
+      query = query.or(`is_public.eq.true,created_by.eq.${user.id}`)
+    } else {
+      query = query.eq('is_public', true)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       if (error.code === '42P01') {
@@ -149,6 +157,16 @@ export default function Rooms() {
     navigate(`/rooms/${data.id}`)
   }
 
+  async function handleDeleteRoom(id) {
+    const { error } = await supabase
+      .from('study_rooms')
+      .delete()
+      .eq('id', id)
+      .eq('created_by', user.id)
+    if (error) { toast('Failed to delete room.', 'error'); return }
+    setRooms(prev => prev.filter(r => r.id !== id))
+  }
+
   async function handleJoinWithCode() {
     const code = joinCode.trim().toUpperCase()
     if (!code) return
@@ -194,6 +212,87 @@ export default function Rooms() {
     )
   }
 
+  const publicRooms = rooms.filter(r => r.created_by === 'system')
+  const yourRooms = rooms.filter(r => r.created_by === user?.id)
+
+  function renderRoomCard(room, showDelete) {
+    const members = room.room_members || []
+    const onlineMembers = members.filter(m => isOnline(m.last_seen))
+    const focusingCount = onlineMembers.filter(m => m.is_focusing).length
+    const onlineCount = onlineMembers.length
+    const displayMembers = onlineMembers.slice(0, 5)
+    const extraCount = onlineMembers.length - displayMembers.length
+
+    return (
+      <div
+        key={room.id}
+        className="card"
+        style={{ display: 'flex', flexDirection: 'column', gap: 14, position: 'relative' }}
+        onMouseEnter={() => setHoveredRoom(room.id)}
+        onMouseLeave={() => setHoveredRoom(null)}
+      >
+        {showDelete && hoveredRoom === room.id && (
+          <button
+            onClick={e => { e.stopPropagation(); handleDeleteRoom(room.id) }}
+            style={{
+              position: 'absolute', top: 10, right: 10,
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--muted)', fontSize: 15, padding: 4, lineHeight: 1,
+            }}
+            title="Delete room"
+          >
+            🗑️
+          </button>
+        )}
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>{room.name}</div>
+          {room.description && (
+            <div style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.5 }}>{room.description}</div>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {displayMembers.map((m, i) => {
+              const key = m.user_id || m.display_name || String(i)
+              const color = avatarColor(key)
+              return (
+                <div key={key + i} style={{
+                  width: 28, height: 28, borderRadius: '50%',
+                  background: color,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 11, fontWeight: 700, color: '#0a0a0b',
+                  border: '2px solid var(--card)',
+                  marginLeft: i === 0 ? 0 : -8,
+                  zIndex: displayMembers.length - i,
+                  position: 'relative',
+                }}>
+                  {getInitial(m.display_name)}
+                </div>
+              )
+            })}
+          </div>
+          {extraCount > 0 && (
+            <span style={{ fontSize: 12, color: 'var(--muted)' }}>+{extraCount} more</span>
+          )}
+          {onlineMembers.length === 0 && (
+            <span style={{ fontSize: 12, color: 'var(--muted)' }}>No one online</span>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 12, color: focusingCount > 0 ? 'var(--accent)' : 'var(--muted)' }}>
+            {focusingCount > 0 ? `${focusingCount} focusing now 🔥` : `${onlineCount} online`}
+          </span>
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => navigate(`/rooms/${room.id}`)}
+          >
+            Join Room →
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
     <div className="page-fade" style={{ background: 'transparent' }}>
@@ -214,74 +313,37 @@ export default function Rooms() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
-        {rooms.map(room => {
-          const members = room.room_members || []
-          const onlineMembers = members.filter(m => isOnline(m.last_seen))
-          const focusingCount = onlineMembers.filter(m => m.is_focusing).length
-          const onlineCount = onlineMembers.length
-          const displayMembers = members.slice(0, 5)
-          const extraCount = members.length - displayMembers.length
-
-          return (
-            <div key={room.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>{room.name}</div>
-                {room.description && (
-                  <div style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.5 }}>{room.description}</div>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  {displayMembers.map((m, i) => {
-                    const key = m.user_id || m.display_name || String(i)
-                    const color = avatarColor(key)
-                    return (
-                      <div key={key + i} style={{
-                        width: 28, height: 28, borderRadius: '50%',
-                        background: color,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 11, fontWeight: 700, color: '#0a0a0b',
-                        border: '2px solid var(--card)',
-                        marginLeft: i === 0 ? 0 : -8,
-                        zIndex: displayMembers.length - i,
-                        position: 'relative',
-                      }}>
-                        {getInitial(m.display_name)}
-                      </div>
-                    )
-                  })}
-                </div>
-                {extraCount > 0 && (
-                  <span style={{ fontSize: 12, color: 'var(--muted)' }}>+{extraCount} more</span>
-                )}
-                {members.length === 0 && (
-                  <span style={{ fontSize: 12, color: 'var(--muted)' }}>No members yet</span>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 12, color: focusingCount > 0 ? 'var(--accent)' : 'var(--muted)' }}>
-                  {focusingCount > 0 ? `${focusingCount} focusing now 🔥` : `${onlineCount} online`}
-                </span>
-                <button
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => navigate(`/rooms/${room.id}`)}
-                >
-                  Join Room →
-                </button>
-              </div>
-            </div>
-          )
-        })}
+      <div style={{ marginBottom: 36 }}>
+        <div style={{
+          fontSize: 11, fontWeight: 700, letterSpacing: '0.12em',
+          color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 14,
+        }}>Public Rooms</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+          {publicRooms.map(room => renderRoomCard(room, false))}
+        </div>
       </div>
 
-      {rooms.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--muted)', fontSize: 14 }}>
-          No public rooms yet. Create one to get started!
-        </div>
-      )}
+      <div>
+        <div style={{
+          fontSize: 11, fontWeight: 700, letterSpacing: '0.12em',
+          color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 14,
+        }}>Your Rooms</div>
+        {yourRooms.length === 0 ? (
+          <div style={{ fontSize: 14, color: 'var(--muted)' }}>
+            No rooms created yet.{' '}
+            <button
+              onClick={() => { setRoomName(''); setRoomDesc(''); setIsPublic(true); setMaxMembers(20); setCreateError(''); setCreateOpen(true) }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: 14, padding: 0 }}
+            >
+              Create your first room →
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+            {yourRooms.map(room => renderRoomCard(room, true))}
+          </div>
+        )}
+      </div>
     </div>
 
       {createOpen && (

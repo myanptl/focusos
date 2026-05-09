@@ -7,7 +7,12 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\myan_\\\\Claude Project\\\\focusos\" -Recurse -Name)",
       "Bash(Start-Sleep -Seconds 3)",
       "mcp__ide__getDiagnostics",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "mcp__claude_ai_Supabase__list_projects",
+      "mcp__claude_ai_Supabase__execute_sql",
+      "mcp__claude_ai_Supabase__apply_migration",
+      "Bash(npx vite *)",
+      "Bash(git add *)"
     ]
   }
 }

@@ -297,10 +297,14 @@ export default function Timer() {
   const profileLoadedRef  = useRef(false)
   const runningRef        = useRef(false)
   const phaseRef          = useRef('focus')
+  const timeLeftRef       = useRef(initFocus * 60)
+  const focusDurationRef  = useRef(initFocus * 60)
 
   // keep refs in sync
   useEffect(() => { runningRef.current = running }, [running])
   useEffect(() => { phaseRef.current = phase }, [phase])
+  useEffect(() => { timeLeftRef.current = timeLeft }, [timeLeft])
+  useEffect(() => { focusDurationRef.current = focusDuration }, [focusDuration])
   useEffect(() => { tabSwitchCountRef.current = tabSwitchCount }, [tabSwitchCount])
   useEffect(() => { liveNoteRef.current = liveNote }, [liveNote])
 
@@ -345,6 +349,23 @@ export default function Timer() {
   }, [profile])
 
   useEffect(() => { if (user) { loadTodayData(); loadGoals() } }, [user])
+
+  // ── Flush partial session on tab close ───────────────
+  useEffect(() => {
+    function handleBeforeUnload() {
+      if (!runningRef.current || phaseRef.current !== 'focus') return
+      const elapsed = focusDurationRef.current - timeLeftRef.current
+      if (elapsed < 60 || !user?.id) return
+      const blob = new Blob([JSON.stringify({
+        user_id: user.id,
+        duration_minutes: Math.floor(elapsed / 60),
+        session_date: new Date().toISOString().split('T')[0],
+      })], { type: 'application/json' })
+      navigator.sendBeacon('/api/save-session', blob)
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [user])
   useEffect(() => { sessionsTodayRef.current = sessionsToday }, [sessionsToday])
   useEffect(() => () => clearTimeout(recTimerRef.current), [])
 

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ToastProvider } from './components/Toast'
+import ErrorBoundary from './components/ErrorBoundary'
 import Nav from './components/Nav'
 import Footer from './components/Footer'
 import Landing from './pages/Landing'
@@ -22,6 +23,7 @@ import Settings from './pages/Settings'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
 import Support from './pages/Support'
+import NotFound from './pages/NotFound'
 
 function ProtectedRoute({ children }) {
   const { user, profile, loading } = useAuth()
@@ -103,19 +105,21 @@ function AppRoutes() {
       <Route path="/terms"   element={<LegalShell><Terms /></LegalShell>} />
       <Route path="/support" element={<LegalShell><Support /></LegalShell>} />
 
-      <Route path="*" element={<Navigate to={user ? '/timer' : '/'} replace />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   )
 }
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <ToastProvider>
-          <AppRoutes />
-        </ToastProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <ToastProvider>
+            <AppRoutes />
+          </ToastProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }

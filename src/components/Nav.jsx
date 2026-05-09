@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 
 const tabs = [
@@ -17,6 +17,14 @@ export default function Nav() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [mobileOpen,   setMobileOpen]   = useState(false)
+  const [isMobile,     setIsMobile]     = useState(window.innerWidth < 768)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   async function handleSignOut() {
     await signOut()
@@ -28,6 +36,7 @@ export default function Nav() {
   const streak = profile?.streak_count ?? 0
 
   return (
+    <>
     <nav style={{
       position: 'sticky', top: 0, zIndex: 100,
       background: 'rgba(10,10,11,0.85)',
@@ -49,21 +58,35 @@ export default function Nav() {
         </span>
       </div>
 
-      <div style={{ display: 'flex', gap: 4, overflowX: 'auto', flex: 1, scrollbarWidth: 'none' }}>
-        {tabs.map(t => (
-          <NavLink key={t.to} to={t.to} style={({ isActive }) => ({
-            padding: '5px 12px', borderRadius: 20, fontSize: 13, fontWeight: 500,
-            textDecoration: 'none', whiteSpace: 'nowrap', transition: 'all 0.15s',
-            color: isActive ? 'var(--accent)' : 'var(--muted)',
-            background: isActive ? 'rgba(181,242,58,0.1)' : 'transparent',
-            border: isActive ? '1px solid rgba(181,242,58,0.25)' : '1px solid transparent',
-          })}>
-            {t.label}
-          </NavLink>
-        ))}
-      </div>
+      {!isMobile && (
+        <div style={{ display: 'flex', gap: 4, overflowX: 'auto', flex: 1, scrollbarWidth: 'none' }}>
+          {tabs.map(t => (
+            <NavLink key={t.to} to={t.to} style={({ isActive }) => ({
+              padding: '5px 12px', borderRadius: 20, fontSize: 13, fontWeight: 500,
+              textDecoration: 'none', whiteSpace: 'nowrap', transition: 'all 0.15s',
+              color: isActive ? 'var(--accent)' : 'var(--muted)',
+              background: isActive ? 'rgba(181,242,58,0.1)' : 'transparent',
+              border: isActive ? '1px solid rgba(181,242,58,0.25)' : '1px solid transparent',
+            })}>
+              {t.label}
+            </NavLink>
+          ))}
+        </div>
+      )}
+      {isMobile && <div style={{ flex: 1 }} />}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+        {isMobile && (
+          <button
+            onClick={() => setMobileOpen(true)}
+            style={{
+              background: 'none', border: '1px solid var(--border)',
+              color: 'var(--text)', fontSize: 18, cursor: 'pointer',
+              borderRadius: 8, width: 34, height: 34,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >☰</button>
+        )}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 5,
           background: 'rgba(242,199,90,0.1)', border: '1px solid rgba(242,199,90,0.25)',
@@ -117,5 +140,47 @@ export default function Nav() {
         </div>
       </div>
     </nav>
+
+    {/* Mobile full-screen menu */}
+    {mobileOpen && (
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: '#0a0a0b',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', gap: 8,
+      }}>
+        <button
+          onClick={() => setMobileOpen(false)}
+          style={{
+            position: 'absolute', top: 20, right: 20,
+            background: 'none', border: 'none', color: 'var(--muted)',
+            fontSize: 24, cursor: 'pointer', lineHeight: 1,
+          }}
+        >✕</button>
+        {tabs.map(t => (
+          <NavLink
+            key={t.to} to={t.to}
+            onClick={() => setMobileOpen(false)}
+            style={({ isActive }) => ({
+              fontSize: 24, fontWeight: 700, color: isActive ? 'var(--accent)' : 'white',
+              textDecoration: 'none', padding: '10px 24px', borderRadius: 12,
+              background: isActive ? 'rgba(181,242,58,0.08)' : 'transparent',
+              width: 220, textAlign: 'center',
+            })}
+          >
+            {t.label}
+          </NavLink>
+        ))}
+        <button
+          onClick={handleSignOut}
+          style={{
+            marginTop: 16, fontSize: 15, fontWeight: 600,
+            color: 'var(--red)', background: 'transparent', border: 'none',
+            cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+          }}
+        >Sign Out</button>
+      </div>
+    )}
+    </>
   )
 }

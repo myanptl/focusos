@@ -1,7 +1,15 @@
 import { YoutubeTranscript } from 'youtube-transcript'
+import { verifyAuth, checkRateLimit } from './_auth.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+
+  const auth = await verifyAuth(req, res)
+  if (!auth) return
+
+  const { user, supabase } = auth
+  const allowed = await checkRateLimit(supabase, user.id, 'summarize-video')
+  if (!allowed) return res.status(429).json({ error: 'Rate limit exceeded. Max 10 video summaries per hour.' })
 
   const { url, subject, transcript: manualTranscript } = req.body || {}
   if (!url?.trim()) return res.status(400).json({ error: 'YouTube URL is required.' })
@@ -60,7 +68,7 @@ Transcript: ${transcript.slice(0, 12000)}`
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-4-6',
         max_tokens: 3000,
         messages: [{ role: 'user', content: prompt }],
       }),

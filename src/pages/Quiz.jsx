@@ -19,6 +19,7 @@ const MODES = [
   { key: 'fill_blank',      label: 'Fill in Blank' },
   { key: 'explain',         label: 'Explain It' },
   { key: 'mixed',           label: '🎲 Mixed' },
+  { key: 'flashcards',      label: '🗂 Flashcards' },
 ]
 
 const TYPE_BADGES = {
@@ -29,8 +30,6 @@ const TYPE_BADGES = {
   true_false:      { label: 'T/F', bg: 'rgba(181,242,58,0.15)',  fg: '#b5f23a' },
 }
 const DIFFICULTIES = ['Basic', 'Standard', 'Hard', 'Exam Style']
-const TONES        = ['Simple', 'Exam-Style', 'Tricky']
-const SUBJECTS     = ['Science', 'History', 'English', 'Math', 'Other']
 const SUBJECT_ICONS = { Science: '🔬', History: '📜', English: '📖', Math: '📐', Other: '✏️' }
 
 const CONF_LABELS = ['', 'Not sure', 'Vague idea', 'Mostly sure', 'Very sure', 'Certain']
@@ -51,6 +50,10 @@ export default function Quiz() {
   const [difficulty,  setDifficulty]  = useState('Standard')
   const [tone,        setTone]        = useState('Simple')
   const [timed,       setTimed]       = useState(false)
+
+  // ── Flashcard state ────────────────────────────────────
+  const [fcDeck,    setFcDeck]    = useState([])
+  const [fcFlipped, setFcFlipped] = useState(false)
 
   // ── Quiz state ─────────────────────────────────────────
   const [phase,          setPhase]          = useState('setup')
@@ -183,15 +186,21 @@ export default function Quiz() {
     e.target.value = ''
   }
 
+  async function getAuthToken() {
+    const { data: { session } } = await supabase.auth.getSession()
+    return session?.access_token
+  }
+
   async function summarizeVideo() {
     setVideoError('')
     setVideoLoading(true)
     try {
       const body = { url: videoUrl, subject: videoSubject }
       if (manualTranscript.trim()) body.transcript = manualTranscript
+      const token = await getAuthToken()
       const res = await fetch('/api/summarize-video', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify(body),
       })
       const data = await res.json()
@@ -221,12 +230,14 @@ export default function Quiz() {
     setError('')
     setLoading(true)
     try {
+      const apiMode = mode === 'flashcards' ? 'short_answer' : mode
       const body = sourceMode === 'bank'
-        ? { source: 'questionbank', bankSubject, numQuestions: count, mode, difficulty, tone }
-        : { notes, subject, subjectType, numQuestions: count, mode, difficulty, tone }
+        ? { source: 'questionbank', bankSubject, numQuestions: count, mode: apiMode, difficulty, tone }
+        : { notes, subject, subjectType, numQuestions: count, mode: apiMode, difficulty, tone }
+      const token = await getAuthToken()
       const res = await fetch('/api/generate-quiz', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify(body),
       })
       const data = await res.json()
@@ -240,13 +251,18 @@ export default function Quiz() {
         repetitions: r.repetitions, ease_factor: r.ease_factor,
         interval_days: r.interval_days, review_count: r.review_count,
       }))
-      setQuestions([...reviewQs, ...data.questions])
+      const allQs = [...reviewQs, ...data.questions]
+      setQuestions(allQs)
       setScores({})
       setConfidences({})
       setQTimes({})
       setCurrent(0)
       setResults(null)
       setPhase('quiz')
+      if (mode === 'flashcards') {
+        setFcDeck(allQs.map((_, i) => i))
+        setFcFlipped(false)
+      }
     } catch (err) {
       setError(err.message || 'Failed to generate quiz.')
     } finally {
@@ -276,9 +292,10 @@ export default function Quiz() {
     const q = harderQ || questions[current]
     setFollowupLoading(action)
     try {
+      const token = await getAuthToken()
       const res = await fetch('/api/quiz-followup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({
           action,
           question: q.question,
@@ -302,9 +319,10 @@ export default function Quiz() {
     const q = activeQ
     setSaGrading(true)
     try {
+      const token = await getAuthToken()
       const res = await fetch('/api/generate-quiz', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({ mode: 'grade', question: q.question, correctAnswer: q.answer, userAnswer }),
       })
       const data = await res.json()
@@ -411,7 +429,24 @@ export default function Quiz() {
 
   function restart() {
     setPhase('setup'); setQuestions([]); setScores({}); setResults(null)
+    setFcDeck([]); setFcFlipped(false)
     if (user) loadDueReview()
+  }
+
+  function fcHandleGotIt() {
+    const newDeck = fcDeck.slice(1)
+    setFcDeck(newDeck)
+    setFcFlipped(false)
+    if (newDeck.length === 0) {
+      const finalS = {}
+      questions.forEach((_, i) => { finalS[i] = 'got' })
+      finishQuiz(finalS, {}, {})
+    }
+  }
+
+  function fcHandleReviewAgain() {
+    setFcDeck(prev => [...prev.slice(1), prev[0]])
+    setFcFlipped(false)
   }
 
   const activeQ    = harderQ || questions[current]
@@ -444,7 +479,7 @@ export default function Quiz() {
           </div>
         </div>
 
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* Source toggle */}
           <div>
             <label className="label" style={{ display: 'block', marginBottom: 8 }}>Question Source</label>
@@ -584,40 +619,19 @@ export default function Quiz() {
           </div>
           ) : (
           <div>
-            <label className="label" style={{ display: 'block', marginBottom: 8 }}>Your Notes</label>
-
-            {/* Drop zone */}
+            <label className="label" style={{ display: 'block', marginBottom: 6 }}>Your Notes</label>
             <div
+              style={{ position: 'relative' }}
               onDragOver={e => { e.preventDefault(); setDragOver(true) }}
               onDragLeave={() => setDragOver(false)}
               onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                border: dragOver ? '2px dashed var(--accent)' : '2px dashed rgba(255,255,255,0.15)',
-                borderRadius: 10, padding: '14px 16px', textAlign: 'center',
-                cursor: 'pointer', marginBottom: 10,
-                background: dragOver ? 'rgba(181,242,58,0.04)' : 'transparent',
-                transition: 'border-color 0.15s, background 0.15s',
-              }}
             >
-              <div style={{ fontSize: 22, marginBottom: 4 }}>📄</div>
-              <div style={{ fontSize: 13, color: 'var(--muted)' }}>Drop a file here or click to browse</div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 3 }}>.txt · .md supported · .pdf · .docx: paste as text</div>
-              <input ref={fileInputRef} type="file" accept=".txt,.md,.pdf,.docx" onChange={handleFileInput} style={{ display: 'none' }} />
-            </div>
-
-            {/* Divider */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, color: 'var(--muted)', fontSize: 11 }}>
-              <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-              or type / paste below
-              <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-            </div>
-
-            {/* Textarea + clear button */}
-            <div style={{ position: 'relative' }}>
-              <textarea value={notes} onChange={e => setNotes(e.target.value)}
+              <textarea
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
                 placeholder="Paste your notes here... The more detail, the better the questions."
-                rows={6} style={{ resize: 'vertical', lineHeight: 1.6 }} />
+                style={{ resize: 'vertical', lineHeight: 1.6, height: 140, borderColor: dragOver ? 'var(--accent)' : undefined }}
+              />
               {notes && (
                 <button onClick={() => setNotes('')} style={{
                   position: 'absolute', top: 8, right: 8,
@@ -627,98 +641,60 @@ export default function Quiz() {
                 }}>✕</button>
               )}
             </div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>drag a .txt file or paste text</div>
+            <input ref={fileInputRef} type="file" accept=".txt,.md,.pdf,.docx" onChange={handleFileInput} style={{ display: 'none' }} />
           </div>
           )}
 
           {sourceMode !== 'video' && (<>
-          {sourceMode === 'notes' && (
-          <>
-          <div>
-            <label className="label" style={{ display: 'block', marginBottom: 6 }}>Subject (optional)</label>
-            <input type="text" placeholder="e.g. AP Biology, SAT Math" value={subject} onChange={e => setSubject(e.target.value)} />
-          </div>
 
-          <div>
-            <label className="label" style={{ display: 'block', marginBottom: 8 }}>Subject Type</label>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {SUBJECTS.map(s => (
-                <button key={s} className={`pill ${subjectType === s ? 'active' : ''}`}
-                  onClick={() => setSubjectType(s)} style={{ fontSize: 12 }}>{SUBJECT_ICONS[s]} {s}</button>
+          {sourceMode === 'notes' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input
+                type="text"
+                placeholder="Subject (optional)"
+                value={subject}
+                onChange={e => setSubject(e.target.value)}
+                style={{ flex: 1, fontSize: 13 }}
+              />
+              {[5, 10, 15].map(n => (
+                <button key={n} className={`pill${count === n ? ' active' : ''}`}
+                  onClick={() => setCount(n)} style={{ fontSize: 12, padding: '6px 12px' }}>{n}</button>
               ))}
             </div>
-          </div>
-          </>
           )}
 
-          <div>
-            <label className="label" style={{ display: 'block', marginBottom: 8 }}>Quiz Mode</label>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {MODES.map(m => m.key === 'mixed' ? (
-                <button key="mixed"
-                  onClick={() => setMode('mixed')}
-                  style={{
-                    fontSize: 12, padding: '5px 12px', borderRadius: 20, cursor: 'pointer',
-                    background: mode === 'mixed' ? 'rgba(181,242,58,0.08)' : 'transparent',
-                    border: '1.5px solid transparent',
-                    backgroundClip: 'padding-box',
-                    outline: mode === 'mixed' ? '1.5px solid var(--accent)' : '1.5px solid transparent',
-                    boxShadow: mode === 'mixed' ? 'none' : '0 0 0 1.5px rgba(255,255,255,0.12)',
-                    color: mode === 'mixed' ? 'var(--accent)' : 'var(--muted)',
-                    transition: 'all 0.15s',
-                  }}
-                >{m.label}</button>
-              ) : (
-                <button key={m.key} className={`pill ${mode === m.key ? 'active' : ''}`}
-                  onClick={() => setMode(m.key)} style={{ fontSize: 12 }}>{m.label}</button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="label" style={{ display: 'block', marginBottom: 8 }}>Difficulty</label>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {DIFFICULTIES.map(d => (
-                <button key={d} className={`pill ${difficulty === d ? 'active' : ''}`}
-                  onClick={() => setDifficulty(d)} style={{ fontSize: 12 }}>{d}</button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="label" style={{ display: 'block', marginBottom: 8 }}>Tone</label>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {TONES.map(t => (
-                <button key={t} className={`pill ${tone === t ? 'active' : ''}`}
-                  onClick={() => setTone(t)} style={{ flex: 1, fontSize: 12 }}>{t}</button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="label" style={{ display: 'block', marginBottom: 8 }}>Questions</label>
+          {sourceMode === 'bank' && (
             <div style={{ display: 'flex', gap: 6 }}>
               {[5, 10, 15].map(n => (
-                <button key={n} className={`pill ${count === n ? 'active' : ''}`}
-                  onClick={() => setCount(n)} style={{ flex: 1 }}>{n}</button>
+                <button key={n} className={`pill${count === n ? ' active' : ''}`}
+                  onClick={() => setCount(n)} style={{ fontSize: 12, padding: '6px 12px' }}>{n} Qs</button>
               ))}
             </div>
-          </div>
+          )}
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 0' }}>
-            <div>
-              <span className="label">Timed Mode</span>
-              <span style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 8 }}>85s per question</span>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="label" style={{ marginBottom: 6 }}>Quiz Mode</div>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                {MODES.map(m => (
+                  <button key={m.key} className={`pill${mode === m.key ? ' active' : ''}`}
+                    onClick={() => setMode(m.key)} style={{ fontSize: 12, padding: '6px 12px' }}>{m.label}</button>
+                ))}
+              </div>
             </div>
-            <button onClick={() => setTimed(v => !v)} style={{
-              width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', padding: 0,
-              background: timed ? 'var(--accent)' : 'var(--border)', position: 'relative', transition: 'background 0.2s',
-            }}>
-              <span style={{
-                position: 'absolute', top: 3, left: timed ? 23 : 3,
-                width: 18, height: 18, borderRadius: '50%',
-                background: timed ? '#0a0a0b' : 'var(--muted)', transition: 'left 0.2s',
-              }} />
-            </button>
+            <div>
+              <div className="label" style={{ marginBottom: 6 }}>Difficulty</div>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                {DIFFICULTIES.map(d => {
+                  const short = d === 'Standard' ? 'Std' : d === 'Exam Style' ? 'Exam' : d
+                  return (
+                    <button key={d} className={`pill${difficulty === d ? ' active' : ''}`}
+                      onClick={() => setDifficulty(d)} style={{ fontSize: 12, padding: '6px 12px' }}>{short}</button>
+                  )
+                })}
+              </div>
+            </div>
           </div>
 
           {dueReview.length > 0 && (
@@ -734,11 +710,32 @@ export default function Quiz() {
             </div>
           )}
 
-          <button className="btn btn-accent btn-full btn-lg" onClick={generateQuiz} disabled={loading || (sourceMode === 'notes' && !notes.trim())}>
-            {loading
-              ? <><span className="spinner" style={{ width: 16, height: 16 }} /> Generating with Claude...</>
-              : 'GENERATE QUIZ'}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+              <span style={{ fontSize: 12, color: 'var(--muted)' }}>⏱ Timed 85s</span>
+              <button onClick={() => setTimed(v => !v)} style={{
+                width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', padding: 0,
+                background: timed ? 'var(--accent)' : 'var(--border)', position: 'relative', transition: 'background 0.2s',
+              }}>
+                <span style={{
+                  position: 'absolute', top: 3, left: timed ? 23 : 3,
+                  width: 18, height: 18, borderRadius: '50%',
+                  background: timed ? '#0a0a0b' : 'var(--muted)', transition: 'left 0.2s',
+                }} />
+              </button>
+            </div>
+            <button
+              className="btn btn-accent"
+              style={{ flex: 1, height: 44, fontSize: 14, fontWeight: 700 }}
+              onClick={generateQuiz}
+              disabled={loading || (sourceMode === 'notes' && !notes.trim())}
+            >
+              {loading
+                ? <><span className="spinner" style={{ width: 16, height: 16 }} /> Generating...</>
+                : 'GENERATE →'}
+            </button>
+          </div>
+
           </>)}
         </div>
       </div>
@@ -898,8 +895,87 @@ export default function Quiz() {
           )
         )}
 
+        {/* ── Flashcard mode ───────────────────────────── */}
+        {phase === 'quiz' && mode === 'flashcards' && questions.length > 0 && (() => {
+          const totalCards = questions.length
+          const uniqueRemaining = new Set(fcDeck).size
+          const doneCount = totalCards - uniqueRemaining
+          const q = fcDeck.length > 0 ? questions[fcDeck[0]] : null
+          if (!q) return null
+          return (
+            <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span className="label">Flashcards — {doneCount}/{totalCards} mastered</span>
+                  <span style={{ fontSize: 12, color: 'var(--muted)' }}>{fcDeck.length} remaining</span>
+                </div>
+                <div className="progress-bar">
+                  <div className="progress-bar-fill" style={{ width: `${(doneCount / totalCards) * 100}%` }} />
+                </div>
+              </div>
+
+              <div
+                onClick={() => setFcFlipped(f => !f)}
+                style={{
+                  cursor: 'pointer', minHeight: 220, borderRadius: 14,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '32px 24px', textAlign: 'center', userSelect: 'none',
+                  transition: 'background 0.25s, border-color 0.25s',
+                  background: fcFlipped ? 'rgba(181,242,58,0.06)' : 'var(--card2)',
+                  border: `2px solid ${fcFlipped ? 'rgba(181,242,58,0.3)' : 'var(--border)'}`,
+                  position: 'relative', flexDirection: 'column', gap: 12,
+                }}
+              >
+                <div style={{ position: 'absolute', top: 12, fontSize: 11, color: 'var(--muted)' }}>
+                  {fcFlipped ? '↩ tap to flip back' : '👆 tap to reveal answer'}
+                </div>
+                {fcFlipped ? (
+                  <div style={{ fontSize: 16, lineHeight: 1.6, color: 'var(--accent)', fontWeight: 600 }}>
+                    {q.answer}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 18, fontWeight: 600, lineHeight: 1.5 }}>
+                    {q.question}
+                  </div>
+                )}
+              </div>
+
+              {fcFlipped ? (
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button
+                    onClick={fcHandleReviewAgain}
+                    style={{
+                      flex: 1, padding: '14px 0', fontSize: 14, fontWeight: 700,
+                      background: 'rgba(242,90,90,0.08)', border: '1px solid rgba(242,90,90,0.3)',
+                      color: 'var(--red)', borderRadius: 10, cursor: 'pointer',
+                      fontFamily: "'DM Sans', sans-serif",
+                    }}
+                  >🔄 Review Again</button>
+                  <button
+                    onClick={fcHandleGotIt}
+                    style={{
+                      flex: 1, padding: '14px 0', fontSize: 14, fontWeight: 700,
+                      background: 'rgba(181,242,58,0.1)', border: '1px solid rgba(181,242,58,0.3)',
+                      color: 'var(--accent)', borderRadius: 10, cursor: 'pointer',
+                      fontFamily: "'DM Sans', sans-serif",
+                    }}
+                  >✅ Got It</button>
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--muted)' }}>
+                  Click the card to reveal the answer
+                </div>
+              )}
+
+              <button className="btn btn-ghost btn-sm" onClick={restart} style={{ alignSelf: 'flex-start', fontSize: 12 }}>
+                ← Back to Setup
+              </button>
+            </div>
+          )
+        })()}
+
         {/* ── Quiz card ─────────────────────────────────── */}
-        {phase === 'quiz' && activeQ && (
+        {phase === 'quiz' && activeQ && mode !== 'flashcards' && (
           <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'relative', overflow: 'hidden' }}>
 
             {/* Subject watermark */}

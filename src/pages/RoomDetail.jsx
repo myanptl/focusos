@@ -98,8 +98,8 @@ export default function RoomDetail() {
   const timerRef = useRef(null)
   const tickRef = useRef(0)
   const presenceRef = useRef(null)
+  const channelRef = useRef(null)
   const chatEndRef = useRef(null)
-  const taskDebounceRef = useRef(null)
   const timerRunningRef = useRef(false)
 
   useEffect(() => { timerRunningRef.current = timerRunning }, [timerRunning])
@@ -164,7 +164,11 @@ export default function RoomDetail() {
   }
 
   function subscribeRealtime() {
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current)
+    }
     const channel = supabase.channel('room:' + roomId)
+    channelRef.current = channel
 
     channel.on('postgres_changes', {
       event: '*',
@@ -238,27 +242,46 @@ export default function RoomDetail() {
   async function cleanup() {
     clearInterval(presenceRef.current)
     clearInterval(timerRef.current)
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current)
+      channelRef.current = null
+    }
 
     if (user) {
-      await supabase.from('room_members')
-        .update({ is_focusing: false, last_seen: new Date().toISOString() })
+      await supabase
+        .from('room_members')
+        .delete()
         .eq('room_id', roomId)
         .eq('user_id', user.id)
     }
   }
 
+  async function cleanStaleMembers() {
+    const twoMinsAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString()
+    await supabase
+      .from('room_members')
+      .delete()
+      .eq('room_id', roomId)
+      .lt('last_seen', twoMinsAgo)
+  }
+
   useEffect(() => {
-    const handler = async () => {
-      if (user) {
-        await supabase.from('room_members')
-          .update({ is_focusing: false, last_seen: new Date().toISOString() })
-          .eq('room_id', roomId)
-          .eq('user_id', user.id)
-      }
+    cleanStaleMembers()
+    const id = setInterval(cleanStaleMembers, 60000)
+    return () => clearInterval(id)
+  }, [roomId])
+
+  useEffect(() => {
+    const handler = () => {
+      supabase
+        .from('room_members')
+        .delete()
+        .eq('room_id', roomId)
+        .eq('user_id', user?.id)
     }
     window.addEventListener('beforeunload', handler)
     return () => window.removeEventListener('beforeunload', handler)
-  }, [roomId, user])
+  }, [roomId, user?.id])
 
   useEffect(() => {
     const id = setInterval(() => setTick(t => t + 1), 60000)
@@ -350,14 +373,22 @@ export default function RoomDetail() {
     setSessionComplete(false)
   }
 
-  function handleTaskInputChange(val) {
-    setTaskInput(val)
-    clearTimeout(taskDebounceRef.current)
-    taskDebounceRef.current = setTimeout(async () => {
-      setCurrentTask(val)
-      await supabase.from('room_members').update({ current_task: val })
-        .eq('room_id', roomId).eq('user_id', user.id)
-    }, 1000)
+  async function handleSetTask() {
+    const val = taskInput.trim()
+    setCurrentTask(val)
+    await supabase.from('room_members')
+      .update({ current_task: val })
+      .eq('room_id', roomId)
+      .eq('user_id', user.id)
+  }
+
+  async function handleClearTask() {
+    setCurrentTask('')
+    setTaskInput('')
+    await supabase.from('room_members')
+      .update({ current_task: '' })
+      .eq('room_id', roomId)
+      .eq('user_id', user.id)
   }
 
   async function sendMessage() {
@@ -377,10 +408,11 @@ export default function RoomDetail() {
   }
 
   async function handleLeave() {
-    await supabase.from('room_members').update({
-      is_focusing: false,
-      last_seen: new Date().toISOString(),
-    }).eq('room_id', roomId).eq('user_id', user.id)
+    await supabase
+      .from('room_members')
+      .delete()
+      .eq('room_id', roomId)
+      .eq('user_id', user.id)
     navigate('/rooms')
   }
 
@@ -476,6 +508,36 @@ export default function RoomDetail() {
               <span> · <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{focusingCount} focusing now 🔥</span></span>
             )}
           </div>
+
+          <button
+            disabled
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 16px',
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: '8px',
+              color: '#9494a0',
+              fontSize: '13px',
+              fontWeight: 500,
+              cursor: 'not-allowed',
+              marginTop: '12px',
+            }}
+          >
+            🎙️ Voice Chat
+            <span style={{
+              fontSize: '10px',
+              fontWeight: 600,
+              letterSpacing: '1px',
+              color: 'var(--accent)',
+              background: 'rgba(181,242,58,0.1)',
+              border: '1px solid rgba(181,242,58,0.2)',
+              padding: '2px 6px',
+              borderRadius: '4px',
+            }}>V2</span>
+          </button>
         </div>
 
         {/* Members list */}
@@ -653,24 +715,29 @@ export default function RoomDetail() {
         {/* Current Task Card */}
         <div className="card">
           <div className="label" style={{ marginBottom: 10 }}>What are you working on?</div>
-          {currentTask && (
-            <div style={{
-              marginBottom: 12, padding: '10px 14px', borderRadius: 8,
-              background: 'rgba(181,242,58,0.06)', border: '1px solid rgba(181,242,58,0.2)',
-              fontSize: 14, color: 'var(--accent)', fontWeight: 600,
-            }}>
-              {currentTask}
-            </div>
-          )}
-          <input
-            placeholder="e.g. Chapter 4 review, practice problems..."
-            value={taskInput}
-            onChange={e => handleTaskInputChange(e.target.value)}
-            maxLength={120}
-            style={{ fontSize: 13 }}
-          />
-          <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 5 }}>
-            Auto-saves · visible to room members
+          <div style={{ display: 'flex', gap: 6 }}>
+            <input
+              placeholder="e.g. Chapter 4 review, practice problems..."
+              value={taskInput}
+              onChange={e => setTaskInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSetTask()}
+              maxLength={120}
+              style={{ flex: 1, fontSize: 13 }}
+            />
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={handleSetTask}
+              disabled={!taskInput.trim()}
+            >
+              Set
+            </button>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={handleClearTask}
+              disabled={!currentTask}
+            >
+              ×
+            </button>
           </div>
         </div>
 
