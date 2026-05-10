@@ -60,7 +60,8 @@ export default function Settings() {
   const [showCitations, setShowCitations] = useState(false)
   const [stats, setStats] = useState({ sessions: 0, mins: 0, goals: 0 })
   const [aiModelPref, setAiModelPref] = useState(profile?.ai_model_preference || 'auto')
-  const [ollamaStatus, setOllamaStatus] = useState(null) // null=checking, true=running, false=offline
+  const [ollamaStatus, setOllamaStatus] = useState(null) // null=pending, 'running', 'offline'
+  const [ollamaChecking, setOllamaChecking] = useState(false)
 
   useEffect(() => { loadStats(); checkOllama() }, [user])
   useEffect(() => {
@@ -74,10 +75,21 @@ export default function Settings() {
   async function checkOllama() {
     try {
       const res = await fetch('http://localhost:11434/api/tags', { signal: AbortSignal.timeout(3000) })
-      setOllamaStatus(res.ok)
+      setOllamaStatus(res.ok ? 'running' : 'offline')
     } catch {
-      setOllamaStatus(false)
+      setOllamaStatus('offline')
     }
+  }
+
+  async function recheckOllama() {
+    setOllamaChecking(true)
+    try {
+      const res = await fetch('http://localhost:11434/api/tags', { signal: AbortSignal.timeout(3000) })
+      setOllamaStatus(res.ok ? 'running' : 'offline')
+    } catch {
+      setOllamaStatus('offline')
+    }
+    setOllamaChecking(false)
   }
 
   async function saveAiModelPref(pref) {
@@ -272,18 +284,22 @@ export default function Settings() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 8, background: 'var(--card2)', border: '1px solid var(--border)' }}>
-            <span style={{ fontSize: 14 }}>{ollamaStatus === null ? '⏳' : ollamaStatus ? '🟢' : '🔴'}</span>
+            <span style={{ fontSize: 14 }}>
+              {ollamaChecking || ollamaStatus === null ? '⏳' : ollamaStatus === 'running' ? '🟢' : '🔴'}
+            </span>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 12, fontWeight: 600 }}>
-                {ollamaStatus === null ? 'Checking Ollama...' : ollamaStatus ? 'Ollama running locally' : 'Ollama not detected'}
+                {ollamaChecking ? 'Checking...' : ollamaStatus === null ? 'Checking Ollama...' : ollamaStatus === 'running' ? 'Ollama running locally' : 'Ollama not detected'}
               </div>
-              {ollamaStatus === false && (
+              {ollamaStatus === 'offline' && !ollamaChecking && (
                 <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>
                   Install from ollama.com for free AI — then run <code style={{ background: 'rgba(255,255,255,0.08)', padding: '1px 5px', borderRadius: 4 }}>ollama pull llama3.1</code>
                 </div>
               )}
             </div>
-            <button className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 10px' }} onClick={checkOllama}>Recheck</button>
+            <button className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 10px' }} onClick={recheckOllama} disabled={ollamaChecking}>
+              {ollamaChecking ? 'Checking...' : 'Recheck'}
+            </button>
           </div>
         </Section>
       </div>
@@ -316,7 +332,14 @@ export default function Settings() {
             </div>
           </div>
           <Row label="Compact mode" sub="Reduce spacing and font sizes"
-            right={<label className="toggle"><input type="checkbox" checked={compact} onChange={async e => { setCompact(e.target.checked); await updateProfile({ compact_mode: e.target.checked }) }} /><span className="toggle-slider" /></label>}
+            right={<label className="toggle"><input type="checkbox" checked={compact} onChange={async e => {
+              const val = e.target.checked
+              setCompact(val)
+              if (val) document.body.classList.add('compact')
+              else document.body.classList.remove('compact')
+              localStorage.setItem('focusos_compact', String(val))
+              await updateProfile({ compact_mode: val })
+            }} /><span className="toggle-slider" /></label>}
           />
         </Section>
       </div>

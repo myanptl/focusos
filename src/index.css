@@ -299,3 +299,11 @@ nav, header { position: relative; z-index: 10; }
   transform: scale(0.97) !important;
   transition: transform 0.06s ease !important;
 }
+
+/* Compact mode */
+body.compact .card { padding: 12px !important; }
+body.compact .page { padding: 24px 16px !important; }
+body.compact h1, body.compact .page-title { font-size: 24px !important; }
+body.compact .stat-chip { padding: 4px 10px !important; }
+body.compact .btn-lg { height: 44px !important; }
+body.compact p, body.compact .muted { font-size: 12px !important; }

@@ -111,6 +111,7 @@ export default function Quiz() {
   const [modelUsed,        setModelUsed]        = useState(null)
   const [ollamaFallback,   setOllamaFallback]   = useState(false)
   const [generationsToday, setGenerationsToday] = useState(null)
+  const [modelPref,        setModelPref]        = useState('auto')
 
   useEffect(() => { if (user) { loadDueReview(); loadGenerationsToday() } }, [user])
 
@@ -135,6 +136,7 @@ export default function Quiz() {
       .maybeSingle()
     const isReset = !data?.claude_generations_reset_date || data.claude_generations_reset_date !== today
     setGenerationsToday(isReset ? 0 : (data?.claude_generations_today || 0))
+    setModelPref(data?.ai_model_preference || 'auto')
   }
 
   // Per-question reset + timer
@@ -767,9 +769,18 @@ export default function Quiz() {
           </div>
 
           {user && generationsToday !== null && (
-            <div style={{ textAlign: 'center', fontSize: 11, color: generationsToday >= 5 ? 'var(--amber)' : 'var(--muted)' }}>
-              {generationsToday >= 5
-                ? '🦙 Claude limit reached — using Llama 3.1 (free) today'
+            <div style={{
+              textAlign: 'center', fontSize: 11,
+              color: modelPref === 'ollama' ? 'var(--cyan)'
+                : (modelPref === 'auto' && generationsToday >= 5) ? 'var(--amber)'
+                : 'var(--muted)',
+            }}>
+              {modelPref === 'ollama'
+                ? '🦙 Using Llama 3.1 (Free)'
+                : modelPref === 'claude'
+                ? `✨ ${generationsToday}/5 Claude generations used today`
+                : generationsToday >= 5
+                ? '🦙 Switched to Llama 3.1 (free)'
                 : `✨ ${generationsToday}/5 Claude generations used today`}
             </div>
           )}

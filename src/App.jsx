@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ToastProvider } from './components/Toast'
@@ -87,6 +88,12 @@ function LegalShell({ children }) {
 function AppRoutes() {
   const { user, profile, loading } = useAuth()
   const location = useLocation()
+
+  useEffect(() => {
+    if (localStorage.getItem('focusos_compact') === 'true') {
+      document.body.classList.add('compact')
+    }
+  }, [])
 
   if (loading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

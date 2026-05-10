@@ -171,7 +171,10 @@ export async function getModelConfig(supabase, userId) {
   const modelPref = profile?.ai_model_preference || 'auto'
   const isReset = !profile?.claude_generations_reset_date || profile.claude_generations_reset_date !== today
   const generationsToday = isReset ? 0 : (profile?.claude_generations_today || 0)
-  const useOllama = modelPref === 'ollama' || (modelPref === 'auto' && generationsToday >= 5)
+  const useOllama =
+    modelPref === 'ollama' ? true :
+    modelPref === 'claude' ? false :
+    generationsToday >= 5
 
   return { useOllama, generationsToday, modelPref, today }
 }
