@@ -59,12 +59,32 @@ export default function Settings() {
   const [resetText, setResetText] = useState('')
   const [showCitations, setShowCitations] = useState(false)
   const [stats, setStats] = useState({ sessions: 0, mins: 0, goals: 0 })
+  const [aiModelPref, setAiModelPref] = useState(profile?.ai_model_preference || 'auto')
+  const [ollamaStatus, setOllamaStatus] = useState(null) // null=checking, true=running, false=offline
 
-  useEffect(() => { loadStats() }, [user])
+  useEffect(() => { loadStats(); checkOllama() }, [user])
   useEffect(() => {
     document.documentElement.style.setProperty('--accent', accent)
     document.documentElement.style.setProperty('--lime', accent)
   }, [accent])
+  useEffect(() => {
+    if (profile?.ai_model_preference) setAiModelPref(profile.ai_model_preference)
+  }, [profile])
+
+  async function checkOllama() {
+    try {
+      const res = await fetch('http://localhost:11434/api/tags', { signal: AbortSignal.timeout(3000) })
+      setOllamaStatus(res.ok)
+    } catch {
+      setOllamaStatus(false)
+    }
+  }
+
+  async function saveAiModelPref(pref) {
+    setAiModelPref(pref)
+    const err = await updateProfile({ ai_model_preference: pref })
+    if (!err) toast('AI model preference saved!', 'success')
+  }
 
   async function loadStats() {
     if (!user) return
@@ -189,6 +209,82 @@ export default function Settings() {
             right={<label className="toggle"><input type="checkbox" checked={sound} onChange={e => setSound(e.target.checked)} /><span className="toggle-slider" /></label>}
           />
           <button className="btn btn-accent btn-full" onClick={savePreferences} style={{ marginTop: 16 }}>Save Preferences</button>
+        </Section>
+      </div>
+
+      <div className="card card-top" style={{ marginBottom: 16 }}>
+        <Section title="AI Preferences">
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>AI Model</div>
+            <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 14 }}>Choose how your quizzes and notes are generated</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[
+                {
+                  key: 'auto',
+                  icon: '🤖',
+                  title: 'Auto (recommended)',
+                  desc: 'Uses Claude for best quality (5/day free), switches to Llama when limit reached',
+                  badge: null,
+                },
+                {
+                  key: 'claude',
+                  icon: '✨',
+                  title: 'Claude Always',
+                  desc: 'Always use Claude Sonnet for highest accuracy',
+                  badge: '5 free per day',
+                },
+                {
+                  key: 'ollama',
+                  icon: '🦙',
+                  title: 'Llama 3.1 (Free)',
+                  desc: 'Always use local Ollama model. Completely free, good quality.',
+                  badge: 'Requires Ollama installed',
+                },
+              ].map(opt => (
+                <button
+                  key={opt.key}
+                  onClick={() => saveAiModelPref(opt.key)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 10, border: 'none',
+                    cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
+                    background: aiModelPref === opt.key ? 'rgba(181,242,58,0.08)' : 'var(--card2)',
+                    outline: aiModelPref === opt.key ? '1.5px solid var(--accent)' : '1.5px solid var(--border)',
+                  }}
+                >
+                  <span style={{ fontSize: 22, flexShrink: 0 }}>{opt.icon}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2, color: aiModelPref === opt.key ? 'var(--accent)' : undefined }}>{opt.title}</div>
+                    <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.4 }}>{opt.desc}</div>
+                  </div>
+                  {opt.badge && (
+                    <span style={{ fontSize: 10, fontWeight: 600, background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', borderRadius: 20, padding: '2px 8px', color: 'var(--muted)', flexShrink: 0 }}>
+                      {opt.badge}
+                    </span>
+                  )}
+                  {aiModelPref === opt.key && (
+                    <span style={{ width: 16, height: 16, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ fontSize: 9, color: '#0a0a0b', fontWeight: 900 }}>✓</span>
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 8, background: 'var(--card2)', border: '1px solid var(--border)' }}>
+            <span style={{ fontSize: 14 }}>{ollamaStatus === null ? '⏳' : ollamaStatus ? '🟢' : '🔴'}</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 12, fontWeight: 600 }}>
+                {ollamaStatus === null ? 'Checking Ollama...' : ollamaStatus ? 'Ollama running locally' : 'Ollama not detected'}
+              </div>
+              {ollamaStatus === false && (
+                <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>
+                  Install from ollama.com for free AI — then run <code style={{ background: 'rgba(255,255,255,0.08)', padding: '1px 5px', borderRadius: 4 }}>ollama pull llama3.1</code>
+                </div>
+              )}
+            </div>
+            <button className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 10px' }} onClick={checkOllama}>Recheck</button>
+          </div>
         </Section>
       </div>
 

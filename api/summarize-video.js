@@ -1,5 +1,5 @@
 import { YoutubeTranscript } from 'youtube-transcript'
-import { verifyAuth, checkRateLimit, setSecurityHeaders, sanitizeInput, validateInput, stripFields, checkIPRateLimit } from './_auth.js'
+import { verifyAuth, checkRateLimit, setSecurityHeaders, sanitizeInput, validateInput, stripFields, checkIPRateLimit, getModelConfig, incrementClaudeCount, callAI } from './_auth.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
@@ -24,6 +24,8 @@ export default async function handler(req, res) {
   // OWASP A04: Insecure Design — per-user hourly quota after IP check
   const allowed = await checkRateLimit(supabase, user.id, 'summarize-video')
   if (!allowed) return res.status(429).json({ error: 'Rate limit exceeded. Max 10 video summaries per hour.' })
+
+  const { useOllama, generationsToday, today } = await getModelConfig(supabase, user.id)
 
   // OWASP A03: Injection — whitelist only expected fields, drop everything else
   const body = stripFields(req.body || {}, ['url', 'subject', 'transcript'])
@@ -88,31 +90,11 @@ Include 5-8 keyPoints, 5-10 keyTerms, and exactly 5 questions.
 Transcript: ${transcript.slice(0, 12000)}`
 
   try {
-    const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 3000,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    })
-
-    if (!claudeRes.ok) {
-      const err = await claudeRes.json().catch(() => ({}))
-      return res.status(502).json({ error: err?.error?.message || 'Claude API error' })
-    }
-
-    const claudeData = await claudeRes.json()
-    const text = claudeData.content?.[0]?.text || ''
-    const match = text.match(/\{[\s\S]*\}/)
+    const { raw, modelUsed, ollamaFailed } = await callAI(prompt, { useOllama, apiKey, maxTokens: 3000 })
+    const match = raw.match(/\{[\s\S]*\}/)
     if (!match) return res.status(502).json({ error: 'Could not parse response. Try again.' })
-
-    return res.status(200).json(JSON.parse(match[0]))
+    if (modelUsed === 'claude') await incrementClaudeCount(supabase, user.id, generationsToday, today)
+    return res.status(200).json({ ...JSON.parse(match[0]), model_used: modelUsed, ollama_fallback: ollamaFailed })
   } catch (err) {
     return res.status(502).json({ error: err.message || 'Failed to summarize video.' })
   }

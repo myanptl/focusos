@@ -1,4 +1,4 @@
-import { verifyAuth, checkRateLimit, setSecurityHeaders, sanitizeInput, validateInput, stripFields, checkIPRateLimit } from './_auth.js'
+import { verifyAuth, checkRateLimit, setSecurityHeaders, sanitizeInput, validateInput, stripFields, checkIPRateLimit, getModelConfig, incrementClaudeCount, callAI } from './_auth.js'
 
 function buildMixedPrompt(notes, subject, numQuestions) {
   return `Generate ${numQuestions} active recall questions in MIXED format from these notes.
@@ -215,6 +215,8 @@ export default async function handler(req, res) {
   const allowed = await checkRateLimit(supabase, user.id, 'generate-quiz')
   if (!allowed) return res.status(429).json({ error: 'Rate limit exceeded. Max 20 quiz generations per hour.' })
 
+  const { useOllama, generationsToday, today } = await getModelConfig(supabase, user.id)
+
   // OWASP A03: Injection — whitelist only expected fields, drop everything else
   const ALLOWED_FIELDS = ['notes', 'subject', 'subjectType', 'numQuestions', 'mode', 'difficulty', 'tone',
     'userAnswer', 'correctAnswer', 'question', 'source', 'bankSubject',
@@ -267,20 +269,11 @@ export default async function handler(req, res) {
     if (!testType) return res.status(400).json({ error: 'testType is required for study plan.' })
     try {
       const prompt = buildPlannerPrompt(testType, subject, testDate, hoursPerWeek, weakAreas, currentLevel)
-      const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4000, messages: [{ role: 'user', content: prompt }] }),
-      })
-      if (!anthropicRes.ok) {
-        const err = await anthropicRes.json().catch(() => ({}))
-        return res.status(502).json({ error: err?.error?.message || 'Anthropic API error' })
-      }
-      const data = await anthropicRes.json()
-      const raw = data.content?.[0]?.text || ''
+      const { raw, modelUsed, ollamaFailed } = await callAI(prompt, { useOllama, apiKey, maxTokens: 4000 })
       const match = raw.match(/\{[\s\S]*\}/)
       if (!match) return res.status(502).json({ error: 'No plan generated. Please try again.' })
-      return res.status(200).json({ plan: JSON.parse(match[0]) })
+      if (modelUsed === 'claude') await incrementClaudeCount(supabase, user.id, generationsToday, today)
+      return res.status(200).json({ plan: JSON.parse(match[0]), model_used: modelUsed, ollama_fallback: ollamaFailed })
     } catch (err) {
       return res.status(502).json({ error: err.message || 'Failed to generate study plan.' })
     }
@@ -291,22 +284,13 @@ export default async function handler(req, res) {
     if (!bankSubject) return res.status(400).json({ error: 'bankSubject is required.' })
     try {
       const prompt = buildQuestionBankPrompt(bankSubject, numQuestions, mode, difficulty)
-      const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4000, messages: [{ role: 'user', content: prompt }] }),
-      })
-      if (!anthropicRes.ok) {
-        const err = await anthropicRes.json().catch(() => ({}))
-        return res.status(502).json({ error: err?.error?.message || 'Anthropic API error' })
-      }
-      const data = await anthropicRes.json()
-      const raw = data.content?.[0]?.text || ''
+      const { raw, modelUsed, ollamaFailed } = await callAI(prompt, { useOllama, apiKey, maxTokens: 4000 })
       const match = raw.match(/\{[\s\S]*\}/)
       if (!match) return res.status(502).json({ error: 'No questions generated. Try again.' })
       const parsed = JSON.parse(match[0])
       if (!parsed.questions?.length) return res.status(502).json({ error: 'No questions generated.' })
-      return res.status(200).json({ questions: parsed.questions })
+      if (modelUsed === 'claude') await incrementClaudeCount(supabase, user.id, generationsToday, today)
+      return res.status(200).json({ questions: parsed.questions, model_used: modelUsed, ollama_fallback: ollamaFailed })
     } catch (err) {
       return res.status(502).json({ error: err.message || 'Failed to generate questions.' })
     }
@@ -319,30 +303,15 @@ export default async function handler(req, res) {
       ? buildMixedPrompt(notes, subject, numQuestions)
       : buildPrompt(notes, subject, subjectType, numQuestions, mode, difficulty, tone)
 
-    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 4000,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    })
-
-    if (!anthropicRes.ok) {
-      const err = await anthropicRes.json().catch(() => ({}))
-      return res.status(502).json({ error: err?.error?.message || `Anthropic API error ${anthropicRes.status}` })
-    }
-
-    const data = await anthropicRes.json()
-    const raw = data.content?.[0]?.text || ''
+    const { raw, modelUsed, ollamaFailed } = await callAI(prompt, { useOllama, apiKey, maxTokens: 4000 })
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
     if (!jsonMatch) return res.status(502).json({ error: 'No valid JSON returned. Try rephrasing your notes.' })
 
     const parsed = JSON.parse(jsonMatch[0])
     if (!parsed.questions?.length) return res.status(502).json({ error: 'No questions generated. Try more detailed notes.' })
 
-    return res.status(200).json({ questions: parsed.questions })
+    if (modelUsed === 'claude') await incrementClaudeCount(supabase, user.id, generationsToday, today)
+    return res.status(200).json({ questions: parsed.questions, model_used: modelUsed, ollama_fallback: ollamaFailed })
   } catch (err) {
     return res.status(502).json({ error: err.message || 'Failed to generate quiz. Try again.' })
   }

@@ -155,6 +155,77 @@ export async function verifyAuth(req, res) {
 }
 
 // ─────────────────────────────────────────────────────────
+// Freemium AI model selection
+// Reads the user's profile to decide Claude vs Ollama.
+// Free users: 10 Claude calls/day then auto-switch to Ollama.
+// Preference 'ollama' always uses Ollama regardless of count.
+// ─────────────────────────────────────────────────────────
+export async function getModelConfig(supabase, userId) {
+  const today = new Date().toISOString().split('T')[0]
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('ai_model_preference, claude_generations_today, claude_generations_reset_date')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  const modelPref = profile?.ai_model_preference || 'auto'
+  const isReset = !profile?.claude_generations_reset_date || profile.claude_generations_reset_date !== today
+  const generationsToday = isReset ? 0 : (profile?.claude_generations_today || 0)
+  const useOllama = modelPref === 'ollama' || (modelPref === 'auto' && generationsToday >= 5)
+
+  return { useOllama, generationsToday, modelPref, today }
+}
+
+export async function incrementClaudeCount(supabase, userId, generationsToday, today) {
+  await supabase
+    .from('profiles')
+    .update({
+      claude_generations_today: generationsToday + 1,
+      claude_generations_reset_date: today,
+    })
+    .eq('user_id', userId)
+}
+
+async function _callClaude(prompt, apiKey, maxTokens) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err?.error?.message || `Claude API error ${res.status}`)
+  }
+  const data = await res.json()
+  return data.content?.[0]?.text || ''
+}
+
+// callAI — routes to Ollama or Claude based on model config.
+// If Ollama is selected but unavailable, falls back to Claude
+// and sets ollamaFailed=true so the frontend can show a warning.
+export async function callAI(prompt, { useOllama, apiKey, maxTokens = 4000 }) {
+  if (useOllama) {
+    try {
+      const res = await fetch('http://localhost:11434/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'llama3.1', prompt, stream: false }),
+        signal: AbortSignal.timeout(60000),
+      })
+      if (!res.ok) throw new Error('Ollama error')
+      const data = await res.json()
+      return { raw: data.response || '', modelUsed: 'ollama', ollamaFailed: false }
+    } catch {
+      // Ollama not running — fall back to Claude silently
+    }
+    const raw = await _callClaude(prompt, apiKey, maxTokens)
+    return { raw, modelUsed: 'claude', ollamaFailed: true }
+  }
+  const raw = await _callClaude(prompt, apiKey, maxTokens)
+  return { raw, modelUsed: 'claude', ollamaFailed: false }
+}
+
+// ─────────────────────────────────────────────────────────
 // OWASP A04: Insecure Design — per-user hourly quota
 // Second rate-limit layer (after IP check) that tracks each
 // authenticated user individually, preventing API cost abuse

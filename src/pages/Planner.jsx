@@ -41,9 +41,14 @@ export default function Planner() {
   async function generate() {
     setLoading(true)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
       const res = await fetch('/api/generate-quiz', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           mode: 'planner', testType, subject: subject || testType,
           testDate: testDate || null, hoursPerWeek, currentLevel, weakAreas,
@@ -78,10 +83,13 @@ export default function Planner() {
   }
 
   function quizFromWeek(week) {
-    const params = new URLSearchParams({
-      bankSubject: week.quizTopic || `${testType} ${subject || ''}`.trim(),
-    })
-    navigate(`/quiz?${params}`)
+    const BANK_SUBJECTS = ['SAT Math','SAT Reading','SAT Writing','ACT English','ACT Math','ACT Science','ACT Reading']
+    const topic = (week.quizTopic || `${testType} ${subject || ''}`).trim()
+    const matched =
+      BANK_SUBJECTS.find(s => topic.toLowerCase().includes(s.toLowerCase())) ||
+      BANK_SUBJECTS.find(s => s.toLowerCase().startsWith(testType.toLowerCase())) ||
+      'SAT Math'
+    navigate('/quiz', { state: { prefillBankSubject: matched } })
   }
 
   const totalHours = plan?.weeks?.reduce((sum, w) =>

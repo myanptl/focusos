@@ -1,4 +1,4 @@
-import { verifyAuth, checkRateLimit, setSecurityHeaders, sanitizeInput, validateInput, stripFields, checkIPRateLimit } from './_auth.js'
+import { verifyAuth, checkRateLimit, setSecurityHeaders, sanitizeInput, validateInput, stripFields, checkIPRateLimit, getModelConfig, incrementClaudeCount, callAI } from './_auth.js'
 
 function buildHarderPrompt(question, answer, subject, currentDifficulty, mode) {
   const nextLevel = { Basic: 'Standard', Standard: 'Hard', Hard: 'Exam Style', 'Exam Style': 'Exam Style' }
@@ -57,6 +57,8 @@ export default async function handler(req, res) {
   const allowed = await checkRateLimit(supabase, user.id, 'quiz-followup')
   if (!allowed) return res.status(429).json({ error: 'Rate limit exceeded. Max 30 follow-up requests per hour.' })
 
+  const { useOllama, generationsToday, today } = await getModelConfig(supabase, user.id)
+
   // OWASP A03: Injection — whitelist only expected fields, drop everything else
   const body = stripFields(req.body || {}, ['action', 'question', 'answer', 'userAnswer', 'subject', 'difficulty', 'mode'])
 
@@ -87,28 +89,12 @@ export default async function handler(req, res) {
     : buildMiniLessonPrompt(question, answer, userAnswer, subject)
 
   try {
-    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 800,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    })
-
-    if (!anthropicRes.ok) {
-      const err = await anthropicRes.json().catch(() => ({}))
-      return res.status(502).json({ error: err?.error?.message || `API error ${anthropicRes.status}` })
-    }
-
-    const data = await anthropicRes.json()
-    const raw = data.content?.[0]?.text || ''
+    const { raw, modelUsed, ollamaFailed } = await callAI(prompt, { useOllama, apiKey, maxTokens: 800 })
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
     if (!jsonMatch) return res.status(502).json({ error: 'Could not parse response.' })
-
     const parsed = JSON.parse(jsonMatch[0])
-    return res.status(200).json(parsed)
+    if (modelUsed === 'claude') await incrementClaudeCount(supabase, user.id, generationsToday, today)
+    return res.status(200).json({ ...parsed, model_used: modelUsed, ollama_fallback: ollamaFailed })
   } catch (err) {
     return res.status(502).json({ error: err.message || 'Request failed. Try again.' })
   }
