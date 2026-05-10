@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import gsap from 'gsap'
+import Confetti from 'react-confetti'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 
@@ -63,6 +65,12 @@ export default function Streak() {
   const [sessions, setSessions] = useState([])
   const [goals, setGoals] = useState([])
 
+  const [displayStreak, setDisplayStreak] = useState(0)
+  const [showConfetti, setShowConfetti] = useState(false)
+  const streakAnimated = useRef(false)
+  const badgeRefs = useRef({})
+  const badgesAnimated = useRef(false)
+
   useEffect(() => { loadData() }, [user])
 
   async function loadData() {
@@ -79,6 +87,18 @@ export default function Streak() {
   }
 
   const streak = profile?.streak_count ?? 0
+
+  // GSAP count-up for streak number
+  useEffect(() => {
+    if (streakAnimated.current || streak === 0) return
+    streakAnimated.current = true
+    const obj = { v: 0 }
+    gsap.to(obj, {
+      v: streak, duration: 1.5, ease: 'power2.out',
+      snap: { v: 1 },
+      onUpdate: () => setDisplayStreak(Math.round(obj.v)),
+    })
+  }, [streak])
   const totalMins = profile?.total_focus_minutes ?? 0
   const totalSessions = profile?.total_sessions ?? 0
   const xp = streak * 25 + totalMins * 2
@@ -101,8 +121,31 @@ export default function Streak() {
 
   const unlockedBadges = BADGES.filter(b => b.check(profile, log, sessions, goals))
 
+  // GSAP back.out scale on unlocked badges
+  useEffect(() => {
+    if (badgesAnimated.current || unlockedBadges.length === 0) return
+    badgesAnimated.current = true
+    setShowConfetti(true)
+    setTimeout(() => setShowConfetti(false), 2800)
+    unlockedBadges.forEach((badge, i) => {
+      const el = badgeRefs.current[badge.id]
+      if (!el) return
+      gsap.fromTo(el,
+        { scale: 0, rotation: -10 },
+        { scale: 1, rotation: 0, duration: 0.5, ease: 'back.out(1.7)', delay: i * 0.07 }
+      )
+    })
+  }, [unlockedBadges.length])
+
   return (
     <div className="page-fade" style={{ maxWidth: 720 }}>
+      {showConfetti && (
+        <Confetti
+          recycle={false} numberOfPieces={90} gravity={0.35}
+          colors={['#b5f23a','#f2c75a','#60d3f8','#ffffff']}
+          style={{ position: 'fixed', top: 0, left: 0, zIndex: 9998, pointerEvents: 'none' }}
+        />
+      )}
       <div style={{ textAlign: 'center', marginBottom: 32, position: 'relative' }}>
         {streak > 0 && (
           <div style={{
@@ -113,12 +156,33 @@ export default function Streak() {
             <FlameDecor />
           </div>
         )}
-        <div className="bebas" style={{ fontSize: 96, color: 'var(--accent)', lineHeight: 1, position: 'relative', zIndex: 1 }}>{streak}</div>
-        <div style={{ fontSize: 18, color: '#9494a0', fontWeight: 500, position: 'relative', zIndex: 1 }}>day streak 🔥</div>
+        {/* Radial glow behind number */}
+        {streak > 0 && (
+          <div style={{
+            position: 'absolute', top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 260, height: 180,
+            background: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(181,242,58,0.08) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }} />
+        )}
+        <div className="bebas" style={{
+          fontSize: 'clamp(96px, 18vw, 140px)',
+          color: 'var(--accent)',
+          lineHeight: 1,
+          position: 'relative', zIndex: 1,
+          letterSpacing: '-0.02em',
+          textShadow: streak > 0 ? '0 0 60px rgba(181,242,58,0.3)' : 'none',
+        }}>{streak > 0 ? displayStreak : 0}</div>
+        <div style={{
+          fontSize: 20, color: '#9494a0', fontWeight: 700,
+          letterSpacing: '0.04em', position: 'relative', zIndex: 1,
+          textTransform: 'uppercase', fontSize: 14,
+        }}>day streak 🔥</div>
         {streak === 0 && <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8 }}>Complete a focus session to start your streak!</div>}
       </div>
 
-      <div className="card" style={{ marginBottom: 20 }}>
+      <div className="card card-top" style={{ marginBottom: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
           <div>
             <span className="label">Level {level}</span>
@@ -136,7 +200,7 @@ export default function Streak() {
         }}>XP = streak × 25 + total minutes × 2</div>
       </div>
 
-      <div className="card" style={{ marginBottom: 20 }}>
+      <div className="card card-top" style={{ marginBottom: 20 }}>
         <div className="label" style={{ marginBottom: 14 }}>5-Week Focus Heatmap</div>
         <div style={{ display: 'flex', gap: 6, marginBottom: 4 }}>
           {dayLabels.map((d, i) => (
@@ -157,13 +221,13 @@ export default function Streak() {
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: 20 }}>
+      <div className="card card-top" style={{ marginBottom: 20 }}>
         <div className="label" style={{ marginBottom: 16, color: 'var(--accent)' }}>Badges — {unlockedBadges.length}/{BADGES.length} unlocked</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
           {BADGES.map(badge => {
             const unlocked = unlockedBadges.some(b => b.id === badge.id)
             return (
-              <div key={badge.id} style={{
+              <div key={badge.id} ref={el => { if (unlocked) badgeRefs.current[badge.id] = el }} style={{
                 background: unlocked ? 'rgba(181,242,58,0.08)' : 'var(--card2)',
                 border: `1px solid ${unlocked ? 'rgba(181,242,58,0.25)' : 'var(--border)'}`,
                 borderRadius: 10, padding: '12px 14px',

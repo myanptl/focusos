@@ -1,9 +1,13 @@
-import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ToastProvider } from './components/Toast'
 import ErrorBoundary from './components/ErrorBoundary'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
+import { motion, AnimatePresence } from 'framer-motion'
 import Nav from './components/Nav'
 import Footer from './components/Footer'
+import ParticleBackground from './components/ParticleBackground'
 import Landing from './pages/Landing'
 import Login from './pages/auth/Login'
 import Signup from './pages/auth/Signup'
@@ -37,12 +41,21 @@ function ProtectedRoute({ children }) {
   return children
 }
 
+const pageVariants = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] } },
+  exit:    { opacity: 0, y: -8, transition: { duration: 0.18 } },
+}
+
 function AppShell({ children }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', position: 'relative' }}>
+      <ParticleBackground />
       <Nav />
-      <main style={{ flex: 1, padding: '28px 24px', maxWidth: 1100, width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
-        {children}
+      <main style={{ flex: 1, padding: '28px 24px', maxWidth: 1100, width: '100%', margin: '0 auto', boxSizing: 'border-box', position: 'relative', zIndex: 1 }}>
+        <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit">
+          {children}
+        </motion.div>
       </main>
       <Footer />
     </div>
@@ -73,6 +86,7 @@ function LegalShell({ children }) {
 
 function AppRoutes() {
   const { user, profile, loading } = useAuth()
+  const location = useLocation()
 
   if (loading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -81,7 +95,8 @@ function AppRoutes() {
   )
 
   return (
-    <Routes>
+    <AnimatePresence mode="wait" initial={false}>
+    <Routes location={location} key={location.pathname}>
       <Route path="/"           element={user ? <Navigate to="/timer" replace /> : <Landing />} />
       <Route path="/login"      element={!user ? <Login />  : <Navigate to="/timer" replace />} />
       <Route path="/signup"     element={!user ? <Signup /> : <Navigate to="/timer" replace />} />
@@ -107,6 +122,7 @@ function AppRoutes() {
 
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </AnimatePresence>
   )
 }
 
@@ -117,6 +133,8 @@ export default function App() {
         <AuthProvider>
           <ToastProvider>
             <AppRoutes />
+            <Analytics />
+            <SpeedInsights />
           </ToastProvider>
         </AuthProvider>
       </BrowserRouter>

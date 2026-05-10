@@ -226,8 +226,14 @@ export default function Rooms() {
     return (
       <div
         key={room.id}
-        className="card"
-        style={{ display: 'flex', flexDirection: 'column', gap: 14, position: 'relative' }}
+        className="card card-top"
+        style={{
+          display: 'flex', flexDirection: 'column', gap: 14, position: 'relative',
+          transform: hoveredRoom === room.id ? 'translateY(-4px)' : 'translateY(0)',
+          boxShadow: hoveredRoom === room.id ? '0 16px 48px rgba(0,0,0,0.5)' : '0 4px 16px rgba(0,0,0,0.22)',
+          transition: 'transform 0.22s ease, box-shadow 0.22s ease',
+          cursor: 'default',
+        }}
         onMouseEnter={() => setHoveredRoom(room.id)}
         onMouseLeave={() => setHoveredRoom(null)}
       >
@@ -298,7 +304,7 @@ export default function Rooms() {
     <div className="page-fade" style={{ background: 'transparent' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 6 }}>Study Rooms</h1>
+          <h1 className="page-title" style={{ marginBottom: 6 }}>Study Rooms</h1>
           <p style={{ fontSize: 14, color: 'var(--muted)' }}>
             Focus alongside others. Silent co-working, real accountability.
           </p>

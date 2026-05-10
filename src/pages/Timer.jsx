@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import gsap from 'gsap'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
@@ -157,7 +159,7 @@ function createAmbientSound(type, volume) {
 const R = 100
 const CIRC = 2 * Math.PI * R
 
-function CircularTimer({ timeLeft, totalTime, phase, pomodoroMode }) {
+function CircularTimer({ timeLeft, totalTime, phase, pomodoroMode, running, flashRing }) {
   const progress = totalTime > 0 ? timeLeft / totalTime : 1
   const offset   = CIRC * (1 - progress)
   const color    = phase === 'focus' ? '#b5f23a' : '#60d3f8'
@@ -172,28 +174,58 @@ function CircularTimer({ timeLeft, totalTime, phase, pomodoroMode }) {
   })
 
   return (
-    <svg width="240" height="240" viewBox="0 0 240 240" style={{ display: 'block', margin: '0 auto' }}>
-      <circle cx="120" cy="120" r={R} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
-      <circle
-        cx="120" cy="120" r={R} fill="none"
-        stroke={color} strokeWidth="10" strokeLinecap="round"
-        strokeDasharray={CIRC} strokeDashoffset={offset}
-        transform="rotate(-90 120 120)"
-        style={{ transition: 'stroke-dashoffset 0.5s linear, stroke 0.4s ease' }}
-      />
-      {ticks.map((t, i) => (
-        <line key={i} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2}
-          stroke={t.major ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)'}
-          strokeWidth={t.major ? 2 : 1} strokeLinecap="round"
+    <div style={{ position: 'relative', width: 240, height: 240, margin: '0 auto' }}>
+      <svg width="240" height="240" viewBox="0 0 240 240" style={{ display: 'block' }}>
+        {/* Pulse ring — expands outward while running */}
+        {running && phase === 'focus' && (
+          <circle
+            cx="120" cy="120" r={R} fill="none"
+            stroke={color} strokeWidth="3"
+            style={{ animation: 'ping 2s ease-out infinite', transformOrigin: '120px 120px' }}
+          />
+        )}
+        {/* Track */}
+        <circle cx="120" cy="120" r={R} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
+        {/* Progress arc */}
+        <circle
+          cx="120" cy="120" r={R} fill="none"
+          stroke={color} strokeWidth="10" strokeLinecap="round"
+          strokeDasharray={CIRC} strokeDashoffset={offset}
+          transform="rotate(-90 120 120)"
+          className={flashRing ? 'ring-flash' : ''}
+          style={{ transition: 'stroke-dashoffset 0.8s cubic-bezier(0.22,1,0.36,1), stroke 0.4s ease' }}
         />
-      ))}
-      <text x="120" y="108" textAnchor="middle" fontFamily="'Bebas Neue', sans-serif"
-        fontSize="48" fill={color} letterSpacing="2">{fmt(timeLeft)}</text>
-      <text x="120" y="132" textAnchor="middle" fontFamily="'DM Sans', sans-serif"
-        fontSize="11" fill="rgba(255,255,255,0.4)" letterSpacing="2">
-        {pomodoroMode ? (phase === 'focus' ? 'POMODORO' : 'BREAK') : (phase === 'focus' ? 'FOCUS' : 'BREAK')}
-      </text>
-    </svg>
+        {/* Tick marks */}
+        {ticks.map((t, i) => (
+          <line key={i} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2}
+            stroke={t.major ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)'}
+            strokeWidth={t.major ? 2 : 1} strokeLinecap="round"
+          />
+        ))}
+      </svg>
+      {/* Time text as HTML overlay — animates on each tick */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        pointerEvents: 'none',
+      }}>
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.div
+            key={timeLeft}
+            initial={{ scale: 1.1, opacity: 0.7 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            className="bebas"
+            style={{ fontSize: 48, color, letterSpacing: 2, lineHeight: 1 }}
+          >
+            {fmt(timeLeft)}
+          </motion.div>
+        </AnimatePresence>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, marginTop: 4 }}>
+          {pomodoroMode ? (phase === 'focus' ? 'POMODORO' : 'BREAK') : (phase === 'focus' ? 'FOCUS' : 'BREAK')}
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -290,6 +322,9 @@ export default function Timer() {
   const [noteOpen, setNoteOpen] = useState(false)
   const [liveNote, setLiveNote] = useState('')
   const liveNoteRef = useRef('')
+
+  // ── Motion: ring flash on session complete ──
+  const [flashRing, setFlashRing] = useState(false)
 
   // Refs
   const intervalRef       = useRef(null)
@@ -541,6 +576,8 @@ export default function Timer() {
   // ── Phase completion ─────────────────────────────────
   function handlePhaseComplete() {
     if (phase === 'focus') {
+      setFlashRing(true)
+      setTimeout(() => setFlashRing(false), 1300)
       setCompletedMins(focusMins)
       setSessionNote(liveNoteRef.current || '')
       setReflectionOpen(true)
@@ -791,14 +828,6 @@ export default function Timer() {
   const todayAvg = todaySessions.length > 0
     ? todaySessions.reduce((a, s) => a + s.duration_minutes, 0) / todaySessions.length : 0
 
-  function getDiagnosis() {
-    if (sessionsToday === 0)
-      return { label: 'Recovery Day', desc: 'Start with a short session to build momentum.', color: 'var(--muted)' }
-    if (sessionsToday >= 2 && todayAvg >= baseline)
-      return { label: 'Deep Work Day 🔥', desc: "You're locked in.", color: 'var(--accent)' }
-    return { label: 'Short-Session Day', desc: "Stay consistent — that's what builds the habit.", color: 'var(--amber)' }
-  }
-  const diagnosis = getDiagnosis()
   const quote = QUOTES[quoteIdx]
 
   // ── Render ───────────────────────────────────────────
@@ -857,22 +886,21 @@ export default function Timer() {
 
       {/* Greeting + quick stats */}
       <div style={{ marginBottom: 16 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700 }}>
+        <h1 className="page-title" style={{ marginBottom: 14 }}>
           {getGreeting()},{' '}
-          <span style={{ color: 'var(--accent)' }}>
+          <span className="page-title-accent">
             {(profile?.name || profile?.username || 'there').split(' ')[0]}
           </span>
         </h1>
-        <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 10, marginTop: 4, flexWrap: 'wrap' }}>
           {[
             { label: 'Sessions Today', value: sessionsToday },
             { label: 'Minutes Today',  value: minutesToday },
             { label: 'Day Streak',     value: `${streak} 🔥` },
           ].map(c => (
-            <div key={c.label} style={{
-              background: 'var(--card2)', border: '1px solid var(--border)',
-              borderRadius: 8, padding: '0 14px', fontSize: 13,
-              height: 32, display: 'flex', alignItems: 'center', gap: 6,
+            <div key={c.label} className="stat-card" style={{
+              padding: '8px 16px', fontSize: 13,
+              display: 'flex', alignItems: 'center', gap: 6,
             }}>
               <span style={{ color: 'var(--muted)' }}>{c.label}: </span>
               <span style={{ fontWeight: 700 }}>{c.value}</span>
@@ -894,17 +922,6 @@ export default function Timer() {
         </div>
       </div>
 
-      {/* Today's Focus Diagnosis */}
-      <div style={{
-        marginBottom: 20, padding: '12px 16px',
-        background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12,
-        borderLeft: `3px solid ${diagnosis.color}`,
-        display: 'flex', alignItems: 'center', gap: 12,
-      }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: diagnosis.color }}>{diagnosis.label}</span>
-        <span style={{ fontSize: 13, color: 'var(--muted)' }}>— {diagnosis.desc}</span>
-      </div>
-
       {/* 2-column grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 20 }}>
 
@@ -912,11 +929,20 @@ export default function Timer() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* Level card */}
-          <div className="card">
+          <div className="card card-top">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: level.color, letterSpacing: '0.02em' }}>
-                {pomodoroMode ? 'CLASSIC POMODORO' : level.name}
-              </div>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={level.name}
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 6 }}
+                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ fontSize: 22, fontWeight: 800, color: level.color, letterSpacing: '0.02em' }}
+                >
+                  {pomodoroMode ? 'CLASSIC POMODORO' : level.name}
+                </motion.div>
+              </AnimatePresence>
               {!pomodoroMode && nextLvl && (
                 <span style={{ fontSize: 11, color: 'var(--muted)' }}>
                   {minsToNext} min to {nextLvl.name}
@@ -936,62 +962,8 @@ export default function Timer() {
             )}
           </div>
 
-          {/* Task list card */}
-          <div className="card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <div className="label">What will you focus on?</div>
-              <span style={{ fontSize: 11, color: 'var(--muted)' }}>{tasks.length}/3</span>
-            </div>
-
-            {tasks.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
-                {tasks.map((t, i) => (
-                  <div key={i} style={{
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '7px 10px', borderRadius: 8,
-                    background: t.done ? 'rgba(181,242,58,0.06)' : 'var(--card2)',
-                    border: `1px solid ${t.done ? 'rgba(181,242,58,0.2)' : 'var(--border)'}`,
-                    transition: 'all 0.15s',
-                  }}>
-                    <span style={{ fontSize: 14, flex: 1, color: t.done ? 'var(--muted)' : 'var(--text)',
-                      textDecoration: t.done ? 'line-through' : 'none' }}>
-                      {t.text}
-                    </span>
-                    {!running && (
-                      <button onClick={() => removeTask(i)} style={{
-                        background: 'none', border: 'none', color: 'var(--muted)',
-                        cursor: 'pointer', fontSize: 12, padding: 0, lineHeight: 1,
-                      }}>✕</button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {tasks.length < 3 && !running && (
-              <div style={{ display: 'flex', gap: 6 }}>
-                <input
-                  placeholder="Add a task..."
-                  value={taskInput}
-                  onChange={e => setTaskInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addTask()}
-                  style={{ flex: 1, fontSize: 13, padding: '7px 10px' }}
-                />
-                <button className="btn btn-ghost btn-sm" onClick={addTask} disabled={!taskInput.trim()}>
-                  Add
-                </button>
-              </div>
-            )}
-
-            {running && tasks.length === 0 && (
-              <div style={{ fontSize: 12, color: 'var(--muted)', fontStyle: 'italic' }}>
-                No tasks set for this session.
-              </div>
-            )}
-          </div>
-
           {/* Timer card */}
-          <div className="card" style={{ textAlign: 'center' }}>
+          <div className="card card-top" style={{ textAlign: 'center' }}>
 
             {/* Header: phase label + focus blocks streak + notes button */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -1042,21 +1014,25 @@ export default function Timer() {
             {/* Timer ring */}
             <div style={{
               display: 'inline-block', borderRadius: '50%',
-              boxShadow: running ? '0 0 60px rgba(181,242,58,0.15)' : 'none',
-              transition: 'box-shadow 0.4s ease',
+              boxShadow: running
+                ? '0 0 80px rgba(181,242,58,0.28), 0 0 120px rgba(181,242,58,0.1)'
+                : 'none',
+              transition: 'box-shadow 0.5s ease',
             }}>
               <CircularTimer
                 timeLeft={timeLeft}
                 totalTime={phase === 'focus' ? focusDuration : breakDuration}
                 phase={phase}
                 pomodoroMode={pomodoroMode}
+                running={running}
+                flashRing={flashRing}
               />
             </div>
 
             {/* Primary controls */}
             <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
               <button className="btn btn-accent btn-full" onClick={toggleTimer}
-                style={{ height: 52, fontSize: 15, fontWeight: 700, borderRadius: 10 }}>
+                style={{ height: 54, fontSize: 16, fontWeight: 800, letterSpacing: '0.05em' }}>
                 {running ? 'PAUSE' : timeLeft === 0 ? 'RESTART' : 'START'}
               </button>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -1184,6 +1160,66 @@ export default function Timer() {
             </div>
           </div>
 
+          {/* Active break suggestions */}
+          {phase === 'break' && (
+            <div className="card" style={{ border: '1px solid rgba(242,199,90,0.3)' }}>
+              <div style={{ marginBottom: 14 }}>
+                <div className="bebas" style={{ fontSize: 18, color: 'var(--amber)', letterSpacing: '0.06em' }}>
+                  ACTIVE BREAK
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
+                  Don't scroll. Move instead.
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
+                {breakTips.map((tip, i) => (
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    background: 'rgba(242,199,90,0.06)', borderRadius: 8, padding: '10px 12px',
+                  }}>
+                    <span style={{ fontSize: 20 }}>{tip.emoji}</span>
+                    <span style={{ fontSize: 13 }}>{tip.text}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{
+                fontSize: 11, color: 'var(--muted)', lineHeight: 1.5,
+                borderTop: '1px solid var(--border)', paddingTop: 10, marginBottom: 10,
+              }}>
+                Movement restores focus better than passive rest [Cognitive Science, 2011]
+              </div>
+              <button className="btn btn-ghost btn-sm" onClick={() => setBreakTips(shuffleBreakTips())}>
+                Shuffle
+              </button>
+              <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--border)' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>
+                  Study Playlists
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {SPOTIFY_PLAYLISTS.map(name => (
+                    <button key={name} onClick={() => window.open(`https://open.spotify.com/search/${encodeURIComponent(name)}`, '_blank')}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '7px 10px', borderRadius: 8, cursor: 'pointer',
+                        background: 'rgba(30,215,96,0.06)', border: '1px solid rgba(30,215,96,0.2)',
+                        color: '#1ed760', fontSize: 12, fontWeight: 600,
+                        fontFamily: "'DM Sans', sans-serif", transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(30,215,96,0.12)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'rgba(30,215,96,0.06)'}
+                    >
+                      <span>♫ {name}</span>
+                      <span style={{ fontSize: 10, opacity: 0.7 }}>Open in Spotify →</span>
+                    </button>
+                  ))}
+                </div>
+                <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 8, fontStyle: 'italic' }}>
+                  Music with 60–70 BPM matches focus rhythms [research]
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Study Science Tip */}
           {(() => {
             const tip = STUDY_TIPS[tipOrder[tipPos]]
@@ -1235,87 +1271,80 @@ export default function Timer() {
             [<em>Ariga &amp; Lleras, Cognition, 2011</em>]
           </div>
 
-          {phase === 'break' ? (
-            <div className="card" style={{ border: '1px solid rgba(242,199,90,0.3)' }}>
-              <div style={{ marginBottom: 14 }}>
-                <div className="bebas" style={{ fontSize: 18, color: 'var(--amber)', letterSpacing: '0.06em' }}>
-                  ACTIVE BREAK
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
-                  Don't scroll. Move instead.
-                </div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
-                {breakTips.map((tip, i) => (
-                  <div key={i} style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    background: 'rgba(242,199,90,0.06)', borderRadius: 8, padding: '10px 12px',
-                  }}>
-                    <span style={{ fontSize: 20 }}>{tip.emoji}</span>
-                    <span style={{ fontSize: 13 }}>{tip.text}</span>
-                  </div>
-                ))}
-              </div>
-              <div style={{
-                fontSize: 11, color: 'var(--muted)', lineHeight: 1.5,
-                borderTop: '1px solid var(--border)', paddingTop: 10, marginBottom: 10,
-              }}>
-                Movement restores focus better than passive rest [Cognitive Science, 2011]
-              </div>
-              <button className="btn btn-ghost btn-sm" onClick={() => setBreakTips(shuffleBreakTips())}>
-                Shuffle
-              </button>
+          {/* Task card */}
+          <div className="card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <div className="label">What will you focus on?</div>
+              <span style={{ fontSize: 11, color: 'var(--muted)' }}>{tasks.length}/3</span>
+            </div>
 
-              {/* Spotify playlist suggestions */}
-              <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--border)' }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>
-                  Study Playlists
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {SPOTIFY_PLAYLISTS.map(name => (
-                    <button key={name} onClick={() => window.open(`https://open.spotify.com/search/${encodeURIComponent(name)}`, '_blank')}
-                      style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '7px 10px', borderRadius: 8, cursor: 'pointer',
-                        background: 'rgba(30,215,96,0.06)', border: '1px solid rgba(30,215,96,0.2)',
-                        color: '#1ed760', fontSize: 12, fontWeight: 600,
-                        fontFamily: "'DM Sans', sans-serif", transition: 'background 0.15s',
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(30,215,96,0.12)'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'rgba(30,215,96,0.06)'}
-                    >
-                      <span>♫ {name}</span>
-                      <span style={{ fontSize: 10, opacity: 0.7 }}>Open in Spotify →</span>
-                    </button>
-                  ))}
-                </div>
-                <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 8, fontStyle: 'italic' }}>
-                  Music with 60–70 BPM matches focus rhythms [research]
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="card">
-              <div className="label" style={{ marginBottom: 12 }}>Attention Levels</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {LEVELS.map(l => (
-                  <div key={l.name} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                    <div style={{
-                      width: 8, height: 8, borderRadius: '50%',
-                      background: l.color, flexShrink: 0, marginTop: 4,
-                    }} />
-                    <div>
-                      <span style={{ fontWeight: 700, color: l.color, fontSize: 13 }}>{l.name}</span>
-                      <span style={{ color: 'var(--muted)', fontSize: 12 }}>
-                        {' '}· {l.max < 999 ? `up to ${l.max}` : '50+'} min
-                      </span>
-                      <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 1 }}>{l.desc}</div>
-                    </div>
+            {tasks.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+                {tasks.map((t, i) => (
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '7px 10px', borderRadius: 8,
+                    background: t.done ? 'rgba(181,242,58,0.06)' : 'var(--card2)',
+                    border: `1px solid ${t.done ? 'rgba(181,242,58,0.2)' : 'var(--border)'}`,
+                    transition: 'all 0.15s',
+                  }}>
+                    <span style={{ fontSize: 14, flex: 1, color: t.done ? 'var(--muted)' : 'var(--text)',
+                      textDecoration: t.done ? 'line-through' : 'none' }}>
+                      {t.text}
+                    </span>
+                    {!running && (
+                      <button onClick={() => removeTask(i)} style={{
+                        background: 'none', border: 'none', color: 'var(--muted)',
+                        cursor: 'pointer', fontSize: 12, padding: 0, lineHeight: 1,
+                      }}>✕</button>
+                    )}
                   </div>
                 ))}
               </div>
+            )}
+
+            {tasks.length < 3 && !running && (
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input
+                  placeholder="Add a task..."
+                  value={taskInput}
+                  onChange={e => setTaskInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addTask()}
+                  style={{ flex: 1, fontSize: 13, padding: '7px 10px' }}
+                />
+                <button className="btn btn-ghost btn-sm" onClick={addTask} disabled={!taskInput.trim()}>
+                  Add
+                </button>
+              </div>
+            )}
+
+            {running && tasks.length === 0 && (
+              <div style={{ fontSize: 12, color: 'var(--muted)', fontStyle: 'italic' }}>
+                No tasks set for this session.
+              </div>
+            )}
+          </div>
+
+          <div className="card">
+            <div className="label" style={{ marginBottom: 12 }}>Attention Levels</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {LEVELS.map(l => (
+                <div key={l.name} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <div style={{
+                    width: 8, height: 8, borderRadius: '50%',
+                    background: l.color, flexShrink: 0, marginTop: 4,
+                  }} />
+                  <div>
+                    <span style={{ fontWeight: 700, color: l.color, fontSize: 13 }}>{l.name}</span>
+                    <span style={{ color: 'var(--muted)', fontSize: 12 }}>
+                      {' '}· {l.max < 999 ? `up to ${l.max}` : '50+'} min
+                    </span>
+                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 1 }}>{l.desc}</div>
+                  </div>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
 
           {/* Keyboard shortcut hint */}
           <button onClick={() => setShortcutsOpen(true)} style={{

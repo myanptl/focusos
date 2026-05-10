@@ -120,9 +120,9 @@ export default function Settings() {
 
   return (
     <div className="page-fade" style={{ maxWidth: 720 }}>
-      <h1 style={{ fontSize: 32, fontWeight: 700, marginBottom: 24 }}>Settings</h1>
+      <h1 className="page-title" style={{ marginBottom: 24 }}>Settings</h1>
 
-      <div className="card" style={{ marginBottom: 16 }}>
+      <div className="card card-top" style={{ marginBottom: 16 }}>
         <Section title="Account">
           <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 20 }}>
             <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(181,242,58,0.15)', border: '2px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: 'var(--accent)', flexShrink: 0 }}>
@@ -152,7 +152,7 @@ export default function Settings() {
         </Section>
       </div>
 
-      <div className="card" style={{ marginBottom: 16 }}>
+      <div className="card card-top" style={{ marginBottom: 16 }}>
         <Section title="Focus Preferences">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 16 }}>
             <div>
@@ -192,7 +192,7 @@ export default function Settings() {
         </Section>
       </div>
 
-      <div className="card" style={{ marginBottom: 16 }}>
+      <div className="card card-top" style={{ marginBottom: 16 }}>
         <Section title="Notifications">
           <Row label="Weekly progress email"
             sub={<span>Disabled · <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 20, padding: '2px 8px', fontSize: 11 }}>Coming V2</span></span>}
@@ -205,7 +205,7 @@ export default function Settings() {
         </Section>
       </div>
 
-      <div className="card" style={{ marginBottom: 16 }}>
+      <div className="card card-top" style={{ marginBottom: 16 }}>
         <Section title="Appearance">
           <div style={{ marginBottom: 16 }}>
             <label className="label" style={{ display: 'block', marginBottom: 10 }}>Accent Color</label>
@@ -225,7 +225,7 @@ export default function Settings() {
         </Section>
       </div>
 
-      <div className="card" style={{ marginBottom: 16 }}>
+      <div className="card card-top" style={{ marginBottom: 16 }}>
         <Section title="Data">
           <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
             {[

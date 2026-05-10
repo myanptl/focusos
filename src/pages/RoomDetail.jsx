@@ -26,6 +26,14 @@ function focusingDuration(focus_start_time) {
   return Math.floor((Date.now() - new Date(focus_start_time).getTime()) / 60000)
 }
 
+function timeAgo(dateStr) {
+  if (!dateStr) return ''
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
+  if (diff < 60) return 'just now'
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
+  return `${Math.floor(diff / 3600)}h ago`
+}
+
 function pad(n) {
   return String(n).padStart(2, '0')
 }
@@ -99,7 +107,8 @@ export default function RoomDetail() {
   const tickRef = useRef(0)
   const presenceRef = useRef(null)
   const channelRef = useRef(null)
-  const chatEndRef = useRef(null)
+  const msgChannelRef = useRef(null)
+  const messagesEndRef = useRef(null)
   const timerRunningRef = useRef(false)
 
   useEffect(() => { timerRunningRef.current = timerRunning }, [timerRunning])
@@ -114,41 +123,48 @@ export default function RoomDetail() {
   }, [roomId, user])
 
   async function initRoom() {
-    setLoading(true)
+    const cacheKey = 'room_' + roomId
+    let hasCached = false
+    try {
+      const raw = localStorage.getItem(cacheKey)
+      if (raw) {
+        const { room: cachedRoom, ts } = JSON.parse(raw)
+        if (cachedRoom && Date.now() - ts < 5 * 60 * 1000) {
+          setRoom(cachedRoom)
+          setLoading(false)
+          hasCached = true
+        }
+      }
+    } catch {}
 
-    const { data: roomData, error: roomErr } = await supabase
-      .from('study_rooms')
-      .select('*')
-      .eq('id', roomId)
-      .single()
-
-    if (roomErr) {
-      if (roomErr.code === '42P01') { setTableError(true); setLoading(false); return }
-      if (roomErr.code === 'PGRST116') { setNotFound(true); setLoading(false); return }
-      toast('Failed to load room.', 'error')
-      setLoading(false)
-      return
-    }
-
-    setRoom(roomData)
+    if (!hasCached) setLoading(true)
 
     const now = new Date().toISOString()
 
-    await supabase.from('room_members').upsert(
-      { room_id: roomId, user_id: user.id, display_name: displayName, last_seen: now, is_focusing: false },
-      { onConflict: 'room_id,user_id', ignoreDuplicates: false }
-    )
-
-    const [membersRes, msgsRes] = await Promise.all([
+    const [roomRes, membersRes, msgsRes] = await Promise.all([
+      supabase.from('study_rooms').select('*').eq('id', roomId).single(),
       supabase.from('room_members').select('*').eq('room_id', roomId),
       supabase.from('room_messages')
-        .select('*')
-        .eq('room_id', roomId)
-        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-        .order('created_at', { ascending: true })
-        .limit(20),
+        .select('*').eq('room_id', roomId)
+        .order('created_at', { ascending: true }).limit(20),
+      supabase.from('room_members').upsert(
+        { room_id: roomId, user_id: user.id, display_name: displayName, last_seen: now, is_focusing: false },
+        { onConflict: 'room_id,user_id', ignoreDuplicates: false }
+      ),
     ])
 
+    if (roomRes.error) {
+      if (roomRes.error.code === '42P01') { setTableError(true); setLoading(false); return }
+      if (roomRes.error.code === 'PGRST116') { setNotFound(true); setLoading(false); return }
+      if (!hasCached) { toast('Failed to load room.', 'error'); setLoading(false) }
+      return
+    }
+
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify({ room: roomRes.data, ts: Date.now() }))
+    } catch {}
+
+    setRoom(roomRes.data)
     if (membersRes.data) setMembers(membersRes.data)
     if (msgsRes.data) setMessages(msgsRes.data)
 
@@ -160,6 +176,7 @@ export default function RoomDetail() {
 
     setLoading(false)
     subscribeRealtime()
+    subscribeMessages()
     startPresence()
   }
 
@@ -212,22 +229,24 @@ export default function RoomDetail() {
       }
     })
 
-    channel.on('postgres_changes', {
+    channel.subscribe()
+  }
+
+  function subscribeMessages() {
+    if (msgChannelRef.current) {
+      supabase.removeChannel(msgChannelRef.current)
+    }
+    const ch = supabase.channel('room-messages-' + roomId)
+    msgChannelRef.current = ch
+    ch.on('postgres_changes', {
       event: 'INSERT',
       schema: 'public',
       table: 'room_messages',
       filter: 'room_id=eq.' + roomId,
     }, payload => {
-      setMessages(prev => {
-        const next = [...prev, payload.new].slice(-20)
-        return next
-      })
-      setTimeout(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-      }, 50)
+      setMessages(prev => [...prev, payload.new].slice(-20))
     })
-
-    channel.subscribe()
+    ch.subscribe()
   }
 
   function startPresence() {
@@ -239,20 +258,23 @@ export default function RoomDetail() {
     }, 30000)
   }
 
-  async function cleanup() {
+  function cleanup() {
     clearInterval(presenceRef.current)
     clearInterval(timerRef.current)
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current)
       channelRef.current = null
     }
-
+    if (msgChannelRef.current) {
+      supabase.removeChannel(msgChannelRef.current)
+      msgChannelRef.current = null
+    }
     if (user) {
-      await supabase
-        .from('room_members')
+      supabase.from('room_members')
         .delete()
         .eq('room_id', roomId)
         .eq('user_id', user.id)
+        .then(() => {})
     }
   }
 
@@ -289,7 +311,7 @@ export default function RoomDetail() {
   }, [])
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
   useEffect(() => {
@@ -391,29 +413,30 @@ export default function RoomDetail() {
       .eq('user_id', user.id)
   }
 
-  async function sendMessage() {
+  async function handleSendMessage() {
     const msg = chatInput.trim()
     if (!msg || sendingMsg) return
     setSendingMsg(true)
     setChatInput('')
-
-    await supabase.from('room_messages').insert({
+    const msgDisplayName = profile?.name || user?.email?.split('@')[0] || 'User'
+    const { error } = await supabase.from('room_messages').insert({
       room_id: roomId,
       user_id: user.id,
-      display_name: displayName,
+      display_name: msgDisplayName,
       message: msg,
+      created_at: new Date().toISOString(),
     })
-
+    if (error) toast('Failed to send message', 'error')
     setSendingMsg(false)
   }
 
-  async function handleLeave() {
-    await supabase
-      .from('room_members')
+  function handleLeave() {
+    navigate('/rooms')
+    supabase.from('room_members')
       .delete()
       .eq('room_id', roomId)
       .eq('user_id', user.id)
-    navigate('/rooms')
+      .then(() => {})
   }
 
   const sortedMembers = [...members].sort((a, b) => {
@@ -426,8 +449,36 @@ export default function RoomDetail() {
 
   if (loading) {
     return (
-      <div className="page-fade" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
-        <span className="spinner" style={{ width: 32, height: 32 }} />
+      <div className="page-fade" style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 20, alignItems: 'start' }}>
+        <div className="card" style={{ padding: 0, overflow: 'hidden', height: 'calc(100vh - 200px)', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <span className="spinner" style={{ width: 14, height: 14, flexShrink: 0 }} />
+              <span style={{ fontSize: 13, color: 'var(--muted)' }}>Joining room...</span>
+            </div>
+            <div className="skeleton" style={{ height: 20, width: '65%', marginBottom: 8 }} />
+            <div className="skeleton" style={{ height: 13, width: '38%' }} />
+          </div>
+          <div style={{ padding: 14, flex: 1 }}>
+            <div className="skeleton" style={{ height: 10, width: '28%', marginBottom: 14 }} />
+            {[58, 72, 45].map((w, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                <div className="skeleton" style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0 }} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  <div className="skeleton" style={{ height: 13, width: `${w}%` }} />
+                  <div className="skeleton" style={{ height: 11, width: '26%' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="card" style={{ textAlign: 'center', padding: 32 }}>
+            <div className="skeleton" style={{ height: 13, width: '44%', margin: '0 auto 20px' }} />
+            <div className="skeleton" style={{ width: 240, height: 240, borderRadius: '50%', margin: '0 auto 24px' }} />
+            <div className="skeleton" style={{ height: 52, borderRadius: 10 }} />
+          </div>
+        </div>
       </div>
     )
   }
@@ -509,35 +560,43 @@ export default function RoomDetail() {
             )}
           </div>
 
-          <button
-            disabled
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 16px',
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.07)',
-              borderRadius: '8px',
-              color: '#9494a0',
-              fontSize: '13px',
-              fontWeight: 500,
-              cursor: 'not-allowed',
-              marginTop: '12px',
-            }}
-          >
-            🎙️ Voice Chat
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '14px 16px',
+            borderRadius: '10px',
+            border: '1px solid rgba(255,255,255,0.07)',
+            background: 'rgba(255,255,255,0.02)',
+            marginTop: '12px'
+          }}>
+            <div style={{ display: 'flex',
+              alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '18px' }}>🎙️</span>
+              <div>
+                <div style={{ fontSize: '13px',
+                  fontWeight: 600, color: 'white' }}>
+                  Voice Chat
+                </div>
+                <div style={{ fontSize: '11px',
+                  color: '#9494a0' }}>
+                  Talk with your room members
+                </div>
+              </div>
+            </div>
             <span style={{
               fontSize: '10px',
-              fontWeight: 600,
+              fontWeight: 700,
               letterSpacing: '1px',
               color: 'var(--accent)',
               background: 'rgba(181,242,58,0.1)',
               border: '1px solid rgba(181,242,58,0.2)',
-              padding: '2px 6px',
-              borderRadius: '4px',
-            }}>V2</span>
-          </button>
+              padding: '4px 10px',
+              borderRadius: '20px',
+            }}>
+              COMING V2
+            </span>
+          </div>
         </div>
 
         {/* Members list */}
@@ -551,7 +610,13 @@ export default function RoomDetail() {
               const dur = m.is_focusing ? focusingDuration(m.focus_start_time) : 0
 
               return (
-                <div key={m.id || m.user_id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                <div key={m.id || m.user_id} style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 10,
+                  borderLeft: m.is_focusing ? '2px solid var(--accent)' : '2px solid transparent',
+                  paddingLeft: m.is_focusing ? 8 : 10,
+                  borderRadius: 4,
+                  transition: 'border-color 0.4s ease, padding-left 0.4s ease',
+                }}>
                   <div style={{ position: 'relative', flexShrink: 0 }}>
                     <div style={{
                       width: 28, height: 28, borderRadius: '50%',
@@ -561,12 +626,15 @@ export default function RoomDetail() {
                     }}>
                       {getInitial(m.display_name)}
                     </div>
-                    <div style={{
-                      position: 'absolute', bottom: 0, right: 0,
-                      width: 8, height: 8, borderRadius: '50%',
-                      background: online ? '#4ade80' : 'var(--muted)',
-                      border: '1.5px solid var(--card)',
-                    }} />
+                    <div
+                      className={online ? 'status-dot-online' : ''}
+                      style={{
+                        position: 'absolute', bottom: 0, right: 0,
+                        width: 8, height: 8, borderRadius: '50%',
+                        background: online ? '#4ade80' : 'var(--muted)',
+                        border: '1.5px solid var(--card)',
+                      }}
+                    />
                   </div>
 
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -615,16 +683,33 @@ export default function RoomDetail() {
             {messages.map((msg, i) => {
               const isOwn = msg.user_id === user.id
               return (
-                <div key={msg.id || i} style={{ fontSize: 13, lineHeight: 1.5 }}>
-                  <span style={{ fontWeight: 600, color: isOwn ? 'var(--accent)' : 'var(--cyan)' }}>
+                <div key={msg.id || i} style={{
+                  display: 'flex', flexDirection: 'column',
+                  alignItems: isOwn ? 'flex-end' : 'flex-start',
+                }}>
+                  <span style={{
+                    fontSize: 11, fontWeight: 700, marginBottom: 2,
+                    color: isOwn ? 'var(--accent)' : '#60d3f8',
+                  }}>
                     {msg.display_name}
                   </span>
-                  <span style={{ color: 'var(--muted)' }}>: </span>
-                  <span style={{ color: 'var(--text)' }}>{msg.message}</span>
+                  <div style={{
+                    maxWidth: '85%',
+                    background: isOwn ? 'rgba(181,242,58,0.1)' : 'rgba(255,255,255,0.05)',
+                    border: `1px solid ${isOwn ? 'rgba(181,242,58,0.2)' : 'rgba(255,255,255,0.08)'}`,
+                    borderRadius: 8, padding: '5px 9px',
+                    fontSize: 13, lineHeight: 1.45,
+                    color: 'var(--text)', wordBreak: 'break-word',
+                  }}>
+                    {msg.message}
+                  </div>
+                  <span style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>
+                    {timeAgo(msg.created_at)}
+                  </span>
                 </div>
               )
             })}
-            <div ref={chatEndRef} />
+            <div ref={messagesEndRef} />
           </div>
 
           <div style={{ display: 'flex', gap: 6 }}>
@@ -632,12 +717,12 @@ export default function RoomDetail() {
               placeholder="Send a message..."
               value={chatInput}
               onChange={e => setChatInput(e.target.value.slice(0, 100))}
-              onKeyDown={e => e.key === 'Enter' && sendMessage()}
+              onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
               style={{ flex: 1, fontSize: 13, padding: '7px 10px' }}
             />
             <button
               className="btn btn-ghost btn-sm"
-              onClick={sendMessage}
+              onClick={handleSendMessage}
               disabled={!chatInput.trim() || sendingMsg}
             >
               Send

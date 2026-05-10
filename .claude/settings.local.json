@@ -12,7 +12,23 @@
       "mcp__claude_ai_Supabase__execute_sql",
       "mcp__claude_ai_Supabase__apply_migration",
       "Bash(npx vite *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "WebFetch(domain:github.com)",
+      "Bash(ollama list *)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(python3 .claude/skills/ui-ux-pro-max/scripts/search.py \"student productivity study app dark mode SaaS dashboard react\" --design-system --persist -p \"FocusOS\" --stack react)",
+      "PowerShell(Get-Command *)",
+      "Read(//usr/**)",
+      "Read(//usr/local/**)",
+      "Bash(uv run *)",
+      "Bash(conda --version)",
+      "PowerShell(Test-Path *)",
+      "Bash(npx vercel *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3002)",
+      "Bash(curl -s http://localhost:3002)",
+      "PowerShell(Get-Content *)",
+      "Bash(npm i *)"
     ]
   }
 }

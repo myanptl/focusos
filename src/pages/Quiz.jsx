@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
@@ -101,6 +102,7 @@ export default function Quiz() {
   const [videoRevealed,      setVideoRevealed]      = useState({})
   const [videoNoTranscript,  setVideoNoTranscript]  = useState(false)
   const [manualTranscript,   setManualTranscript]   = useState('')
+  const [showLengthWarning,  setShowLengthWarning]  = useState(false)
 
   // ── UI ─────────────────────────────────────────────────
   const [loading, setLoading] = useState(false)
@@ -214,6 +216,7 @@ export default function Quiz() {
       }
       setVideoNoTranscript(false)
       setVideoResult(data)
+      setShowLengthWarning((data.transcript_length ?? 0) > 12000)
       const id = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1]
       setVideoId(id || null)
       setVideoFlipped(new Set())
@@ -472,7 +475,7 @@ export default function Quiz() {
       {/* ─── LEFT: Setup ─────────────────────────────────── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: 32, fontWeight: 700, color: 'var(--accent)' }}>Active Recall Quiz</h1>
+          <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--accent)' }}>Active Recall Quiz</h1>
           <div className="research-callout" style={{ marginTop: 10 }}>
             Practice testing rated <strong>HIGH UTILITY</strong> by Dunlosky et al. (2013) —
             confirmed by 242 studies and 169,179 participants. [<em>Frontiers in Education, 2021</em>]
@@ -518,20 +521,21 @@ export default function Quiz() {
                 value={videoUrl}
                 onChange={e => {
                   setVideoUrl(e.target.value)
+                  setShowLengthWarning(false)
                   if (videoNoTranscript) { setVideoNoTranscript(false); setManualTranscript(''); setVideoError('') }
                 }}
                 onKeyDown={e => { if (e.key === 'Enter' && videoUrl.trim() && !videoNoTranscript) summarizeVideo() }}
               />
             </div>
 
-            {videoUrl.trim() && (
+            {showLengthWarning && (
               <div style={{
                 background: 'rgba(242,199,90,0.06)', border: '1px solid rgba(242,199,90,0.2)',
                 borderRadius: 8, padding: '9px 13px', fontSize: 12, color: 'var(--amber)',
                 display: 'flex', alignItems: 'flex-start', gap: 8,
               }}>
                 <span>⚠️</span>
-                <span>This video is long — only the first ~45 minutes will be summarized. For best results use videos under 45 minutes.</span>
+                <span>This video is long — only the first ~45 minutes were summarized. For best results use videos under 45 minutes.</span>
               </div>
             )}
 
@@ -649,27 +653,35 @@ export default function Quiz() {
           {sourceMode !== 'video' && (<>
 
           {sourceMode === 'notes' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <input
                 type="text"
                 placeholder="Subject (optional)"
                 value={subject}
                 onChange={e => setSubject(e.target.value)}
-                style={{ flex: 1, fontSize: 13 }}
+                style={{ fontSize: 13 }}
               />
-              {[5, 10, 15].map(n => (
-                <button key={n} className={`pill${count === n ? ' active' : ''}`}
-                  onClick={() => setCount(n)} style={{ fontSize: 12, padding: '6px 12px' }}>{n}</button>
-              ))}
+              <div>
+                <div className="label" style={{ marginBottom: 6 }}>Questions</div>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  {[5, 10, 15].map(n => (
+                    <button key={n} className={`pill${count === n ? ' active' : ''}`}
+                      onClick={() => setCount(n)} style={{ fontSize: 12, padding: '6px 12px' }}>{n}</button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
           {sourceMode === 'bank' && (
-            <div style={{ display: 'flex', gap: 6 }}>
-              {[5, 10, 15].map(n => (
-                <button key={n} className={`pill${count === n ? ' active' : ''}`}
-                  onClick={() => setCount(n)} style={{ fontSize: 12, padding: '6px 12px' }}>{n} Qs</button>
-              ))}
+            <div>
+              <div className="label" style={{ marginBottom: 6 }}>Questions</div>
+              <div style={{ display: 'flex', gap: 4 }}>
+                {[5, 10, 15].map(n => (
+                  <button key={n} className={`pill${count === n ? ' active' : ''}`}
+                    onClick={() => setCount(n)} style={{ fontSize: 12, padding: '6px 12px' }}>{n}</button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -726,7 +738,7 @@ export default function Quiz() {
             </div>
             <button
               className="btn btn-accent"
-              style={{ flex: 1, height: 44, fontSize: 14, fontWeight: 700 }}
+              style={{ flex: 1, height: 48, fontSize: 15, fontWeight: 800, letterSpacing: '0.04em' }}
               onClick={generateQuiz}
               disabled={loading || (sourceMode === 'notes' && !notes.trim())}
             >
@@ -1043,7 +1055,15 @@ export default function Quiz() {
               )}
             </div>
 
-            {/* Question text */}
+            {/* Question text + answer area — slides between questions */}
+            <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={`${current}-${harderQ ? 'h' : 'n'}`}
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -40 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            >
             <div style={{ fontSize: 18, fontWeight: 600, lineHeight: 1.5, padding: '4px 0' }}>
               {activeQ.question}
             </div>
@@ -1279,6 +1299,8 @@ export default function Quiz() {
                 )}
               </div>
             )}
+            </motion.div>
+            </AnimatePresence>
           </div>
         )}
 

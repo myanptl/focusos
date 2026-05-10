@@ -1,4 +1,4 @@
-import { verifyAuth, checkRateLimit } from './_auth.js'
+import { verifyAuth, checkRateLimit, setSecurityHeaders, sanitizeInput, validateInput, stripFields, checkIPRateLimit } from './_auth.js'
 
 function buildMixedPrompt(notes, subject, numQuestions) {
   return `Generate ${numQuestions} active recall questions in MIXED format from these notes.
@@ -194,19 +194,58 @@ Return ONLY valid JSON:
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
+  // OWASP A05: Security Misconfiguration — set hardened headers on every response
+  setSecurityHeaders(res)
+
+  // OWASP A04: Insecure Design — reject bodies over 100 KB before any processing
+  if (JSON.stringify(req.body || {}).length > 100_000)
+    return res.status(413).json({ error: 'Request body too large.' })
+
+  // OWASP A04: Insecure Design — IP-level throttle before JWT auth to catch unauthenticated abuse
+  const ipOk = await checkIPRateLimit(req, res)
+  if (!ipOk) return
+
+  // OWASP A07: Identification and Authentication Failures — verify Bearer JWT
   const auth = await verifyAuth(req, res)
   if (!auth) return
 
   const { user, supabase } = auth
+
+  // OWASP A04: Insecure Design — per-user hourly quota after IP check
   const allowed = await checkRateLimit(supabase, user.id, 'generate-quiz')
   if (!allowed) return res.status(429).json({ error: 'Rate limit exceeded. Max 20 quiz generations per hour.' })
 
+  // OWASP A03: Injection — whitelist only expected fields, drop everything else
+  const ALLOWED_FIELDS = ['notes', 'subject', 'subjectType', 'numQuestions', 'mode', 'difficulty', 'tone',
+    'userAnswer', 'correctAnswer', 'question', 'source', 'bankSubject',
+    'testType', 'testDate', 'hoursPerWeek', 'weakAreas', 'currentLevel']
+  const body = stripFields(req.body || {}, ALLOWED_FIELDS)
+
+  // OWASP A03: Injection / A08: Data Integrity — validate types and length bounds
+  const validErr = validateInput(body, {
+    notes:        { type: 'string', maxLength: 20000 },
+    subject:      { type: 'string', maxLength: 100 },
+    numQuestions: { type: 'number' },
+    difficulty:   { type: 'string', maxLength: 20 },
+    mode:         { type: 'string', maxLength: 20 },
+  })
+  if (validErr) return res.status(400).json({ error: validErr })
+
   const {
-    notes, subject, subjectType = 'Other', numQuestions = 10,
+    subjectType = 'Other', numQuestions = 10,
     mode = 'short_answer', difficulty = 'Standard', tone = 'Simple',
-    userAnswer, correctAnswer, question,
-    source, bankSubject, testType, testDate, hoursPerWeek, weakAreas, currentLevel,
-  } = req.body || {}
+    source, testDate, hoursPerWeek, currentLevel,
+  } = body
+
+  // OWASP A03: Injection — strip LLM control tokens from all user strings before they reach Claude
+  const notes         = sanitizeInput(body.notes)
+  const subject       = sanitizeInput(body.subject)
+  const question      = sanitizeInput(body.question)
+  const userAnswer    = sanitizeInput(body.userAnswer)
+  const correctAnswer = sanitizeInput(body.correctAnswer)
+  const weakAreas     = sanitizeInput(body.weakAreas)
+  const bankSubject   = sanitizeInput(body.bankSubject)
+  const testType      = sanitizeInput(body.testType)
 
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) return res.status(500).json({ error: 'API key not configured on server.' })

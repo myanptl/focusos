@@ -1,5 +1,6 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import { motion, LayoutGroup } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 
 const tabs = [
@@ -16,6 +17,7 @@ const tabs = [
 export default function Nav() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [mobileOpen,   setMobileOpen]   = useState(false)
   const [isMobile,     setIsMobile]     = useState(window.innerWidth < 768)
@@ -59,19 +61,36 @@ export default function Nav() {
       </div>
 
       {!isMobile && (
-        <div style={{ display: 'flex', gap: 4, overflowX: 'auto', flex: 1, scrollbarWidth: 'none' }}>
-          {tabs.map(t => (
-            <NavLink key={t.to} to={t.to} style={({ isActive }) => ({
-              padding: '5px 12px', borderRadius: 20, fontSize: 13, fontWeight: 500,
-              textDecoration: 'none', whiteSpace: 'nowrap', transition: 'all 0.15s',
-              color: isActive ? 'var(--accent)' : 'var(--muted)',
-              background: isActive ? 'rgba(181,242,58,0.1)' : 'transparent',
-              border: isActive ? '1px solid rgba(181,242,58,0.25)' : '1px solid transparent',
-            })}>
-              {t.label}
-            </NavLink>
-          ))}
-        </div>
+        <LayoutGroup id="nav-tabs">
+          <div style={{ display: 'flex', gap: 4, overflowX: 'auto', flex: 1, scrollbarWidth: 'none' }}>
+            {tabs.map(t => {
+              const isActive = location.pathname === t.to || location.pathname.startsWith(t.to + '/')
+              return (
+                <NavLink key={t.to} to={t.to} style={{
+                  position: 'relative',
+                  padding: '5px 12px', borderRadius: 20, fontSize: 13, fontWeight: 500,
+                  textDecoration: 'none', whiteSpace: 'nowrap', transition: 'color 0.15s, background 0.15s',
+                  color: isActive ? 'var(--accent)' : 'var(--muted)',
+                  background: isActive ? 'rgba(181,242,58,0.1)' : 'transparent',
+                  border: isActive ? '1px solid rgba(181,242,58,0.25)' : '1px solid transparent',
+                  display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 0,
+                }}>
+                  {t.label}
+                  {isActive && (
+                    <motion.div
+                      layoutId="nav-tab-indicator"
+                      style={{
+                        position: 'absolute', bottom: -1, left: '18%', right: '18%',
+                        height: 2, background: 'var(--accent)', borderRadius: 1,
+                      }}
+                      transition={{ type: 'spring', bounce: 0.2, duration: 0.4 }}
+                    />
+                  )}
+                </NavLink>
+              )
+            })}
+          </div>
+        </LayoutGroup>
       )}
       {isMobile && <div style={{ flex: 1 }} />}
 

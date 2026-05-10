@@ -215,7 +215,9 @@ export default function Notes() {
       <div style={{
         width: 280, flexShrink: 0,
         borderRight: '1px solid var(--border)',
+        background: '#0d0d0f',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        boxShadow: '2px 0 16px rgba(0,0,0,0.2)',
       }}>
         <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
@@ -400,7 +402,7 @@ export default function Notes() {
           </div>
 
           {/* Editor area */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', gap: 20 }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px', display: 'flex', gap: 20, background: '#0a0a0b' }}>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <input
                 value={selectedNote.title || ''}
@@ -411,9 +413,10 @@ export default function Notes() {
                 }}
                 placeholder="Untitled Note"
                 style={{
-                  fontSize: 24, fontWeight: 700, background: 'transparent', border: 'none',
-                  outline: 'none', color: 'var(--text)', marginBottom: 16, padding: 0,
+                  fontSize: 28, fontWeight: 800, background: 'transparent', border: 'none',
+                  outline: 'none', color: 'var(--text)', marginBottom: 18, padding: 0,
                   fontFamily: "'DM Sans', sans-serif", width: '100%',
+                  letterSpacing: '-0.02em',
                 }}
               />
               {previewMode ? (

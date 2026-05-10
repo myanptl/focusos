@@ -94,7 +94,7 @@ export default function Goals() {
     <>
       <div className="page-fade" style={{ background: 'transparent' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text)' }}>Score Goals</h1>
+        <h1 className="page-title">Score Goals</h1>
         <button className="btn btn-accent" onClick={openModal}
           style={{ borderRadius: 10, padding: '10px 20px' }}>+ Add Goal</button>
       </div>
@@ -133,7 +133,7 @@ export default function Goals() {
           const dayColor = days !== null ? (days < 14 ? 'var(--red)' : days < 60 ? 'var(--amber)' : 'var(--muted)') : 'var(--muted)'
 
           return (
-            <div key={goal.id} className="card">
+            <div key={goal.id} className="card card-top">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{

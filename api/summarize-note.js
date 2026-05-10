@@ -1,16 +1,43 @@
-import { verifyAuth, checkRateLimit } from './_auth.js'
+import { verifyAuth, checkRateLimit, setSecurityHeaders, sanitizeInput, validateInput, stripFields, checkIPRateLimit } from './_auth.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
+  // OWASP A05: Security Misconfiguration — set hardened headers on every response
+  setSecurityHeaders(res)
+
+  // OWASP A04: Insecure Design — reject bodies over 100 KB before any processing
+  if (JSON.stringify(req.body || {}).length > 100_000)
+    return res.status(413).json({ error: 'Request body too large.' })
+
+  // OWASP A04: Insecure Design — IP-level throttle before JWT auth to catch unauthenticated abuse
+  const ipOk = await checkIPRateLimit(req, res)
+  if (!ipOk) return
+
+  // OWASP A07: Identification and Authentication Failures — verify Bearer JWT
   const auth = await verifyAuth(req, res)
   if (!auth) return
 
   const { user, supabase } = auth
+
+  // OWASP A04: Insecure Design — per-user hourly quota after IP check
   const allowed = await checkRateLimit(supabase, user.id, 'summarize-note')
   if (!allowed) return res.status(429).json({ error: 'Rate limit exceeded. Max 15 note summaries per hour.' })
 
-  const { text, subject } = req.body || {}
+  // OWASP A03: Injection — whitelist only expected fields, drop everything else
+  const body = stripFields(req.body || {}, ['text', 'subject'])
+
+  // OWASP A03: Injection / A08: Data Integrity — validate types and length bounds
+  const validErr = validateInput(body, {
+    text:    { required: true, type: 'string', maxLength: 15000 },
+    subject: { type: 'string', maxLength: 100 },
+  })
+  if (validErr) return res.status(400).json({ error: validErr })
+
+  // OWASP A03: Injection — strip LLM control tokens from all user strings before they reach Claude
+  const text    = sanitizeInput(body.text)
+  const subject = sanitizeInput(body.subject)
+
   if (!text?.trim()) return res.status(400).json({ error: 'Text is required.' })
 
   const apiKey = process.env.ANTHROPIC_API_KEY

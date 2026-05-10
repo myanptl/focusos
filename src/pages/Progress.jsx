@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import gsap from 'gsap'
+import AnimateInView from '../components/AnimateInView'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 
@@ -145,9 +147,9 @@ function FocusHeatmap({ hourlyMins }) {
 
 function StatCard({ label, value, sub, color = 'var(--accent)' }) {
   return (
-    <div className="card" style={{ textAlign: 'center' }}>
-      <div className="bebas" style={{ fontSize: 40, color, lineHeight: 1, marginBottom: 4 }}>{value}</div>
-      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{label}</div>
+    <div className="card card-top" style={{ textAlign: 'center' }}>
+      <div className="bebas" style={{ fontSize: 44, color, lineHeight: 1, marginBottom: 6, letterSpacing: '-0.01em' }}>{value}</div>
+      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 2 }}>{label}</div>
       {sub && <div style={{ fontSize: 12, color: 'var(--muted)' }}>{sub}</div>}
     </div>
   )
@@ -161,6 +163,13 @@ function buildDateStr(d) {
 export default function Progress() {
   const { profile, user } = useAuth()
   const navigate = useNavigate()
+
+  const [dispStreak,   setDispStreak]   = useState(0)
+  const [dispMins,     setDispMins]     = useState(0)
+  const [dispSessions, setDispSessions] = useState(0)
+  const [dispGoals,    setDispGoals]    = useState(0)
+  const statsAnimated = useRef(false)
+
   const [weekData,       setWeekData]       = useState(Array(7).fill(null).map(() => ({ mins: 0 })))
   const [hourlyMins,     setHourlyMins]     = useState(Array(24).fill(0))
   const [goalsCount,     setGoalsCount]     = useState(0)
@@ -230,11 +239,33 @@ export default function Progress() {
     )
   }
 
-  const streak       = profile?.streak_count ?? 0
-  const totalMins    = profile?.total_focus_minutes ?? 0
+  const streak        = profile?.streak_count ?? 0
+  const totalMins     = profile?.total_focus_minutes ?? 0
   const totalSessions = profile?.total_sessions ?? 0
-  const avgSession   = totalSessions > 0 ? Math.round(totalMins / totalSessions) : 0
-  const thisWeekMins = weekData.reduce((s, d) => s + d.mins, 0)
+  const avgSession    = totalSessions > 0 ? Math.round(totalMins / totalSessions) : 0
+  const thisWeekMins  = weekData.reduce((s, d) => s + d.mins, 0)
+
+  // GSAP stagger counter animation on first load
+  useEffect(() => {
+    if (statsAnimated.current) return
+    const anyData = streak > 0 || totalMins > 0 || totalSessions > 0 || goalsCount > 0
+    if (!anyData) return
+    statsAnimated.current = true
+    const targets = [
+      { end: streak,        set: setDispStreak   },
+      { end: totalMins,     set: setDispMins     },
+      { end: totalSessions, set: setDispSessions },
+      { end: goalsCount,    set: setDispGoals    },
+    ]
+    targets.forEach(({ end, set }, i) => {
+      const obj = { v: 0 }
+      gsap.to(obj, {
+        v: end, duration: 1.4, ease: 'power2.out', delay: i * 0.1,
+        snap: { v: 1 },
+        onUpdate: () => set(Math.round(obj.v)),
+      })
+    })
+  }, [streak, totalMins, totalSessions, goalsCount])
 
   function generateInsights() {
     const insights = []
@@ -260,7 +291,7 @@ export default function Progress() {
   return (
     <div className="page-fade">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-        <h1 style={{ fontSize: 32, fontWeight: 700 }}>Progress</h1>
+        <h1 className="page-title">Progress</h1>
         <div style={{ display: 'flex', gap: 12 }}>
           <button onClick={() => navigate('/planner')} style={{
             background: 'var(--card2)', border: '1px solid var(--border)',
@@ -280,12 +311,13 @@ export default function Progress() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
-        <StatCard label="Day Streak"     value={streak}         sub="days in a row"   color="var(--accent)" />
-        <StatCard label="Total Minutes"  value={totalMins}      sub="minutes focused"  color="var(--cyan)" />
-        <StatCard label="Sessions"       value={totalSessions}  sub="completed"        color="var(--purple)" />
-        <StatCard label="Goals"          value={goalsCount}     sub="score goals set"  color="var(--amber)" />
+        <StatCard label="Day Streak"     value={dispStreak}   sub="days in a row"   color="var(--accent)" />
+        <StatCard label="Total Minutes"  value={dispMins}     sub="minutes focused"  color="var(--cyan)" />
+        <StatCard label="Sessions"       value={dispSessions} sub="completed"        color="var(--purple)" />
+        <StatCard label="Goals"          value={dispGoals}    sub="score goals set"  color="var(--amber)" />
       </div>
 
+      <AnimateInView delay={0.1}>
       <div className="card" style={{ marginBottom: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div className="label">This Week</div>
@@ -293,8 +325,10 @@ export default function Progress() {
         </div>
         <BarChart data={weekData} />
       </div>
+      </AnimateInView>
 
       {/* Peak Focus Hours Heatmap */}
+      <AnimateInView delay={0.15}>
       <div className="card" style={{ marginBottom: 20 }}>
         <div className="label" style={{ marginBottom: 14 }}>Your Peak Focus Hours</div>
         <FocusHeatmap hourlyMins={hourlyMins} />
@@ -306,7 +340,9 @@ export default function Progress() {
           [<em>Folkard &amp; Monk, Chronobiology, 1985</em>]
         </div>
       </div>
+      </AnimateInView>
 
+      <AnimateInView delay={0.1}>
       <div className="card" style={{ marginBottom: 20 }}>
         <div className="label" style={{ marginBottom: 14 }}>Honest Insights</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -318,6 +354,7 @@ export default function Progress() {
           ))}
         </div>
       </div>
+      </AnimateInView>
 
       {/* Session History with notes */}
       {recentSessions.length > 0 && (
