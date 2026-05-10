@@ -54,7 +54,6 @@ export default function Settings() {
   const [breakMins, setBreakMins] = useState(profile?.break_duration ?? 5)
   const [autoBreak, setAutoBreak] = useState(profile?.auto_start_break ?? false)
   const [sound, setSound] = useState(profile?.sound_enabled ?? true)
-  const [compact, setCompact] = useState(profile?.compact_mode ?? false)
   const [accent, setAccent] = useState(profile?.accent_color || localStorage.getItem('focusos_accent') || '#b5f23a')
   const [resetText, setResetText] = useState('')
   const [showCitations, setShowCitations] = useState(false)
@@ -151,7 +150,7 @@ export default function Settings() {
   const breakPct = ((breakMins - 1) / (30 - 1)) * 100
 
   return (
-    <div className="page-fade" style={{ maxWidth: 720 }}>
+    <div className="page-fade" style={{ maxWidth: 720, margin: '0 auto', padding: '40px 24px', width: '100%' }}>
       <h1 className="page-title" style={{ marginBottom: 24 }}>Settings</h1>
 
       <div className="card card-top" style={{ marginBottom: 16 }}>
@@ -265,8 +264,8 @@ export default function Settings() {
                 >
                   <span style={{ fontSize: 22, flexShrink: 0 }}>{opt.icon}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2, color: aiModelPref === opt.key ? 'var(--accent)' : undefined }}>{opt.title}</div>
-                    <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.4 }}>{opt.desc}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2, color: aiModelPref === opt.key ? 'var(--accent)' : '#f0f0f2' }}>{opt.title}</div>
+                    <div style={{ fontSize: 11, color: '#9494a0', lineHeight: 1.4 }}>{opt.desc}</div>
                   </div>
                   {opt.badge && (
                     <span style={{ fontSize: 10, fontWeight: 600, background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', borderRadius: 20, padding: '2px 8px', color: 'var(--muted)', flexShrink: 0 }}>
@@ -331,16 +330,6 @@ export default function Settings() {
               ))}
             </div>
           </div>
-          <Row label="Compact mode" sub="Reduce spacing and font sizes"
-            right={<label className="toggle"><input type="checkbox" checked={compact} onChange={async e => {
-              const val = e.target.checked
-              setCompact(val)
-              if (val) document.body.classList.add('compact')
-              else document.body.classList.remove('compact')
-              localStorage.setItem('focusos_compact', String(val))
-              await updateProfile({ compact_mode: val })
-            }} /><span className="toggle-slider" /></label>}
-          />
         </Section>
       </div>
 

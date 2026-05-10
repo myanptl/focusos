@@ -114,16 +114,149 @@ function todayKey() {
 function pad(n) { return String(n).padStart(2, '0') }
 function fmt(secs) { return `${pad(Math.floor(secs / 60))}:${pad(secs % 60)}` }
 
-// ── Ambient Sound Engine (YouTube iframe) ────────────────
-const YT_IDS = {
-  rain:   'mPZkdNFkNps',
-  ocean:  'BHACKCNDMW8',
-  coffee: 'jfKfPfyJRdk',
+// ── Web Audio: Gentle Rain ────────────────────────────────
+function makeRain(ctx) {
+  const masterGain = ctx.createGain()
+  masterGain.gain.value = 0.3
+  masterGain.connect(ctx.destination)
+
+  const bufferSize = ctx.sampleRate * 3
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+  const data = buffer.getChannelData(0)
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = (Math.random() * 2 - 1) * 0.4
+  }
+  const source = ctx.createBufferSource()
+  source.buffer = buffer
+  source.loop = true
+
+  const lowpass = ctx.createBiquadFilter()
+  lowpass.type = 'lowpass'
+  lowpass.frequency.value = 400
+  lowpass.Q.value = 0.3
+
+  const highpass = ctx.createBiquadFilter()
+  highpass.type = 'highpass'
+  highpass.frequency.value = 100
+
+  source.connect(lowpass)
+  lowpass.connect(highpass)
+  highpass.connect(masterGain)
+  source.start()
+
+  let running = true
+  const timeouts = []
+
+  const scheduleDrip = () => {
+    if (!running) return
+    const osc = ctx.createOscillator()
+    const env = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.value = Math.random() * 400 + 600
+    env.gain.setValueAtTime(0, ctx.currentTime)
+    env.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 0.02)
+    env.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4)
+    osc.connect(env)
+    env.connect(masterGain)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.4)
+    const t = setTimeout(scheduleDrip, Math.random() * 2000 + 1000)
+    timeouts.push(t)
+  }
+
+  scheduleDrip()
+
+  return {
+    stop: () => {
+      running = false
+      timeouts.forEach(t => clearTimeout(t))
+      source.stop()
+      masterGain.disconnect()
+    },
+    setVolume: (v) => { masterGain.gain.value = v * 0.3 },
+  }
 }
+
+// ── Web Audio: Ocean Waves ────────────────────────────────
+function makeOcean(ctx) {
+  const masterGain = ctx.createGain()
+  masterGain.gain.value = 0.4
+  masterGain.connect(ctx.destination)
+
+  // Pink noise for ocean texture
+  const bufferSize = ctx.sampleRate * 4
+  const buffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate)
+  for (let ch = 0; ch < 2; ch++) {
+    const data = buffer.getChannelData(ch)
+    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0
+    for (let i = 0; i < bufferSize; i++) {
+      const w = Math.random() * 2 - 1
+      b0 = 0.99886 * b0 + w * 0.0555179
+      b1 = 0.99332 * b1 + w * 0.0750759
+      b2 = 0.96900 * b2 + w * 0.1538520
+      b3 = 0.86650 * b3 + w * 0.3104856
+      b4 = 0.55000 * b4 + w * 0.5329522
+      b5 = -0.7616 * b5 - w * 0.0168980
+      data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362) * 0.11
+      b6 = w * 0.115926
+    }
+  }
+  const noise = ctx.createBufferSource()
+  noise.buffer = buffer
+  noise.loop = true
+
+  const lowpass = ctx.createBiquadFilter()
+  lowpass.type = 'lowpass'
+  lowpass.frequency.value = 1000
+  lowpass.Q.value = 0.5
+
+  // Slow LFO for wave rhythm (~every 8 seconds)
+  const lfo = ctx.createOscillator()
+  lfo.type = 'sine'
+  lfo.frequency.value = 0.12
+  const lfoGain = ctx.createGain()
+  lfoGain.gain.value = 0.25
+  const waveGain = ctx.createGain()
+  waveGain.gain.value = 0.75
+
+  lfo.connect(lfoGain)
+  lfoGain.connect(waveGain.gain)
+  noise.connect(lowpass)
+  lowpass.connect(waveGain)
+  waveGain.connect(masterGain)
+
+  noise.start()
+  lfo.start()
+
+  return {
+    stop: () => {
+      noise.stop()
+      lfo.stop()
+      masterGain.disconnect()
+    },
+    setVolume: (v) => { masterGain.gain.value = v * 0.4 },
+  }
+}
+
+// ── Ambient Sound Engine ──────────────────────────────────
+const YT_IDS = { coffee: 'jfKfPfyJRdk' }
 
 function createAmbientSound(type, volume) {
   if (type === 'silent') return null
 
+  // Rain and Ocean: instant Web Audio API, no loading delay
+  if (type === 'rain' || type === 'ocean') {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)()
+    ctx.resume()
+    const sound = type === 'rain' ? makeRain(ctx) : makeOcean(ctx)
+    sound.setVolume(volume)
+    return {
+      stop: () => { sound.stop(); ctx.close() },
+      setVolume: (v) => sound.setVolume(v),
+    }
+  }
+
+  // Coffee: YouTube iframe
   const iframe = document.createElement('iframe')
   iframe.allow = 'autoplay'
   iframe.style.cssText = 'display:none;position:fixed;top:-9999px;left:-9999px;width:0;height:0;'
@@ -133,14 +266,10 @@ function createAmbientSound(type, volume) {
 
   const postCmd = (func, args = []) => {
     try {
-      iframe.contentWindow?.postMessage(
-        JSON.stringify({ event: 'command', func, args }),
-        '*'
-      )
+      iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), '*')
     } catch(e) {}
   }
 
-  // Set initial volume once player has loaded (~2s)
   const initTimer = setTimeout(() => postCmd('setVolume', [Math.round(volume * 100)]), 2000)
 
   return {
@@ -148,9 +277,7 @@ function createAmbientSound(type, volume) {
     stop: () => {
       clearTimeout(initTimer)
       postCmd('pauseVideo')
-      setTimeout(() => {
-        if (document.body.contains(iframe)) document.body.removeChild(iframe)
-      }, 150)
+      setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe) }, 150)
     },
   }
 }
