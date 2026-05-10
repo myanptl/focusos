@@ -134,8 +134,17 @@ export default function Notes() {
     }, 0)
   }
 
+  function escapeHTML(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+  }
+
   function renderMarkdown(text) {
-    return (text || '')
+    return escapeHTML(text || '')
       .replace(/^### (.*)/gm, '<h3 style="font-size:16px;font-weight:700;color:white;margin:14px 0 6px">$1</h3>')
       .replace(/^## (.*)/gm,  '<h2 style="font-size:20px;font-weight:700;color:white;margin:16px 0 8px">$1</h2>')
       .replace(/^# (.*)/gm,   '<h1 style="font-size:24px;font-weight:700;color:white;margin:20px 0 10px">$1</h1>')
