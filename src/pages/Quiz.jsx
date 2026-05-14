@@ -719,7 +719,7 @@ export default function Quiz() {
               <div className="label" style={{ marginBottom: 6 }}>Difficulty</div>
               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                 {DIFFICULTIES.map(d => {
-                  const short = d === 'Standard' ? 'Std' : d === 'Exam Style' ? 'Exam' : d
+                  const short = d === 'Standard' ? 'Medium' : d === 'Exam Style' ? 'Exam' : d
                   return (
                     <button key={d} className={`pill${difficulty === d ? ' active' : ''}`}
                       onClick={() => setDifficulty(d)} style={{ fontSize: 12, padding: '6px 12px' }}>{short}</button>
@@ -932,6 +932,15 @@ export default function Quiz() {
               <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 12 }}>
                 Generate a quiz above — these will appear first.
               </p>
+            </div>
+          ) : loading ? (
+            <div className="card" style={{ textAlign: 'center', padding: 48 }}>
+              <div style={{
+                fontSize: 64, color: 'var(--accent)',
+                animation: 'spin-slow 1s linear infinite',
+                display: 'inline-block', lineHeight: 1, marginBottom: 16,
+              }}>⟳</div>
+              <p style={{ color: 'var(--muted)', fontSize: 14 }}>Generating your questions...</p>
             </div>
           ) : (
             <div className="card" style={{ textAlign: 'center', padding: 48 }}>
