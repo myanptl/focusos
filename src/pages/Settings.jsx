@@ -72,6 +72,10 @@ export default function Settings() {
   }, [profile])
 
   async function checkOllama() {
+    // localhost:11434 is only reachable from http:// origins (dev).
+    // In production (https) browsers block mixed-content requests, so Ollama
+    // will always appear offline — that's expected and handled gracefully.
+    if (location.protocol === 'https:') { setOllamaStatus('offline'); return }
     try {
       const res = await fetch('http://localhost:11434/api/tags', { signal: AbortSignal.timeout(3000) })
       setOllamaStatus(res.ok ? 'running' : 'offline')
@@ -82,6 +86,7 @@ export default function Settings() {
 
   async function recheckOllama() {
     setOllamaChecking(true)
+    if (location.protocol === 'https:') { setOllamaStatus('offline'); setOllamaChecking(false); return }
     try {
       const res = await fetch('http://localhost:11434/api/tags', { signal: AbortSignal.timeout(3000) })
       setOllamaStatus(res.ok ? 'running' : 'offline')

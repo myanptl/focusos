@@ -25,18 +25,23 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function fetchProfile(userId) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single()
-    setProfile(data)
-    if (data?.accent_color) {
-      document.documentElement.style.setProperty('--accent', data.accent_color)
-      document.documentElement.style.setProperty('--lime', data.accent_color)
-      localStorage.setItem('focusos_accent', data.accent_color)
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+      setProfile(data)
+      if (data?.accent_color) {
+        document.documentElement.style.setProperty('--accent', data.accent_color)
+        document.documentElement.style.setProperty('--lime', data.accent_color)
+        localStorage.setItem('focusos_accent', data.accent_color)
+      }
+    } catch {
+      // Profile fetch failed — app still loads, user just has no profile data
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   async function refreshProfile() {

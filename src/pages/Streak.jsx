@@ -138,7 +138,7 @@ export default function Streak() {
   }, [unlockedBadges.length])
 
   return (
-    <div className="page-fade" style={{ maxWidth: 720 }}>
+    <div className="page-fade" style={{ maxWidth: 720, margin: '0 auto', width: '100%' }}>
       {showConfetti && (
         <Confetti
           recycle={false} numberOfPieces={90} gravity={0.35}
