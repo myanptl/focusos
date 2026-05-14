@@ -4,5 +4,8 @@
     "api/summarize-note.js":  { "maxDuration": 30 },
     "api/summarize-video.js": { "maxDuration": 30 },
     "api/quiz-followup.js":   { "maxDuration": 20 }
-  }
+  },
+  "rewrites": [
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
 }
