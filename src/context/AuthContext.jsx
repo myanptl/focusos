@@ -30,7 +30,35 @@ export function AuthProvider({ children }) {
         .from('profiles')
         .select('*')
         .eq('user_id', userId)
-        .single()
+        .maybeSingle()
+
+      if (!data) {
+        // Profile row missing — happens when email-confirmation redirect lands before
+        // the signup-time upsert succeeded (RLS blocks writes from unconfirmed sessions).
+        // Rebuild it from auth user metadata so name is correct.
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        const displayName =
+          authUser?.user_metadata?.name ||
+          authUser?.user_metadata?.full_name ||
+          authUser?.email?.split('@')[0] ||
+          'User'
+        const defaultProfile = {
+          user_id: userId,
+          name: displayName,
+          username: displayName,
+          streak_count: 0,
+          total_focus_minutes: 0,
+          total_sessions: 0,
+          focus_duration: 25,
+          break_duration: 5,
+          onboarding_complete: false,
+          accent_color: '#b5f23a',
+        }
+        await supabase.from('profiles').upsert(defaultProfile, { onConflict: 'user_id' })
+        setProfile(defaultProfile)
+        return
+      }
+
       setProfile(data)
       if (data?.accent_color) {
         document.documentElement.style.setProperty('--accent', data.accent_color)
@@ -50,7 +78,14 @@ export function AuthProvider({ children }) {
   }
 
   async function signUp(email, password, name) {
-    const { data, error } = await supabase.auth.signUp({ email, password })
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: 'https://focusos.live',
+        data: { name: name || email.split('@')[0] },
+      },
+    })
     if (error) throw error
     if (data.user) {
       await supabase.from('profiles').upsert({

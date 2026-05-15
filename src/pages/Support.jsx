@@ -21,7 +21,7 @@ const FAQS = [
   },
   {
     q: 'How do I delete my account?',
-    a: 'Go to Settings → Data → Reset All Data to clear your focus history, quiz results, and goals. To fully delete your account and email address from our system, email support@focusos.app and we will process it within 7 days.',
+    a: 'Go to Settings → Data → Reset All Data to clear your focus history, quiz results, and goals. To fully delete your account and email address from our system, email support@focusos.live and we will process it within 7 days.',
   },
   {
     q: 'Why is my streak broken?',
@@ -64,10 +64,27 @@ export default function Support() {
   const [email, setEmail]     = useState('')
   const [message, setMessage] = useState('')
   const [sent, setSent]       = useState(false)
+  const [error, setError]     = useState('')
+  const [loading, setLoading] = useState(false)
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
-    setSent(true)
+    setError('')
+    setLoading(true)
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to send message')
+      setSent(true)
+    } catch (err) {
+      setError(err.message || 'Something went wrong. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -75,7 +92,7 @@ export default function Support() {
       <h1 style={{ fontSize: 32, fontWeight: 700, marginBottom: 6 }}>Get Help</h1>
       <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 36 }}>
         Find answers below or reach us at{' '}
-        <a href="mailto:support@focusos.app" style={{ color: 'var(--accent)' }}>support@focusos.app</a>
+        <a href="mailto:support@focusos.live" style={{ color: 'var(--accent)' }}>support@focusos.live</a>
       </p>
 
       {/* FAQ */}
@@ -126,7 +143,12 @@ export default function Support() {
                 rows={5} style={{ resize: 'vertical', lineHeight: 1.6 }} required
               />
             </div>
-            <button type="submit" className="btn btn-accent btn-full">Send Message</button>
+            {error && (
+              <div style={{ color: '#f87171', fontSize: 13 }}>{error}</div>
+            )}
+            <button type="submit" className="btn btn-accent btn-full" disabled={loading}>
+              {loading ? 'Sending…' : 'Send Message'}
+            </button>
           </form>
         )}
       </div>

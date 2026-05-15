@@ -118,7 +118,7 @@ export default function Review() {
       }).length} quizzes completed`,
     ]
     if (topSubject) lines.push(`📈 Top subject: ${topSubject}`)
-    lines.push('', 'Trained with FocusOS — focusos.app')
+    lines.push('', 'Trained with FocusOS — focusos.live')
     return lines.join('\n')
   }
 

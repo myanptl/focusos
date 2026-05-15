@@ -57,7 +57,7 @@ export default function Privacy() {
           <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 10 }}>Deleting your data</h2>
           <div className="card" style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--muted)' }}>
             <p>You can reset all your focus and quiz data at any time from <strong style={{ color: 'var(--text)' }}>Settings → Data → Reset All Data</strong>.</p>
-            <p style={{ marginTop: 10 }}>To fully delete your account, email us at <a href="mailto:support@focusos.app" style={{ color: 'var(--accent)' }}>support@focusos.app</a> and we will remove your account and all associated data within 7 days.</p>
+            <p style={{ marginTop: 10 }}>To fully delete your account, email us at <a href="mailto:support@focusos.live" style={{ color: 'var(--accent)' }}>support@focusos.live</a> and we will remove your account and all associated data within 7 days.</p>
           </div>
         </section>
 
@@ -75,7 +75,7 @@ export default function Privacy() {
         <section>
           <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 10 }}>Contact</h2>
           <div className="card" style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--muted)' }}>
-            Questions about this policy? Email <a href="mailto:support@focusos.app" style={{ color: 'var(--accent)' }}>support@focusos.app</a>
+            Questions about this policy? Email <a href="mailto:support@focusos.live" style={{ color: 'var(--accent)' }}>support@focusos.live</a>
           </div>
         </section>
 

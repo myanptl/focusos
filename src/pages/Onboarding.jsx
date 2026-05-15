@@ -94,7 +94,10 @@ export default function Onboarding() {
             <input
               type="range" min={5} max={60} value={focusDuration}
               onChange={e => setFocusDuration(Number(e.target.value))}
-              style={{ '--val': `${pct}%`, width: '100%', marginBottom: 24 }}
+              style={{
+                width: '100%', marginBottom: 24,
+                background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, #222226 ${pct}%, #222226 100%)`,
+              }}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--muted)', marginBottom: 28 }}>
               <span>5 min</span><span>60 min</span>

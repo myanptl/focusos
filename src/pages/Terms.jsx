@@ -36,7 +36,7 @@ export default function Terms() {
         <section>
           <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 10 }}>Account suspension</h2>
           <div className="card" style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--muted)' }}>
-            We reserve the right to suspend or terminate accounts that violate these terms without prior notice. If you believe your account was suspended in error, contact <a href="mailto:support@focusos.app" style={{ color: 'var(--accent)' }}>support@focusos.app</a>.
+            We reserve the right to suspend or terminate accounts that violate these terms without prior notice. If you believe your account was suspended in error, contact <a href="mailto:support@focusos.live" style={{ color: 'var(--accent)' }}>support@focusos.live</a>.
           </div>
         </section>
 
@@ -58,7 +58,7 @@ export default function Terms() {
         <section>
           <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 10 }}>Contact</h2>
           <div className="card" style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--muted)' }}>
-            Questions about these terms? Email <a href="mailto:support@focusos.app" style={{ color: 'var(--accent)' }}>support@focusos.app</a>
+            Questions about these terms? Email <a href="mailto:support@focusos.live" style={{ color: 'var(--accent)' }}>support@focusos.live</a>
           </div>
         </section>
 
