@@ -567,27 +567,31 @@ export default function Timer() {
 
   // ── Data loaders ─────────────────────────────────────
   async function loadTodayData() {
-    const today = todayKey()
-    const [logRes, sessRes] = await Promise.all([
-      supabase.from('daily_focus_log')
-        .select('total_minutes, sessions_completed, sessions_count')
-        .eq('user_id', user.id).eq('log_date', today).single(),
-      supabase.from('focus_sessions')
-        .select('duration_minutes')
-        .eq('user_id', user.id).eq('session_date', today).eq('completed', true),
-    ])
-    if (logRes.data) {
-      setSessionsToday((logRes.data.sessions_completed ?? logRes.data.sessions_count) || 0)
-      setMinutesToday(logRes.data.total_minutes || 0)
-    }
-    setTodaySessions(sessRes.data || [])
+    try {
+      const today = todayKey()
+      const [logRes, sessRes] = await Promise.all([
+        supabase.from('daily_focus_log')
+          .select('total_minutes, sessions_completed, sessions_count')
+          .eq('user_id', user.id).eq('log_date', today).single(),
+        supabase.from('focus_sessions')
+          .select('duration_minutes')
+          .eq('user_id', user.id).eq('session_date', today).eq('completed', true),
+      ])
+      if (logRes.data) {
+        setSessionsToday((logRes.data.sessions_completed ?? logRes.data.sessions_count) || 0)
+        setMinutesToday(logRes.data.total_minutes || 0)
+      }
+      setTodaySessions(sessRes.data || [])
+    } catch { /* Supabase unreachable — start with zero counts, session still usable */ }
   }
 
   async function loadGoals() {
-    const { data } = await supabase
-      .from('score_goals').select('test_type, subject')
-      .eq('user_id', user.id).order('created_at', { ascending: false })
-    setGoals(data || [])
+    try {
+      const { data } = await supabase
+        .from('score_goals').select('test_type, subject')
+        .eq('user_id', user.id).order('created_at', { ascending: false })
+      setGoals(data || [])
+    } catch { /* non-fatal */ }
   }
 
   // ── Timer tick ───────────────────────────────────────
@@ -635,6 +639,7 @@ export default function Timer() {
   // ── Save completed session ───────────────────────────
   async function saveFocusSession(mins, note, extraProfileFields = {}) {
     if (!user) return null
+    try {
     const today = todayKey()
 
     const { data: sd } = await supabase.from('focus_sessions').insert({
@@ -679,10 +684,16 @@ export default function Timer() {
 
     await refreshProfile()
     return sessionId
+    } catch (err) {
+      console.error('Session save failed:', err.message)
+      toast('Session logged locally — sync failed. Check your connection.', 'error')
+      return null
+    }
   }
 
   // ── Reflection submit ────────────────────────────────
   async function finishReflection(distraction) {
+    try {
     const mins      = completedMins
     const newSpan   = pomodoroMode ? 25 : Math.min(90, mins + 2)
     const newStreak = focusBlocksStreak + 1
@@ -755,6 +766,11 @@ export default function Timer() {
     setPhase('break')
     setTimeLeft(breakDuration)
     setRunning(true)
+    } catch (err) {
+      console.error('Reflection submit failed:', err.message)
+      toast('Could not save session. Check your connection.', 'error')
+      setReflectionOpen(false)
+    }
   }
 
   // ── Early quit ───────────────────────────────────────
@@ -767,14 +783,16 @@ export default function Timer() {
     const elapsedMins = Math.max(1, Math.floor((focusDuration - timeLeft) / 60))
 
     if (user) {
-      await supabase.from('focus_sessions').insert({
-        user_id: user.id, duration_minutes: elapsedMins,
-        completed: false, completed_early: true,
-        session_date: todayKey(),
-        completed_at: new Date().toISOString(),
-      })
-      await supabase.from('profiles').update({ focus_blocks_streak: 0 }).eq('user_id', user.id)
-      setFocusBlocksStreak(0)
+      try {
+        await supabase.from('focus_sessions').insert({
+          user_id: user.id, duration_minutes: elapsedMins,
+          completed: false, completed_early: true,
+          session_date: todayKey(),
+          completed_at: new Date().toISOString(),
+        })
+        await supabase.from('profiles').update({ focus_blocks_streak: 0 }).eq('user_id', user.id)
+        setFocusBlocksStreak(0)
+      } catch { /* non-fatal on early quit */ }
     }
 
     showRec(`Next session: stay at ${focusMins} min — consistency beats length.`)

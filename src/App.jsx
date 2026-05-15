@@ -124,17 +124,17 @@ function AppRoutes() {
       <Route path="/signup"     element={!user ? <Signup /> : <Navigate to="/timer" replace />} />
       <Route path="/onboarding" element={user ? <Onboarding /> : <Navigate to="/login" replace />} />
 
-      <Route path="/timer"    element={<ProtectedRoute><AppShell><Timer /></AppShell></ProtectedRoute>} />
-      <Route path="/quiz"     element={<ProtectedRoute><AppShell><Quiz /></AppShell></ProtectedRoute>} />
-      <Route path="/goals"    element={<ProtectedRoute><AppShell><Goals /></AppShell></ProtectedRoute>} />
-      <Route path="/streak"   element={<ProtectedRoute><AppShell><Streak /></AppShell></ProtectedRoute>} />
-      <Route path="/progress" element={<ProtectedRoute><AppShell><Progress /></AppShell></ProtectedRoute>} />
-      <Route path="/planner"  element={<ProtectedRoute><AppShell><Planner /></AppShell></ProtectedRoute>} />
-      <Route path="/notes"    element={<ProtectedRoute><AppShell><Notes /></AppShell></ProtectedRoute>} />
-      <Route path="/rooms"    element={<ProtectedRoute><AppShell><Rooms /></AppShell></ProtectedRoute>} />
-      <Route path="/rooms/:roomId" element={<ProtectedRoute><AppShell><RoomDetail /></AppShell></ProtectedRoute>} />
-      <Route path="/review"   element={<ProtectedRoute><AppShell><Review /></AppShell></ProtectedRoute>} />
-      <Route path="/settings" element={<ProtectedRoute><AppShell><Settings /></AppShell></ProtectedRoute>} />
+      <Route path="/timer"    element={<ProtectedRoute><ErrorBoundary><AppShell><Timer /></AppShell></ErrorBoundary></ProtectedRoute>} />
+      <Route path="/quiz"     element={<ProtectedRoute><ErrorBoundary><AppShell><Quiz /></AppShell></ErrorBoundary></ProtectedRoute>} />
+      <Route path="/goals"    element={<ProtectedRoute><ErrorBoundary><AppShell><Goals /></AppShell></ErrorBoundary></ProtectedRoute>} />
+      <Route path="/streak"   element={<ProtectedRoute><ErrorBoundary><AppShell><Streak /></AppShell></ErrorBoundary></ProtectedRoute>} />
+      <Route path="/progress" element={<ProtectedRoute><ErrorBoundary><AppShell><Progress /></AppShell></ErrorBoundary></ProtectedRoute>} />
+      <Route path="/planner"  element={<ProtectedRoute><ErrorBoundary><AppShell><Planner /></AppShell></ErrorBoundary></ProtectedRoute>} />
+      <Route path="/notes"    element={<ProtectedRoute><ErrorBoundary><AppShell><Notes /></AppShell></ErrorBoundary></ProtectedRoute>} />
+      <Route path="/rooms"    element={<ProtectedRoute><ErrorBoundary><AppShell><Rooms /></AppShell></ErrorBoundary></ProtectedRoute>} />
+      <Route path="/rooms/:roomId" element={<ProtectedRoute><ErrorBoundary><AppShell><RoomDetail /></AppShell></ErrorBoundary></ProtectedRoute>} />
+      <Route path="/review"   element={<ProtectedRoute><ErrorBoundary><AppShell><Review /></AppShell></ErrorBoundary></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><ErrorBoundary><AppShell><Settings /></AppShell></ErrorBoundary></ProtectedRoute>} />
 
       <Route path="/reset-password" element={<ResetPassword />} />
 

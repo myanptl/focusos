@@ -203,7 +203,7 @@ export default function Notes() {
     a.href     = url
     a.download = `${selectedNote.title || 'note'}${ext}`
     a.click()
-    URL.revokeObjectURL(url)
+    setTimeout(() => URL.revokeObjectURL(url), 100)
   }
 
   // ── Derived ──────────────────────────────────────────────
