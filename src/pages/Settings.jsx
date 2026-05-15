@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
@@ -61,6 +62,12 @@ export default function Settings() {
   const [aiModelPref, setAiModelPref] = useState(profile?.ai_model_preference || 'auto')
   const [ollamaStatus, setOllamaStatus] = useState(null) // null=pending, 'running', 'offline'
   const [ollamaChecking, setOllamaChecking] = useState(false)
+  const [ollamaGuideOpen, setOllamaGuideOpen] = useState(false)
+  const [copiedCmd, setCopiedCmd] = useState(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteText, setDeleteText]           = useState('')
+  const [deleteLoading, setDeleteLoading]     = useState(false)
+  const [deleteError, setDeleteError]         = useState('')
 
   useEffect(() => { loadStats(); checkOllama() }, [user])
   useEffect(() => {
@@ -82,6 +89,13 @@ export default function Settings() {
     } catch {
       setOllamaStatus('offline')
     }
+  }
+
+  function copyCmd(text) {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedCmd(text)
+      setTimeout(() => setCopiedCmd(null), 1800)
+    })
   }
 
   async function recheckOllama() {
@@ -147,6 +161,25 @@ export default function Settings() {
     toast('All data reset.', 'info')
     setResetText('')
     loadStats()
+  }
+
+  async function handleDeleteAccount() {
+    if (deleteText !== 'DELETE') { setDeleteError('Type DELETE to confirm'); return }
+    setDeleteLoading(true); setDeleteError('')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}` },
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to delete account')
+      await signOut()
+      navigate('/')
+    } catch (err) {
+      setDeleteError(err.message || 'Something went wrong. Please try again.')
+      setDeleteLoading(false)
+    }
   }
 
   const initials = (displayName || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
@@ -287,6 +320,132 @@ export default function Settings() {
             </div>
           </div>
 
+          {/* Ollama Setup Guide accordion */}
+          <div style={{ marginTop: 8, marginBottom: 8, borderRadius: 10, border: '1px solid var(--border)', overflow: 'hidden' }}>
+            <button
+              onClick={() => setOllamaGuideOpen(o => !o)}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '10px 14px', background: 'var(--card2)', border: 'none', cursor: 'pointer',
+                fontFamily: "'DM Sans', sans-serif",
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
+                <span style={{ fontSize: 14 }}>🦙</span> Llama Setup Guide
+              </span>
+              <motion.span
+                animate={{ rotate: ollamaGuideOpen ? 180 : 0 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 38 }}
+                style={{ display: 'inline-block', fontSize: 11, color: 'var(--muted)' }}
+              >▼</motion.span>
+            </button>
+
+            <AnimatePresence initial={false}>
+            {ollamaGuideOpen && (
+              <motion.div
+                key="ollama-guide"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 340, damping: 36 }}
+                style={{ overflow: 'hidden' }}
+              >
+                <div style={{ padding: '4px 14px 16px', display: 'flex', flexDirection: 'column', gap: 16, borderTop: '1px solid var(--border)' }}>
+
+                  {/* Step 1 */}
+                  <div style={{ display: 'flex', gap: 12, paddingTop: 14 }}>
+                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(181,242,58,0.15)', border: '1px solid rgba(181,242,58,0.35)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>1</div>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>Download Ollama</div>
+                      <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.55, marginBottom: 6 }}>
+                        Go to ollama.com and download for your OS (Mac, Windows, or Linux)
+                      </div>
+                      <a
+                        href="https://ollama.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 5,
+                          fontSize: 12, fontWeight: 600, color: 'var(--accent)',
+                          textDecoration: 'none', padding: '4px 10px',
+                          background: 'rgba(181,242,58,0.08)', border: '1px solid rgba(181,242,58,0.25)',
+                          borderRadius: 6,
+                        }}
+                      >
+                        → ollama.com
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Step 2 */}
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(181,242,58,0.15)', border: '1px solid rgba(181,242,58,0.35)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>2</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>Install a model</div>
+                      <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.55, marginBottom: 6 }}>Open your terminal and run:</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: '#0d0d0f', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 7, overflow: 'hidden' }}>
+                        <code style={{ flex: 1, padding: '8px 12px', fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: '#b5f23a', display: 'block' }}>
+                          ollama pull llama3.2
+                        </code>
+                        <button
+                          onClick={() => copyCmd('ollama pull llama3.2')}
+                          style={{
+                            padding: '0 12px', height: '100%', background: 'none', border: 'none',
+                            borderLeft: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer',
+                            fontSize: 11, color: copiedCmd === 'ollama pull llama3.2' ? 'var(--accent)' : 'var(--muted)',
+                            fontFamily: "'DM Sans', sans-serif", fontWeight: 600, whiteSpace: 'nowrap',
+                            transition: 'color 0.15s', minWidth: 48,
+                          }}
+                        >
+                          {copiedCmd === 'ollama pull llama3.2' ? 'Copied!' : 'Copy'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 3 */}
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(181,242,58,0.15)', border: '1px solid rgba(181,242,58,0.35)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>3</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>Start Ollama</div>
+                      <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.55, marginBottom: 6 }}>Run this in terminal to start the server:</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: '#0d0d0f', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 7, overflow: 'hidden' }}>
+                        <code style={{ flex: 1, padding: '8px 12px', fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: '#b5f23a', display: 'block' }}>
+                          ollama serve
+                        </code>
+                        <button
+                          onClick={() => copyCmd('ollama serve')}
+                          style={{
+                            padding: '0 12px', height: '100%', background: 'none', border: 'none',
+                            borderLeft: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer',
+                            fontSize: 11, color: copiedCmd === 'ollama serve' ? 'var(--accent)' : 'var(--muted)',
+                            fontFamily: "'DM Sans', sans-serif", fontWeight: 600, whiteSpace: 'nowrap',
+                            transition: 'color 0.15s', minWidth: 48,
+                          }}
+                        >
+                          {copiedCmd === 'ollama serve' ? 'Copied!' : 'Copy'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 4 */}
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(181,242,58,0.15)', border: '1px solid rgba(181,242,58,0.35)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>4</div>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>Come back here</div>
+                      <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.55 }}>
+                        Click <strong style={{ color: 'var(--text)' }}>Recheck</strong> below — it should turn green
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </motion.div>
+            )}
+            </AnimatePresence>
+          </div>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 8, background: 'var(--card2)', border: '1px solid var(--border)' }}>
             <span style={{ fontSize: 14 }}>
               {ollamaChecking || ollamaStatus === null ? '⏳' : ollamaStatus === 'running' ? '🟢' : '🔴'}
@@ -360,6 +519,21 @@ export default function Settings() {
             </div>
             <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>Permanently deletes all sessions, quiz results, and goals.</div>
           </div>
+          <div style={{ marginBottom: 16 }}>
+            <button
+              onClick={() => { setShowDeleteModal(true); setDeleteText(''); setDeleteError('') }}
+              style={{
+                width: '100%', padding: '10px 16px', borderRadius: 8, cursor: 'pointer',
+                border: '1px solid rgba(248,113,113,0.35)', background: 'rgba(248,113,113,0.07)',
+                color: '#f87171', fontSize: 14, fontWeight: 600, transition: 'all 0.15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.14)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.07)' }}
+            >
+              Delete Account &amp; All Data
+            </button>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>Permanently deletes your account and all associated data.</div>
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button className="btn btn-ghost" disabled style={{ opacity: 0.4 }}>Export Data</button>
             <span style={{ fontSize: 11, background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', borderRadius: 20, padding: '2px 8px', color: 'var(--muted)' }}>Coming V2</span>
@@ -379,6 +553,43 @@ export default function Settings() {
           </div>
         </Section>
       </div>
+
+      {showDeleteModal && (
+        <div className="modal-backdrop" onClick={() => !deleteLoading && setShowDeleteModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f87171' }}>Delete Account</h2>
+              <button onClick={() => setShowDeleteModal(false)} disabled={deleteLoading}
+                style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 20 }}>✕</button>
+            </div>
+            <p style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 16, lineHeight: 1.6 }}>
+              This will permanently delete your account and all associated data — sessions, quiz results, goals, notes, and streaks. <strong style={{ color: 'var(--text)' }}>This cannot be undone.</strong>
+            </p>
+            <div style={{ marginBottom: 16 }}>
+              <label className="label" style={{ display: 'block', marginBottom: 6 }}>Type DELETE to confirm</label>
+              <input
+                type="text" placeholder="DELETE" value={deleteText}
+                onChange={e => setDeleteText(e.target.value)}
+                disabled={deleteLoading}
+                style={{ width: '100%', boxSizing: 'border-box' }}
+              />
+            </div>
+            {deleteError && <div style={{ color: '#f87171', fontSize: 13, marginBottom: 12 }}>{deleteError}</div>}
+            <button
+              onClick={handleDeleteAccount}
+              disabled={deleteLoading}
+              style={{
+                width: '100%', padding: '11px 16px', borderRadius: 8, cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                border: 'none', background: deleteText === 'DELETE' ? '#f87171' : 'rgba(248,113,113,0.3)',
+                color: deleteText === 'DELETE' ? '#0a0a0b' : '#f87171', fontSize: 14, fontWeight: 700,
+                transition: 'all 0.15s', opacity: deleteLoading ? 0.7 : 1,
+              }}
+            >
+              {deleteLoading ? 'Deleting…' : 'Delete Account & All Data'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {showCitations && (
         <div className="modal-backdrop" onClick={() => setShowCitations(false)}>
