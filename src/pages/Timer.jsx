@@ -982,7 +982,7 @@ export default function Timer() {
       </div>
 
       {/* 2-column grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 20 }}>
+      <div className="mobile-grid-stack" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 20 }}>
 
         {/* ── Left column ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -1427,7 +1427,7 @@ export default function Timer() {
 
       {/* ── Session Notes Panel ── */}
       {noteOpen && (
-        <div style={{
+        <div className="timer-notes-panel" style={{
           position: 'fixed', right: 0, top: '50%', transform: 'translateY(-50%)',
           width: 280, zIndex: 150,
           background: 'var(--card)', border: '1px solid rgba(181,242,58,0.3)',

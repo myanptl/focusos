@@ -148,7 +148,7 @@ export default function Review() {
       </div>
 
       {/* Key stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 20 }}>
+      <div className="stats-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 20 }}>
         {[
           { label: 'Minutes Focused', value: thisWeekMins, color: 'var(--accent)' },
           { label: 'Sessions', value: thisWeekSessions, color: 'var(--cyan)' },
@@ -185,7 +185,7 @@ export default function Review() {
       </div>
 
       {/* Best day + top subject */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 20 }}>
+      <div className="mobile-grid-stack" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 20 }}>
         <div className="card">
           <div className="label" style={{ marginBottom: 8 }}>Best Focus Day</div>
           {bestDay ? (

@@ -410,3 +410,51 @@ nav, header { position: relative; z-index: 10; }
 }
 .l-footer-link { color: var(--muted); text-decoration: none; transition: color 0.15s; }
 .l-footer-link:hover { color: #b5f23a; }
+
+/* ── Mobile Responsive Overhaul ─────────────────────── */
+
+body { overflow-x: hidden; }
+
+@media (max-width: 767px) {
+  /* Reduced AppShell padding */
+  .app-shell-main { padding: 16px 12px !important; }
+
+  /* Single-column grid override — add this class to any 2+ col grid */
+  .mobile-grid-stack { grid-template-columns: 1fr !important; }
+
+  /* 4-column stats → 2×2 grid */
+  .stats-4col { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* 3-column stats → 2-col */
+  .stats-3col { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* 44px minimum touch targets */
+  .btn { min-height: 44px; }
+
+  /* Prevent iOS input auto-zoom (requires font-size >= 16px) */
+  input, textarea, select { font-size: 16px !important; }
+
+  /* Timer session notes panel → bottom drawer on mobile */
+  .timer-notes-panel {
+    position: fixed !important;
+    top: auto !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    transform: none !important;
+    border-radius: 20px 20px 0 0 !important;
+    border-left: none !important;
+    border-top: 2px solid var(--accent) !important;
+    z-index: 200 !important;
+  }
+
+  /* Modals slide up from bottom on mobile */
+  .modal-backdrop { align-items: flex-end !important; padding: 0 !important; }
+  .modal {
+    border-radius: 20px 20px 0 0 !important;
+    max-width: 100% !important;
+    max-height: 88vh !important;
+    margin: 0 !important;
+  }
+}

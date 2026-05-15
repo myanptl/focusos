@@ -39,9 +39,16 @@ export default function Notes() {
   const [summaryPanel,   setSummaryPanel]   = useState(null)
   const [summaryLoading, setSummaryLoading] = useState(false)
   const [previewMode,    setPreviewMode]    = useState(false)
+  const [isMobile,       setIsMobile]       = useState(window.innerWidth < 768)
 
   const textareaRef = useRef(null)
   const timerRef    = useRef(null)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   // ── Load notes ───────────────────────────────────────────
   useEffect(() => {
@@ -218,14 +225,14 @@ export default function Notes() {
   return (
     <div
       className="page-fade"
-      style={{ display: 'flex', margin: '-28px -24px', height: 'calc(100vh - 60px)', overflow: 'hidden' }}
+      style={{ display: 'flex', margin: isMobile ? '-16px -12px' : '-28px -24px', height: 'calc(100vh - 60px)', overflow: 'hidden' }}
     >
       {/* ── LEFT PANEL ── */}
       <div style={{
-        width: 280, flexShrink: 0,
-        borderRight: '1px solid var(--border)',
+        width: isMobile ? '100%' : 280, flexShrink: 0,
+        borderRight: isMobile ? 'none' : '1px solid var(--border)',
         background: 'transparent',
-        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        display: isMobile && selectedNote ? 'none' : 'flex', flexDirection: 'column', overflow: 'hidden',
       }}>
         <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
@@ -312,6 +319,20 @@ export default function Notes() {
       {/* ── RIGHT PANEL ── */}
       {selectedNote ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
+          {/* Mobile back button */}
+          {isMobile && (
+            <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)' }}>
+              <button
+                onClick={() => setSelectedNote(null)}
+                style={{
+                  background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer',
+                  fontSize: 13, fontWeight: 600, padding: 0, fontFamily: "'DM Sans', sans-serif",
+                  display: 'flex', alignItems: 'center', gap: 6,
+                }}
+              >← All Notes</button>
+            </div>
+          )}
 
           {/* Subject bar + save status */}
           <div style={{
@@ -410,7 +431,7 @@ export default function Notes() {
           </div>
 
           {/* Editor area */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px', display: 'flex', gap: 20, background: 'transparent' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '16px' : '24px 32px', display: 'flex', flexDirection: isMobile && summaryPanel ? 'column' : 'row', gap: 20, background: 'transparent' }}>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <input
                 value={selectedNote.title || ''}
@@ -465,11 +486,11 @@ export default function Notes() {
             {/* Inline summary panel */}
             {summaryPanel && (
               <div style={{
-                width: 260, flexShrink: 0,
+                width: isMobile ? '100%' : 260, flexShrink: 0,
                 padding: 16, background: 'var(--card)',
                 borderRadius: 12, border: '1px solid var(--border)',
                 overflowY: 'auto', alignSelf: 'flex-start',
-                position: 'sticky', top: 0,
+                position: isMobile ? 'relative' : 'sticky', top: 0,
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: 'var(--accent)' }}>SUMMARY</div>
