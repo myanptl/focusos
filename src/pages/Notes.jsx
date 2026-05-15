@@ -224,7 +224,7 @@ export default function Notes() {
       <div style={{
         width: 280, flexShrink: 0,
         borderRight: '1px solid var(--border)',
-        background: '#0a0a0b',
+        background: 'transparent',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
       }}>
         <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid var(--border)' }}>
@@ -410,7 +410,7 @@ export default function Notes() {
           </div>
 
           {/* Editor area */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px', display: 'flex', gap: 20, background: '#0a0a0b' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px', display: 'flex', gap: 20, background: 'transparent' }}>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <input
                 value={selectedNote.title || ''}
