@@ -1,7 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
+gsap.registerPlugin(ScrollTrigger)
 
 /* ─── Particle Canvas ─────────────────────────────────────────── */
 function ParticleCanvas() {
@@ -12,6 +16,8 @@ function ParticleCanvas() {
     const ctx = canvas.getContext('2d')
     let raf
     let particles = []
+    let mouseX = -9999
+    let mouseY = -9999
 
     function resize() {
       canvas.width = window.innerWidth
@@ -20,7 +26,8 @@ function ParticleCanvas() {
     }
 
     function initParticles() {
-      const count = Math.max(40, Math.floor((canvas.width * canvas.height) / 14000))
+      // Slightly higher density
+      const count = Math.max(60, Math.floor((canvas.width * canvas.height) / 10000))
       particles = Array.from({ length: count }, () => ({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
@@ -29,6 +36,11 @@ function ParticleCanvas() {
         r: Math.random() * 1.8 + 0.6,
         a: Math.random() * 0.45 + 0.15,
       }))
+    }
+
+    function onMouseMove(e) {
+      mouseX = e.clientX
+      mouseY = e.clientY
     }
 
     function tick() {
@@ -52,6 +64,19 @@ function ParticleCanvas() {
       }
 
       for (const p of particles) {
+        // Drift toward cursor
+        const cx = mouseX - p.x
+        const cy = mouseY - p.y
+        const cd = Math.sqrt(cx * cx + cy * cy)
+        if (cd < 200 && cd > 0) {
+          const force = ((200 - cd) / 200) * 0.013
+          p.vx += (cx / cd) * force
+          p.vy += (cy / cd) * force
+        }
+        // Speed cap so they drift, not rush
+        const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy)
+        if (spd > 0.9) { p.vx = (p.vx / spd) * 0.9; p.vy = (p.vy / spd) * 0.9 }
+
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
         ctx.fillStyle = `rgba(181,242,58,${p.a})`
@@ -68,112 +93,178 @@ function ParticleCanvas() {
     resize()
     tick()
     window.addEventListener('resize', resize)
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize) }
+    window.addEventListener('mousemove', onMouseMove)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('resize', resize)
+      window.removeEventListener('mousemove', onMouseMove)
+    }
   }, [])
 
   return (
     <canvas ref={ref} style={{
       position: 'absolute', inset: 0,
       width: '100%', height: '100%',
-      pointerEvents: 'none',
+      pointerEvents: 'none', zIndex: 1,
     }} />
   )
 }
 
-/* ─── Animated Word ───────────────────────────────────────────── */
-function Word({ children, delay }) {
+/* ─── Drifting Lime Orbs ──────────────────────────────────────── */
+function OrbBackground() {
+  const reduced = useReducedMotion()
+
+  const orbs = [
+    { w: 660, h: 580, left: '-12%', top:  '0%',  dur: 22, ax: [0, 65, -30, 0], ay: [0, -55, 35, 0], op: 0.045 },
+    { w: 500, h: 500, left:  '58%', top: '-10%',  dur: 28, ax: [0, -45, 55, 0], ay: [0, 48, -28, 0], op: 0.035 },
+    { w: 380, h: 380, left:  '28%', top:  '58%',  dur: 24, ax: [0, 38, -50, 0], ay: [0, -38, 22, 0], op: 0.028 },
+  ]
+
   return (
-    <span style={{
-      display: 'inline-block',
-      opacity: 0,
-      animation: `lFadeUp 0.65s cubic-bezier(0.22,1,0.36,1) forwards ${delay}ms`,
-    }}>
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
+      {orbs.map((orb, i) => (
+        <motion.div
+          key={i}
+          className="drift-orb"
+          style={{
+            position: 'absolute',
+            left: orb.left, top: orb.top,
+            width: orb.w, height: orb.h,
+            borderRadius: '50%',
+            background: `radial-gradient(circle, rgba(181,242,58,${orb.op}) 0%, transparent 72%)`,
+            filter: 'blur(52px)',
+            willChange: 'transform',
+          }}
+          animate={reduced ? {} : { x: orb.ax, y: orb.ay }}
+          transition={{ duration: orb.dur, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      ))}
+    </div>
+  )
+}
+
+/* ─── Reveal — framer whileInView + GSAP ScrollTrigger ──────────── */
+function Reveal({ children, delay = 0, style = {}, fromY = 44, className }) {
+  const reduced = useReducedMotion()
+  return (
+    <motion.div
+      className={className}
+      initial={reduced ? {} : { opacity: 0, y: fromY }}
+      whileInView={reduced ? {} : { opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.68, delay: delay / 1000, ease: [0.22, 1, 0.36, 1] }}
+      style={style}
+    >
       {children}
-    </span>
+    </motion.div>
   )
 }
 
 /* ─── Feature Card ────────────────────────────────────────────── */
-function FeatureCard({ illustration, title, desc, stat, index }) {
-  const ref = useRef(null)
-  const [visible, setVisible] = useState(false)
-  const [hovered, setHovered] = useState(false)
-
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect() } },
-      { threshold: 0.15 }
-    )
-    if (ref.current) obs.observe(ref.current)
-    return () => obs.disconnect()
-  }, [])
-
-  const transform = !visible ? 'translateY(48px)' : hovered ? 'translateY(-5px)' : 'translateY(0)'
-  const transition = visible
-    ? 'transform 0.22s ease, opacity 0.25s ease, box-shadow 0.22s ease'
-    : `transform 0.65s cubic-bezier(0.22,1,0.36,1) ${index * 110}ms, opacity 0.65s ease ${index * 110}ms`
+function FeatureCard({ title, desc, stat, index, heroArt }) {
+  const reduced = useReducedMotion()
 
   return (
-    <div
-      ref={ref}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+    <motion.div
+      initial={reduced ? {} : { opacity: 0, y: 48 }}
+      whileInView={reduced ? {} : { opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.65, delay: index * 0.11, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={reduced ? {} : { y: -6, boxShadow: '0 24px 60px rgba(0,0,0,0.6)' }}
       style={{
         flex: 1, minWidth: 240,
         background: '#111113',
         border: '1px solid rgba(255,255,255,0.07)',
         borderTop: '2px solid #b5f23a',
-        borderRadius: 16,
-        padding: '32px 26px',
-        transform,
-        opacity: visible ? 1 : 0,
-        transition,
-        boxShadow: hovered ? '0 16px 48px rgba(0,0,0,0.5)' : '0 4px 16px rgba(0,0,0,0.2)',
-        cursor: 'default',
+        borderRadius: 16, overflow: 'hidden',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+        cursor: 'default', willChange: 'transform',
+        transition: 'box-shadow 0.22s ease',
       }}
     >
-      {illustration && <div style={{ marginBottom: 16 }}>{illustration}</div>}
-      <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 10, color: '#f0f0f2' }}>{title}</div>
-      <div style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.65, marginBottom: 20 }}>{desc}</div>
-      <div style={{
-        fontSize: 11.5, color: '#b5f23a', lineHeight: 1.55,
-        background: 'rgba(181,242,58,0.07)', border: '1px solid rgba(181,242,58,0.14)',
-        borderRadius: 8, padding: '8px 12px',
-      }}>{stat}</div>
-    </div>
+      {/* SVG art header */}
+      {heroArt && (
+        <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+          {heroArt}
+        </div>
+      )}
+
+      {/* Content */}
+      <div style={{ padding: '22px 26px 28px' }}>
+        <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 10, color: '#f0f0f2' }}>{title}</div>
+        <div style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.65, marginBottom: 20 }}>{desc}</div>
+        <div style={{
+          fontSize: 11.5, color: '#b5f23a', lineHeight: 1.55,
+          background: 'rgba(181,242,58,0.07)', border: '1px solid rgba(181,242,58,0.14)',
+          borderRadius: 8, padding: '8px 12px',
+        }}>{stat}</div>
+      </div>
+    </motion.div>
   )
 }
 
-/* ─── Scroll-reveal wrapper ───────────────────────────────────── */
-function Reveal({ children, delay = 0, style = {} }) {
-  const ref = useRef(null)
-  const [visible, setVisible] = useState(false)
+/* ─── Ripple Button ───────────────────────────────────────────── */
+function RippleButton({ className, style, onClick, children }) {
+  const [ripples, setRipples] = useState([])
 
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect() } },
-      { threshold: 0.15 }
-    )
-    if (ref.current) obs.observe(ref.current)
-    return () => obs.disconnect()
-  }, [])
+  const handleClick = useCallback((e) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const id = Date.now()
+    setRipples(prev => [...prev, { x, y, id }])
+    setTimeout(() => setRipples(prev => prev.filter(r => r.id !== id)), 700)
+    onClick?.(e)
+  }, [onClick])
 
   return (
-    <div ref={ref} style={{
-      transform: visible ? 'translateY(0)' : 'translateY(40px)',
-      opacity: visible ? 1 : 0,
-      transition: `transform 0.65s cubic-bezier(0.22,1,0.36,1) ${delay}ms, opacity 0.55s ease ${delay}ms`,
-      ...style,
-    }}>
+    <button
+      className={className}
+      style={{ ...style, position: 'relative', overflow: 'hidden' }}
+      onClick={handleClick}
+    >
       {children}
-    </div>
+      <AnimatePresence>
+        {ripples.map(r => (
+          <motion.span
+            key={r.id}
+            initial={{ scale: 0, opacity: 0.45 }}
+            animate={{ scale: 5.5, opacity: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.65, ease: 'easeOut' }}
+            style={{
+              position: 'absolute',
+              left: r.x - 20, top: r.y - 20,
+              width: 40, height: 40,
+              borderRadius: '50%',
+              background: 'rgba(10,10,11,0.35)',
+              pointerEvents: 'none',
+            }}
+          />
+        ))}
+      </AnimatePresence>
+    </button>
   )
 }
 
 /* ─── Browser Mockup ──────────────────────────────────────────── */
 function BrowserMockup() {
+  const reduced = useReducedMotion()
   return (
-    <div style={{ width: '100%', maxWidth: 500, animation: 'lFloat 5s ease-in-out infinite' }}>
+    <motion.div
+      style={{ width: '100%', maxWidth: 500, willChange: 'transform' }}
+      initial={{ opacity: 0, scale: 0.82 }}
+      animate={{
+        opacity: 1,
+        scale: 1,
+        y: reduced ? 0 : [0, -12, 0],
+      }}
+      transition={{
+        opacity: { duration: 0.75, delay: 0.9 },
+        scale:   { duration: 0.8,  delay: 0.9, ease: [0.22, 1, 0.36, 1] },
+        y:       { duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1.8 },
+      }}
+    >
       <div style={{
         background: '#0a0a0b',
         border: '1px solid rgba(255,255,255,0.1)',
@@ -195,7 +286,7 @@ function BrowserMockup() {
             padding: '4px 12px', fontSize: 11, color: 'rgba(255,255,255,0.3)',
             textAlign: 'center', fontFamily: 'monospace',
             border: '1px solid rgba(255,255,255,0.07)',
-          }}>focusos.app/timer</div>
+          }}>focusos.live/timer</div>
           <div style={{ width: 44 }} />
         </div>
         {/* Mini nav */}
@@ -253,7 +344,7 @@ function BrowserMockup() {
           }}>START SESSION</div>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -314,14 +405,217 @@ function TargetIllu() {
   )
 }
 
+/* ─── Feature Card Art ─────────────────────────────────────────── */
+function TimerCardArt() {
+  const ticks = Array.from({ length: 60 }, (_, i) => {
+    const a = ((i * 6) - 90) * Math.PI / 180
+    const big = i % 5 === 0
+    const r1 = 82, r2 = big ? 72 : 77
+    return { x1: 90 + r1 * Math.cos(a), y1: 90 + r1 * Math.sin(a), x2: 90 + r2 * Math.cos(a), y2: 90 + r2 * Math.sin(a), big }
+  })
+  return (
+    <div style={{
+      height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'radial-gradient(ellipse 80% 70% at 50% 55%, rgba(181,242,58,0.05) 0%, transparent 70%)',
+      position: 'relative',
+    }}>
+      <svg viewBox="0 0 180 180" width="176" height="176">
+        {ticks.map((t, i) => (
+          <line key={i} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2}
+            stroke={t.big ? 'rgba(181,242,58,0.28)' : 'rgba(255,255,255,0.07)'}
+            strokeWidth={t.big ? 1.8 : 0.9} strokeLinecap="round"/>
+        ))}
+        <circle cx="90" cy="90" r="64" fill="none" stroke="#1c1c20" strokeWidth="9"/>
+        <circle cx="90" cy="90" r="64" fill="none" stroke="#b5f23a" strokeWidth="9"
+          strokeLinecap="round" strokeDasharray="402" transform="rotate(-90 90 90)">
+          <animate attributeName="stroke-dashoffset" values="402;52;402" dur="5s" repeatCount="indefinite"
+            calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+        </circle>
+        <circle cx="90" cy="90" r="52" fill="none" stroke="rgba(181,242,58,0.05)" strokeWidth="12"/>
+        <text x="90" y="85" textAnchor="middle" fill="white" fontSize="26" fontWeight="800"
+          fontFamily="'JetBrains Mono',monospace" letterSpacing="-1">25:00</text>
+        <text x="90" y="103" textAnchor="middle" fill="rgba(181,242,58,0.65)" fontSize="10"
+          fontWeight="700" letterSpacing="4">FOCUS</text>
+      </svg>
+    </div>
+  )
+}
+
+function QuizCardArt() {
+  const qmarks = [
+    { x: 18, y: 46, s: 28, dur: '3s',   del: '0s'   },
+    { x: 150, y: 38, s: 20, dur: '2.7s', del: '0.9s' },
+    { x: 12,  y: 152, s: 16, dur: '3.4s', del: '0.5s' },
+    { x: 158, y: 158, s: 22, dur: '2.9s', del: '1.3s' },
+    { x: 82,  y: 16,  s: 13, dur: '3.1s', del: '0.7s' },
+  ]
+  const lines = [
+    [100,70,100,46],[129,80,150,62],[135,112,160,112],
+    [71,80,50,62],[65,112,40,112],[100,132,100,156],
+  ]
+  return (
+    <div style={{
+      height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'radial-gradient(ellipse 80% 70% at 50% 55%, rgba(181,242,58,0.05) 0%, transparent 70%)',
+      position: 'relative', overflow: 'hidden',
+    }}>
+      <svg viewBox="0 0 200 200" width="200" height="200">
+        {qmarks.map((q, i) => (
+          <text key={i} x={q.x} y={q.y} fontSize={q.s} fill="rgba(181,242,58,0.11)"
+            fontWeight="900" fontFamily="'DM Sans',sans-serif">?
+            <animate attributeName="opacity" values="0.06;0.32;0.06" dur={q.dur} begin={q.del} repeatCount="indefinite"/>
+            <animateTransform attributeName="transform" type="translate" values="0,0;0,-9;0,0" dur={q.dur} begin={q.del} repeatCount="indefinite"/>
+          </text>
+        ))}
+        <circle cx="100" cy="100" r="46" fill="rgba(181,242,58,0.04)" stroke="rgba(181,242,58,0.12)" strokeWidth="1.5">
+          <animate attributeName="r" values="44;50;44" dur="3s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="100" cy="100" r="30" fill="rgba(181,242,58,0.07)" stroke="rgba(181,242,58,0.22)" strokeWidth="1.5">
+          <animate attributeName="r" values="28;33;28" dur="3s" repeatCount="indefinite"/>
+        </circle>
+        {lines.map(([x1,y1,x2,y2], i) => (
+          <line key={i} x1={x1} y1={y1} x2={x2} y2={y2}
+            stroke="rgba(181,242,58,0.16)" strokeWidth="1" strokeDasharray="3 2">
+            <animate attributeName="opacity" values="0.2;0.65;0.2" dur={`${2.3+i*0.2}s`} repeatCount="indefinite"/>
+          </line>
+        ))}
+        <text x="100" y="113" textAnchor="middle" fontSize="34" fontWeight="900"
+          fill="#b5f23a" fontFamily="'DM Sans',sans-serif">?</text>
+      </svg>
+    </div>
+  )
+}
+
+function GoalCardArt() {
+  return (
+    <div style={{
+      height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'radial-gradient(ellipse 80% 70% at 50% 55%, rgba(181,242,58,0.05) 0%, transparent 70%)',
+      position: 'relative',
+    }}>
+      <svg viewBox="0 0 200 200" width="200" height="200">
+        <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1.5"/>
+        <circle cx="100" cy="100" r="56" fill="none" stroke="rgba(181,242,58,0.09)" strokeWidth="1.5"/>
+        <circle cx="100" cy="100" r="34" fill="none" stroke="rgba(181,242,58,0.17)" strokeWidth="1.5"/>
+        {/* Bullseye pulse */}
+        <circle cx="100" cy="100" r="14" fill="rgba(181,242,58,0.12)" stroke="#b5f23a" strokeWidth="2">
+          <animate attributeName="r" values="12;17;12" dur="2.2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.7;1;0.7" dur="2.2s" repeatCount="indefinite"/>
+        </circle>
+        {/* Arrow flies in, holds, retreats */}
+        <g>
+          <animateTransform attributeName="transform" type="translate"
+            values="72,0; 0,0; 0,0; 72,0"
+            keyTimes="0; 0.3; 0.68; 1"
+            dur="3.4s" repeatCount="indefinite" calcMode="spline"
+            keySplines="0.4 0 0.15 1; 1 0 1 0; 0.55 0 1 1"/>
+          <line x1="184" y1="100" x2="118" y2="100" stroke="#b5f23a" strokeWidth="2.5" strokeLinecap="round"/>
+          <polygon points="118,96.5 112,100 118,103.5" fill="#b5f23a"/>
+        </g>
+        {/* Score pop */}
+        <g>
+          <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.27;0.38;0.66;0.76" dur="3.4s" repeatCount="indefinite"/>
+          <rect x="118" y="62" width="48" height="22" rx="5"
+            fill="rgba(181,242,58,0.14)" stroke="rgba(181,242,58,0.4)" strokeWidth="1"/>
+          <text x="142" y="77" textAnchor="middle" fill="#b5f23a" fontSize="11"
+            fontWeight="800" fontFamily="'DM Sans',sans-serif">GOAL ✓</text>
+        </g>
+      </svg>
+    </div>
+  )
+}
+
+/* ─── Step Card (hover dashed border + watermark) ───────────────── */
+function StepCard({ num, title, desc, i }) {
+  const [hov, setHov] = useState(false)
+  return (
+    <Reveal delay={i * 100} style={{ flex: 1, minWidth: 220 }}>
+      <div
+        style={{
+          background: '#111113', border: '1px solid rgba(255,255,255,0.07)',
+          borderRadius: 12, padding: '20px 22px',
+          position: 'relative', overflow: 'hidden', cursor: 'default',
+        }}
+        onMouseEnter={() => setHov(true)}
+        onMouseLeave={() => setHov(false)}
+      >
+        {/* Marching-ants border — visible on hover, clipped by card border-radius via overflow:hidden */}
+        <svg aria-hidden style={{
+          position: 'absolute', inset: 0, width: '100%', height: '100%',
+          pointerEvents: 'none', opacity: hov ? 1 : 0, transition: 'opacity 0.22s ease',
+        }} viewBox="0 0 100 100" preserveAspectRatio="none">
+          <rect x="0.9" y="0.9" width="98.2" height="98.2" rx="0" fill="none"
+            stroke="rgba(181,242,58,0.45)" strokeWidth="0.85" strokeDasharray="5 3">
+            <animate attributeName="stroke-dashoffset" from="0" to="-24" dur="1.1s" repeatCount="indefinite"/>
+          </rect>
+        </svg>
+
+        {/* Faint watermark number */}
+        <div aria-hidden style={{
+          position: 'absolute', bottom: -28, right: -2,
+          fontSize: 150, fontWeight: 900, fontFamily: "'Bebas Neue', sans-serif",
+          color: '#b5f23a', opacity: 0.04, lineHeight: 1,
+          pointerEvents: 'none', userSelect: 'none',
+        }}>{num}</div>
+
+        {/* Content */}
+        <div style={{ fontSize: 11, color: '#b5f23a', fontWeight: 700, letterSpacing: '0.07em', marginBottom: 8, position: 'relative', zIndex: 1 }}>
+          STEP {num}
+        </div>
+        <div style={{ fontWeight: 700, marginBottom: 8, position: 'relative', zIndex: 1 }}>{title}</div>
+        <div style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.65, position: 'relative', zIndex: 1 }}>{desc}</div>
+      </div>
+    </Reveal>
+  )
+}
+
 /* ─── Landing ─────────────────────────────────────────────────── */
 export default function Landing() {
   const { user, loading } = useAuth()
   const navigate = useNavigate()
   const [mounted, setMounted] = useState(false)
+  const reduced = useReducedMotion()
 
   useEffect(() => { const t = setTimeout(() => setMounted(true), 30); return () => clearTimeout(t) }, [])
   useEffect(() => { if (!loading && user) navigate('/timer', { replace: true }) }, [user, loading, navigate])
+
+  // GSAP ScrollTrigger — parallax on hero glow + section depth
+  useEffect(() => {
+    if (reduced) return
+
+    const ctx = gsap.context(() => {
+      // Hero radial glow slow parallax upward
+      gsap.to('.hero-glow-parallax', {
+        y: -100,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '.hero-section',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: 1.5,
+        },
+      })
+
+      // Each scroll-section slides up slightly on enter
+      gsap.utils.toArray('.scroll-section').forEach(el => {
+        gsap.fromTo(el,
+          { y: 30 },
+          {
+            y: 0,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 88%',
+              end: 'top 55%',
+              scrub: 0.8,
+            },
+          }
+        )
+      })
+    })
+
+    return () => ctx.revert()
+  }, [reduced])
 
   if (loading) return (
     <div style={{ minHeight: '100vh', background: '#0a0a0b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -332,63 +626,6 @@ export default function Landing() {
 
   return (
     <>
-      <style>{`
-        @keyframes lFadeUp {
-          from { opacity: 0; transform: translateY(22px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes lBounce {
-          0%, 100% { transform: translateY(0); }
-          50%       { transform: translateY(9px); }
-        }
-        @keyframes lMarquee {
-          from { transform: translateX(0); }
-          to   { transform: translateX(-50%); }
-        }
-        .l-btn-primary {
-          background: #b5f23a; color: #0a0a0b;
-          border: none; border-radius: 10px;
-          padding: 14px 32px; font-size: 16px; font-weight: 700;
-          cursor: pointer; font-family: 'DM Sans', sans-serif;
-          transition: transform 0.15s ease, box-shadow 0.15s ease;
-          display: inline-flex; align-items: center; gap: 8px;
-          white-space: nowrap;
-        }
-        .l-btn-primary:hover {
-          transform: scale(1.025);
-          box-shadow: 0 0 36px rgba(181,242,58,0.38), 0 4px 16px rgba(181,242,58,0.2);
-        }
-        .l-btn-outline {
-          background: transparent; color: #f0f0f2;
-          border: 1px solid rgba(255,255,255,0.18); border-radius: 10px;
-          padding: 14px 32px; font-size: 16px; font-weight: 600;
-          cursor: pointer; font-family: 'DM Sans', sans-serif;
-          transition: border-color 0.15s, background 0.15s;
-          white-space: nowrap;
-        }
-        .l-btn-outline:hover {
-          border-color: rgba(255,255,255,0.45);
-          background: rgba(255,255,255,0.05);
-        }
-        .l-btn-outline-sm {
-          background: transparent; color: #f0f0f2;
-          border: 1px solid rgba(255,255,255,0.18); border-radius: 8px;
-          padding: 8px 20px; font-size: 14px; font-weight: 600;
-          cursor: pointer; font-family: 'DM Sans', sans-serif;
-          transition: border-color 0.15s, background 0.15s;
-        }
-        .l-btn-outline-sm:hover {
-          border-color: rgba(255,255,255,0.45);
-          background: rgba(255,255,255,0.05);
-        }
-        .l-footer-link { color: var(--muted); text-decoration: none; transition: color 0.15s; }
-        .l-footer-link:hover { color: #b5f23a; }
-        @keyframes lFloat {
-          0%, 100% { transform: translateY(0px); }
-          50%       { transform: translateY(-12px); }
-        }
-      `}</style>
-
       <div style={{
         background: '#0a0a0b', color: '#f0f0f2',
         fontFamily: "'DM Sans', sans-serif",
@@ -398,27 +635,38 @@ export default function Landing() {
       }}>
 
         {/* ════ HERO ════════════════════════════════════════════════ */}
-        <section style={{
+        <section className="hero-section" style={{
           position: 'relative', height: '100vh', minHeight: 600,
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}>
+          {/* Drifting orbs */}
+          <OrbBackground />
+
+          {/* Particle network */}
           <ParticleCanvas />
+
+          {/* Grain texture overlay */}
+          <div style={{
+            position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2,
+            opacity: 0.04,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='512' height='512' filter='url(%23n)'/%3E%3C/svg%3E")`,
+            backgroundRepeat: 'repeat', backgroundSize: '200px 200px',
+          }} />
 
           {/* watermark ⟳ */}
           <span style={{
-            position: 'absolute', top: '50%', left: '50%',
-            transform: 'translate(-50%, -50%)',
+            position: 'absolute', top: '50%', right: '-150px',
+            transform: 'translateY(-50%)',
             fontSize: 480, color: '#b5f23a', opacity: 0.04,
             animation: 'spin-slow 60s linear infinite',
             lineHeight: 1, fontWeight: 300,
-            pointerEvents: 'none', userSelect: 'none',
-            zIndex: 1,
+            pointerEvents: 'none', userSelect: 'none', zIndex: 1,
           }}>⟳</span>
 
-          {/* radial glow centre */}
-          <div style={{
-            position: 'absolute', inset: 0, pointerEvents: 'none',
-            background: 'radial-gradient(ellipse 70% 55% at 50% 50%, rgba(181,242,58,0.06) 0%, transparent 70%)',
+          {/* Radial glow (parallax target) */}
+          <div className="hero-glow-parallax" style={{
+            position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1,
+            background: 'radial-gradient(ellipse 70% 55% at 50% 50%, rgba(181,242,58,0.07) 0%, transparent 70%)',
           }} />
 
           {/* Nav */}
@@ -427,7 +675,12 @@ export default function Landing() {
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             padding: '0 clamp(24px, 4vw, 56px)', height: 64,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+              style={{ display: 'flex', alignItems: 'center', gap: 10 }}
+            >
               <span style={{
                 fontSize: 24, color: '#b5f23a',
                 display: 'inline-block',
@@ -437,10 +690,16 @@ export default function Landing() {
               <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: '4px', color: 'white' }}>
                 FOCUSOS
               </span>
-            </div>
-            <button className="l-btn-outline-sm" onClick={() => navigate('/login')}>
-              Sign In
-            </button>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.55, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <button className="l-btn-outline-sm" onClick={() => navigate('/login')}>
+                Sign In
+              </button>
+            </motion.div>
           </nav>
 
           {/* Hero content — two columns */}
@@ -453,82 +712,102 @@ export default function Landing() {
           }}>
             {/* Left: text */}
             <div style={{ flex: 1, minWidth: 0 }}>
+
               {/* Badge */}
-              <div style={{
-                display: 'inline-block',
-                background: 'rgba(181,242,58,0.09)', border: '1px solid rgba(181,242,58,0.22)',
-                borderRadius: 24, padding: '5px 16px',
-                fontSize: 11.5, fontWeight: 700, color: '#b5f23a',
-                letterSpacing: '0.08em', marginBottom: 30,
-                opacity: 0, animation: 'lFadeUp 0.5s ease forwards 80ms',
-              }}>
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.08, ease: 'easeOut' }}
+                style={{
+                  display: 'inline-block',
+                  background: 'rgba(181,242,58,0.09)', border: '1px solid rgba(181,242,58,0.22)',
+                  borderRadius: 24, padding: '5px 16px',
+                  fontSize: 11.5, fontWeight: 700, color: '#b5f23a',
+                  letterSpacing: '0.08em', marginBottom: 30,
+                }}
+              >
                 FOCUS · LEARN · IMPROVE
-              </div>
+              </motion.div>
 
-              {/* Headline line 1 */}
-              <h1 style={{
-                fontSize: 'clamp(40px, 5.5vw, 76px)', fontWeight: 800,
-                lineHeight: 1.04, letterSpacing: '-0.02em',
-                margin: '0 0 4px',
-              }}>
-                {'Study smarter.'.split(' ').map((w, i) => (
-                  <span key={i}><Word delay={280 + i * 100}>{w}</Word>{' '}</span>
-                ))}
-              </h1>
+              {/* Headline line 1 — slides from LEFT */}
+              <motion.h1
+                initial={{ opacity: 0, x: -80 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.75, delay: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                style={{
+                  fontSize: 'clamp(40px, 5.5vw, 76px)', fontWeight: 800,
+                  lineHeight: 1.04, letterSpacing: '-0.02em',
+                  margin: '0 0 4px',
+                }}
+              >
+                Study smarter.
+              </motion.h1>
 
-              {/* Headline line 2 */}
-              <h1 style={{
-                fontSize: 'clamp(40px, 5.5vw, 76px)', fontWeight: 800,
-                lineHeight: 1.04, letterSpacing: '-0.02em',
-                margin: '0 0 28px', color: '#b5f23a',
-              }}>
-                {'Focus longer.'.split(' ').map((w, i) => (
-                  <span key={i}><Word delay={680 + i * 100}>{w}</Word>{' '}</span>
-                ))}
-              </h1>
+              {/* Headline line 2 — slides from RIGHT */}
+              <motion.h1
+                initial={{ opacity: 0, x: 80 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.75, delay: 0.52, ease: [0.22, 1, 0.36, 1] }}
+                style={{
+                  fontSize: 'clamp(40px, 5.5vw, 76px)', fontWeight: 800,
+                  lineHeight: 1.04, letterSpacing: '-0.02em',
+                  margin: '0 0 28px', color: '#b5f23a',
+                }}
+              >
+                Focus longer.
+              </motion.h1>
 
               {/* Subhead */}
-              <p style={{
-                fontSize: 'clamp(14px, 1.5vw, 18px)', color: 'var(--muted)',
-                maxWidth: 440, lineHeight: 1.7, marginBottom: 40,
-                opacity: 0, animation: 'lFadeUp 0.6s ease forwards 1050ms',
-              }}>
+              <motion.p
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.82, ease: 'easeOut' }}
+                style={{
+                  fontSize: 'clamp(14px, 1.5vw, 18px)', color: 'var(--muted)',
+                  maxWidth: 440, lineHeight: 1.7, marginBottom: 40,
+                }}
+              >
                 FocusOS adapts to your real attention span — not a generic 25-minute timer.
-              </p>
+              </motion.p>
 
               {/* CTAs */}
-              <div style={{
-                display: 'flex', gap: 14, flexWrap: 'wrap',
-                opacity: 0, animation: 'lFadeUp 0.6s ease forwards 1250ms',
-              }}>
-                <button className="l-btn-primary" onClick={() => navigate('/login')}>
+              <motion.div
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1.0, ease: 'easeOut' }}
+                style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}
+              >
+                <RippleButton className="l-btn-primary" onClick={() => navigate('/login')}>
                   Start for Free →
-                </button>
+                </RippleButton>
                 <button className="l-btn-outline"
                   onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
                   See how it works
                 </button>
-              </div>
+              </motion.div>
             </div>
 
             {/* Right: browser mockup (hidden on mobile) */}
             <div className="hide-mobile" style={{
               flexShrink: 0, width: 'clamp(300px, 38vw, 480px)',
-              opacity: 0, animation: 'lFadeUp 0.7s ease forwards 900ms',
             }}>
               <BrowserMockup />
             </div>
           </div>
 
           {/* Scroll caret */}
-          <div style={{
-            position: 'absolute', bottom: 30, left: '50%', transform: 'translateX(-50%)',
-            zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7,
-            opacity: 0, animation: 'lFadeUp 0.5s ease forwards 1600ms',
-          }}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 1.6 }}
+            style={{
+              position: 'absolute', bottom: 30, left: '50%', transform: 'translateX(-50%)',
+              zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7,
+            }}
+          >
             <span style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '0.12em', fontWeight: 600 }}>SCROLL</span>
-            <span style={{ fontSize: 16, color: 'rgba(255,255,255,0.3)', animation: 'lBounce 1.8s ease infinite' }}>↓</span>
-          </div>
+            <span style={{ fontSize: 16, color: 'rgba(255,255,255,0.3)', display: 'block', animation: 'lBounce 1.8s ease infinite' }}>↓</span>
+          </motion.div>
         </section>
 
         {/* ════ SOCIAL PROOF MARQUEE ════════════════════════════════ */}
@@ -536,12 +815,13 @@ export default function Landing() {
           borderTop: '1px solid rgba(255,255,255,0.06)',
           borderBottom: '1px solid rgba(255,255,255,0.06)',
           padding: '14px 0', overflow: 'hidden',
-          maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
-          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+          // Wider gradient fade on both edges
+          maskImage: 'linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%)',
         }}>
           <div style={{
             display: 'flex', whiteSpace: 'nowrap',
-            animation: 'lMarquee 28s linear infinite',
+            animation: 'lMarquee 16s linear infinite', // faster: was 28s
           }}>
             {[0, 1].map(idx => (
               <span key={idx} style={{ display: 'inline-flex' }}>
@@ -568,7 +848,7 @@ export default function Landing() {
         </section>
 
         {/* ════ FEATURES ════════════════════════════════════════════ */}
-        <section id="features" style={{ padding: 'clamp(64px, 8vw, 110px) clamp(20px, 4vw, 48px)' }}>
+        <section id="features" className="scroll-section" style={{ padding: 'clamp(64px, 8vw, 110px) clamp(20px, 4vw, 48px)' }}>
           <div style={{ maxWidth: 1100, margin: '0 auto' }}>
             <Reveal style={{ textAlign: 'center', marginBottom: 60 }}>
               <div className="label" style={{ color: '#b5f23a', marginBottom: 12 }}>What you get</div>
@@ -577,13 +857,13 @@ export default function Landing() {
               </h2>
             </Reveal>
             <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-              <FeatureCard index={0} illustration={<TimerIllu />} title="Adaptive Focus Timer"
+              <FeatureCard index={0} heroArt={<TimerCardArt />} title="Adaptive Focus Timer"
                 desc="Starts at YOUR attention span. Grows with every session. No arbitrary 25-minute assumption baked in."
                 stat="Avg user improves by 8 min in their first week" />
-              <FeatureCard index={1} illustration={<BrainIllu />} title="AI Quiz Generator"
+              <FeatureCard index={1} heroArt={<QuizCardArt />} title="AI Quiz Generator"
                 desc="Paste your notes. Claude AI instantly generates active recall questions across 5 question types — multiple choice, fill-in, explain, and more."
                 stat="Practice testing = #1 study technique [Dunlosky, 2013]" />
-              <FeatureCard index={2} illustration={<TargetIllu />} title="Score Goal Tracker"
+              <FeatureCard index={2} heroArt={<GoalCardArt />} title="Score Goal Tracker"
                 desc="Set your SAT, ACT, or AP target. Get a backwards study plan anchored to your test date."
                 stat="Implementation intentions increase follow-through 3× [Gollwitzer, 1999]" />
             </div>
@@ -591,7 +871,7 @@ export default function Landing() {
         </section>
 
         {/* ════ HOW IT WORKS ════════════════════════════════════════ */}
-        <section style={{
+        <section className="scroll-section" style={{
           background: '#0d0d0f',
           borderTop: '1px solid rgba(255,255,255,0.055)',
           borderBottom: '1px solid rgba(255,255,255,0.055)',
@@ -607,7 +887,6 @@ export default function Landing() {
 
             {/* Step diagram */}
             <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', marginBottom: 48 }}>
-              {/* connecting line */}
               <div style={{
                 position: 'absolute', top: 24, left: '16.5%', right: '16.5%',
                 height: 0, borderTop: '2px dashed rgba(181,242,58,0.22)',
@@ -622,8 +901,7 @@ export default function Landing() {
                       border: '1.5px solid rgba(181,242,58,0.4)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: 17, fontWeight: 800, color: '#b5f23a',
-                      margin: '0 auto 14px',
-                      position: 'relative', zIndex: 1,
+                      margin: '0 auto 14px', position: 'relative', zIndex: 1,
                     }}>{i + 1}</div>
                     <div style={{ fontSize: 13, fontWeight: 600, color: '#f0f0f2' }}>{label}</div>
                   </Reveal>
@@ -633,30 +911,18 @@ export default function Landing() {
 
             {/* Step detail cards */}
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-              {[
-                { num: 1, title: 'Set your baseline', desc: "Tell us how long you can actually focus right now. FocusOS sets your first timer to match — not 25 minutes." },
-                { num: 2, title: 'Focus and grow', desc: "Complete sessions. Your timer gradually extends as you build real focus capacity. Science-backed progression." },
-                { num: 3, title: 'Quiz yourself', desc: "Paste your notes after each session. AI generates 5 question types. Active recall cements what you just studied." },
-              ].map((s, i) => (
-                <Reveal key={i} delay={i * 100} style={{ flex: 1, minWidth: 220 }}>
-                  <div style={{
-                    background: '#111113', border: '1px solid rgba(255,255,255,0.07)',
-                    borderRadius: 12, padding: '20px 22px',
-                  }}>
-                    <div style={{ fontSize: 11, color: '#b5f23a', fontWeight: 700, letterSpacing: '0.07em', marginBottom: 8 }}>
-                      STEP {s.num}
-                    </div>
-                    <div style={{ fontWeight: 700, marginBottom: 8 }}>{s.title}</div>
-                    <div style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.65 }}>{s.desc}</div>
-                  </div>
-                </Reveal>
-              ))}
+              <StepCard i={0} num={1} title="Set your baseline"
+                desc="Tell us how long you can actually focus right now. FocusOS sets your first timer to match — not 25 minutes." />
+              <StepCard i={1} num={2} title="Focus and grow"
+                desc="Complete sessions. Your timer gradually extends as you build real focus capacity. Science-backed progression." />
+              <StepCard i={2} num={3} title="Quiz yourself"
+                desc="Paste your notes after each session. AI generates 5 question types. Active recall cements what you just studied." />
             </div>
           </div>
         </section>
 
         {/* ════ RESEARCH CALLOUT ════════════════════════════════════ */}
-        <section style={{ padding: 'clamp(64px, 8vw, 110px) clamp(20px, 4vw, 48px)' }}>
+        <section className="scroll-section" style={{ padding: 'clamp(64px, 8vw, 110px) clamp(20px, 4vw, 48px)' }}>
           <div style={{ maxWidth: 820, margin: '0 auto' }}>
             <Reveal>
               <div style={{
@@ -664,8 +930,17 @@ export default function Landing() {
                 border: '1px solid rgba(255,255,255,0.07)',
                 borderLeft: '3px solid #b5f23a',
                 borderRadius: 18, padding: 'clamp(32px, 4vw, 52px)',
+                position: 'relative', overflow: 'hidden',
               }}>
-                <div className="label" style={{ color: '#b5f23a', marginBottom: 16 }}>Research-backed</div>
+                {/* Animated quote-mark watermark */}
+                <div aria-hidden style={{
+                  position: 'absolute', top: -50, left: 14,
+                  fontSize: 220, color: '#b5f23a', lineHeight: 1,
+                  fontFamily: 'Georgia, serif', fontWeight: 900,
+                  pointerEvents: 'none', userSelect: 'none',
+                  animation: 'quoteFloat 7s ease-in-out infinite',
+                }}>❝</div>
+                <div className="label" style={{ color: '#b5f23a', marginBottom: 16, position: 'relative', zIndex: 1 }}>Research-backed</div>
                 <h2 style={{
                   fontSize: 'clamp(24px, 3.5vw, 38px)', fontWeight: 800,
                   marginBottom: 18, letterSpacing: '-0.015em', lineHeight: 1.2,
@@ -692,7 +967,7 @@ export default function Landing() {
         </section>
 
         {/* ════ CTA ═════════════════════════════════════════════════ */}
-        <section style={{
+        <section className="scroll-section" style={{
           padding: 'clamp(80px, 10vw, 130px) clamp(20px, 4vw, 48px)',
           textAlign: 'center',
           background: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(181,242,58,0.04) 0%, transparent 70%)',
@@ -707,10 +982,10 @@ export default function Landing() {
             <p style={{ color: 'var(--muted)', marginBottom: 40, fontSize: 17, lineHeight: 1.6 }}>
               Join students building real focus — one session at a time.
             </p>
-            <button className="l-btn-primary" style={{ fontSize: 17, padding: '16px 42px' }}
+            <RippleButton className="l-btn-primary" style={{ fontSize: 17, padding: '16px 42px' }}
               onClick={() => navigate('/login')}>
               Create your free account →
-            </button>
+            </RippleButton>
             <p style={{ marginTop: 16, fontSize: 12.5, color: 'var(--muted)' }}>No credit card required.</p>
           </Reveal>
         </section>

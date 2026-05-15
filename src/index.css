@@ -348,3 +348,65 @@ nav, header { position: relative; z-index: 10; }
 @media (prefers-reduced-motion: reduce) {
   .card, .stat-card, .card2 { animation: none; }
 }
+
+/* ── Landing page ──────────────────────────────────── */
+@keyframes lFadeUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes lBounce {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(9px); }
+}
+@keyframes lMarquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 22px rgba(181,242,58,0.26), 0 4px 16px rgba(181,242,58,0.14); }
+  50%       { box-shadow: 0 0 46px rgba(181,242,58,0.52), 0 6px 24px rgba(181,242,58,0.28); }
+}
+@keyframes quoteFloat {
+  0%, 100% { transform: translateY(0) rotate(-4deg); opacity: 0.04; }
+  50%       { transform: translateY(-12px) rotate(-2deg); opacity: 0.065; }
+}
+.l-btn-primary {
+  background: #b5f23a; color: #0a0a0b;
+  border: none; border-radius: 10px;
+  padding: 14px 32px; font-size: 16px; font-weight: 700;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  display: inline-flex; align-items: center; gap: 8px;
+  white-space: nowrap;
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+.l-btn-primary:hover {
+  transform: scale(1.025);
+  box-shadow: 0 0 44px rgba(181,242,58,0.6), 0 4px 20px rgba(181,242,58,0.3);
+  animation-play-state: paused;
+}
+.l-btn-outline {
+  background: transparent; color: #f0f0f2;
+  border: 1px solid rgba(255,255,255,0.18); border-radius: 10px;
+  padding: 14px 32px; font-size: 16px; font-weight: 600;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+.l-btn-outline:hover {
+  border-color: rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.05);
+}
+.l-btn-outline-sm {
+  background: transparent; color: #f0f0f2;
+  border: 1px solid rgba(255,255,255,0.18); border-radius: 8px;
+  padding: 8px 20px; font-size: 14px; font-weight: 600;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.15s, background 0.15s;
+}
+.l-btn-outline-sm:hover {
+  border-color: rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.05);
+}
+.l-footer-link { color: var(--muted); text-decoration: none; transition: color 0.15s; }
+.l-footer-link:hover { color: #b5f23a; }
