@@ -62,7 +62,7 @@ export default function Settings() {
   const [aiModelPref, setAiModelPref] = useState(profile?.ai_model_preference || 'auto')
   const [ollamaStatus, setOllamaStatus] = useState(null) // null=pending, 'running', 'offline'
   const [ollamaChecking, setOllamaChecking] = useState(false)
-  const [ollamaGuideOpen, setOllamaGuideOpen] = useState(false)
+
   const [copiedCmd, setCopiedCmd] = useState(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteText, setDeleteText]           = useState('')
@@ -320,37 +320,14 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Ollama Setup Guide accordion */}
+          {/* Ollama Setup Guide — always visible */}
           <div style={{ marginTop: 8, marginBottom: 8, borderRadius: 10, border: '1px solid var(--border)', overflow: 'hidden' }}>
-            <button
-              onClick={() => setOllamaGuideOpen(o => !o)}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '10px 14px', background: 'var(--card2)', border: 'none', cursor: 'pointer',
-                fontFamily: "'DM Sans', sans-serif",
-              }}
-            >
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
-                <span style={{ fontSize: 14 }}>🦙</span> Llama Setup Guide
-              </span>
-              <motion.span
-                animate={{ rotate: ollamaGuideOpen ? 180 : 0 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 38 }}
-                style={{ display: 'inline-block', fontSize: 11, color: 'var(--muted)' }}
-              >▼</motion.span>
-            </button>
-
-            <AnimatePresence initial={false}>
-            {ollamaGuideOpen && (
-              <motion.div
-                key="ollama-guide"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 340, damping: 36 }}
-                style={{ overflow: 'hidden' }}
-              >
-                <div style={{ padding: '4px 14px 16px', display: 'flex', flexDirection: 'column', gap: 16, borderTop: '1px solid var(--border)' }}>
+            <div style={{ padding: '10px 14px', background: 'var(--card2)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 14 }}>🦙</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Llama Setup Guide</span>
+            </div>
+            <div>
+                <div style={{ padding: '4px 14px 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
                   {/* Step 1 */}
                   <div style={{ display: 'flex', gap: 12, paddingTop: 14 }}>
@@ -441,9 +418,7 @@ export default function Settings() {
                   </div>
 
                 </div>
-              </motion.div>
-            )}
-            </AnimatePresence>
+            </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 8, background: 'var(--card2)', border: '1px solid var(--border)' }}>
