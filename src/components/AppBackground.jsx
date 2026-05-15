@@ -3,9 +3,9 @@ import { motion, useReducedMotion } from 'framer-motion'
 
 // Orbs: larger + brighter than Landing, distinct positions/paths
 const ORB_CONFIGS = [
-  { w: 940, h: 860, left: '52%',  top: '-24%', dur: 32, ax: [0,-72,44,0], ay: [0,54,-36,0], op: 0.042 },
-  { w: 820, h: 780, left: '-22%', top: '42%',  dur: 27, ax: [0,64,-40,0], ay: [0,-50,30,0], op: 0.036 },
-  { w: 660, h: 640, left: '22%',  top: '14%',  dur: 38, ax: [0,-46,30,0], ay: [0,40,-24,0], op: 0.026 },
+  { w: 940, h: 860, left: '52%',  top: '-24%', dur: 32, ax: [0,-72,44,0], ay: [0,54,-36,0], op: 0.057 },
+  { w: 820, h: 780, left: '-22%', top: '42%',  dur: 27, ax: [0,64,-40,0], ay: [0,-50,30,0], op: 0.051 },
+  { w: 660, h: 640, left: '22%',  top: '14%',  dur: 38, ax: [0,-46,30,0], ay: [0,40,-24,0], op: 0.036 },
 ]
 
 function AppParticles({ reduced }) {
@@ -117,7 +117,7 @@ export default function AppBackground() {
       {/* Animated gradient mesh */}
       <div style={{
         position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
-        background: 'linear-gradient(135deg, #0a0a0b 0%, #0b0d04 50%, #0a0a0b 100%)',
+        background: 'linear-gradient(135deg, #0a0a0b 0%, #0c1005 50%, #0a0a0b 100%)',
         backgroundSize: '400% 400%',
         animation: reduced ? 'none' : 'appMeshShift 20s ease-in-out infinite',
       }} />

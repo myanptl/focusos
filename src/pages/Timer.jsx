@@ -380,12 +380,6 @@ export default function Timer() {
   const timeLeftRef       = useRef(initFocus * 60)
   const focusDurationRef  = useRef(initFocus * 60)
 
-  // Nav logo spins faster when session is running
-  useEffect(() => {
-    const el = document.querySelector('.nav-logo-spin')
-    if (el) el.style.setProperty('animation-duration', running ? '2s' : '8s')
-  }, [running])
-
   // keep refs in sync
   useEffect(() => { runningRef.current = running }, [running])
   useEffect(() => { phaseRef.current = phase }, [phase])
