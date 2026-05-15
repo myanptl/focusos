@@ -224,9 +224,8 @@ export default function Notes() {
       <div style={{
         width: 280, flexShrink: 0,
         borderRight: '1px solid var(--border)',
-        background: '#0d0d0f',
+        background: '#0a0a0b',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
-        boxShadow: '2px 0 16px rgba(0,0,0,0.2)',
       }}>
         <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
