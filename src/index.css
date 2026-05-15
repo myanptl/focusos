@@ -14,6 +14,10 @@
   --amber: #f2c75a;
   --cyan: #60d3f8;
   --purple: #a855f7;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 
@@ -101,7 +105,7 @@ body {
 .btn {
   border: none; border-radius: 10px; padding: 10px 20px;
   font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
-  cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  cursor: pointer; transition: transform 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out), background 0.15s ease;
   display: inline-flex; align-items: center; gap: 8px;
 }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -125,7 +129,11 @@ input, textarea, select {
   padding: 10px 14px; outline: none;
   transition: border-color 0.15s; width: 100%;
 }
-input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(181,242,58,0.1);
+  transition: border-color 0.15s, box-shadow 0.2s var(--ease-out);
+}
 input::placeholder, textarea::placeholder { color: var(--muted); }
 select option { background: var(--card2); }
 
@@ -192,23 +200,33 @@ input[type="range"]::-moz-range-thumb {
   padding: 6px 14px; border-radius: 20px;
   border: 1px solid var(--border); background: transparent;
   color: var(--muted); font-size: 13px; font-weight: 500;
-  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  cursor: pointer; transition: border-color 0.15s, background 0.15s, color 0.15s; white-space: nowrap;
 }
 .pill.active { border-color: var(--accent); background: rgba(181,242,58,0.1); color: var(--accent); }
 .pill:hover:not(.active) { border-color: rgba(255,255,255,0.15); color: var(--text); }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes modalSpring {
+  from { opacity: 0; transform: scale(0.93) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
 .modal-backdrop {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
   z-index: 1000; display: flex; align-items: center;
   justify-content: center; padding: 20px;
-  animation: fadeIn 0.15s ease;
+  animation: fadeIn 0.18s var(--ease-out);
 }
 .modal {
   background: var(--card); border: 1px solid var(--border);
   border-radius: 16px; padding: 28px;
   width: 100%; max-width: 500px;
   max-height: 90vh; overflow-y: auto;
+  animation: modalSpring 0.32s var(--ease-spring) both;
+  transform-origin: center bottom;
 }
 
 ::-webkit-scrollbar { width: 5px; }
@@ -286,7 +304,7 @@ nav, header { position: relative; z-index: 10; }
 /* Interactive card lift — add class to any clickable card */
 .card-hover {
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
+  transition: transform 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out), border-color 0.22s var(--ease-out) !important;
 }
 .card-hover:hover {
   transform: translateY(-4px);
@@ -294,8 +312,39 @@ nav, header { position: relative; z-index: 10; }
   border-color: rgba(255,255,255,0.12) !important;
 }
 
+/* Button hover scale — applies to all variants; specifics above handle color */
+.btn:hover:not(:disabled) { transform: scale(1.02); }
+
 /* Button press micro-interaction */
 .btn:active:not(:disabled) {
   transform: scale(0.97) !important;
-  transition: transform 0.06s ease !important;
+  transition: transform 0.1s var(--ease-out) !important;
+}
+
+/* ── AppBackground ──────────────────────────────────── */
+
+/* Gradient mesh shift keyframe */
+@keyframes appMeshShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Card reveal on page load — staggered by sibling index */
+@keyframes cardReveal {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card, .stat-card, .card2 {
+  animation: cardReveal 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.card:nth-child(2), .stat-card:nth-child(2), .card2:nth-child(2) { animation-delay: 65ms;  }
+.card:nth-child(3), .stat-card:nth-child(3), .card2:nth-child(3) { animation-delay: 130ms; }
+.card:nth-child(4), .stat-card:nth-child(4), .card2:nth-child(4) { animation-delay: 195ms; }
+.card:nth-child(5), .stat-card:nth-child(5), .card2:nth-child(5) { animation-delay: 260ms; }
+.card:nth-child(6), .stat-card:nth-child(6), .card2:nth-child(6) { animation-delay: 325ms; }
+.card:nth-child(n+7), .stat-card:nth-child(n+7), .card2:nth-child(n+7) { animation-delay: 390ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .stat-card, .card2 { animation: none; }
 }

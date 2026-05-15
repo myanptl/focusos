@@ -1105,10 +1105,10 @@ export default function Quiz() {
             <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={`${current}-${harderQ ? 'h' : 'n'}`}
-              initial={{ opacity: 0, x: 40 }}
+              initial={{ opacity: 0, x: 32 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -40 }}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              exit={{ opacity: 0, x: -32 }}
+              transition={{ type: 'spring', stiffness: 380, damping: 38 }}
             >
             <div style={{ fontSize: 18, fontWeight: 600, lineHeight: 1.5, padding: '4px 0' }}>
               {activeQ.question}
@@ -1120,14 +1120,21 @@ export default function Quiz() {
                 {(activeQ.options || []).map((opt, i) => {
                   const letter = opt.match(/^([A-D])/)?.[1]
                   return (
-                    <button key={i} onClick={() => letter && onMCSelect(letter)} style={{
-                      textAlign: 'left', padding: '12px 16px', borderRadius: 10, cursor: 'pointer',
-                      background: 'var(--card2)', border: '1px solid var(--border)',
-                      fontSize: 14, color: 'var(--text)', transition: 'border-color 0.15s',
-                    }}
+                    <motion.button
+                      key={i}
+                      onClick={() => letter && onMCSelect(letter)}
+                      initial={{ opacity: 0, x: 14 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 38, delay: i * 0.06 }}
+                      whileTap={{ scale: 0.98 }}
+                      style={{
+                        textAlign: 'left', padding: '12px 16px', borderRadius: 10, cursor: 'pointer',
+                        background: 'var(--card2)', border: '1px solid var(--border)',
+                        fontSize: 14, color: 'var(--text)', transition: 'border-color 0.15s',
+                      }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)' }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)' }}
-                    >{opt}</button>
+                    >{opt}</motion.button>
                   )
                 })}
               </div>

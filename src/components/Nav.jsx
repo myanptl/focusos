@@ -1,6 +1,6 @@
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { motion, LayoutGroup } from 'framer-motion'
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 
 const tabs = [
@@ -49,7 +49,7 @@ export default function Nav() {
       height: 60,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-        <span style={{
+        <span className="nav-logo-spin" style={{
           fontSize: 24, color: 'var(--accent)',
           display: 'inline-block',
           animation: 'spin-slow 8s linear infinite',
@@ -96,15 +96,17 @@ export default function Nav() {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
         {isMobile && (
-          <button
+          <motion.button
             onClick={() => setMobileOpen(true)}
+            whileTap={{ scale: 0.88 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 35 }}
             style={{
               background: 'none', border: '1px solid var(--border)',
               color: 'var(--text)', fontSize: 18, cursor: 'pointer',
               borderRadius: 8, width: 34, height: 34,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
-          >☰</button>
+          >☰</motion.button>
         )}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 5,
@@ -116,8 +118,11 @@ export default function Nav() {
         </div>
 
         <div style={{ position: 'relative' }}>
-          <button
+          <motion.button
             onClick={() => setDropdownOpen(o => !o)}
+            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.06 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 35 }}
             style={{
               width: 34, height: 34, borderRadius: '50%',
               background: 'rgba(181,242,58,0.2)', border: '1.5px solid var(--accent)',
@@ -126,16 +131,24 @@ export default function Nav() {
             }}
           >
             {initials}
-          </button>
+          </motion.button>
+          <AnimatePresence>
           {dropdownOpen && (
             <>
               <div style={{ position: 'fixed', inset: 0, zIndex: 98 }} onClick={() => setDropdownOpen(false)} />
-              <div style={{
-                position: 'absolute', top: 42, right: 0,
-                background: 'var(--card)', border: '1px solid var(--border)',
-                borderRadius: 10, padding: 6, minWidth: 160, zIndex: 99,
-                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-              }}>
+              <motion.div
+                key="dropdown"
+                initial={{ opacity: 0, scale: 0.92, y: -8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.92, y: -6 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 38 }}
+                style={{
+                  position: 'absolute', top: 42, right: 0,
+                  background: 'var(--card)', border: '1px solid var(--border)',
+                  borderRadius: 10, padding: 6, minWidth: 160, zIndex: 99,
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                  transformOrigin: 'top right',
+                }}>
                 <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
                   <div style={{ fontSize: 13, fontWeight: 600 }}>{displayName}</div>
                   <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>Signed in</div>
@@ -153,53 +166,73 @@ export default function Nav() {
                 >
                   Sign Out
                 </button>
-              </div>
+              </motion.div>
             </>
           )}
+          </AnimatePresence>
         </div>
       </div>
     </nav>
 
     {/* Mobile full-screen menu */}
+    <AnimatePresence>
     {mobileOpen && (
-      <div style={{
-        position: 'fixed', inset: 0, zIndex: 9999,
-        background: '#0a0a0b',
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center', gap: 8,
-      }}>
-        <button
+      <motion.div
+        key="mobile-menu"
+        initial={{ opacity: 0, y: 32 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 32 }}
+        transition={{ type: 'spring', stiffness: 340, damping: 34 }}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: '#0a0a0b',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', gap: 8,
+        }}>
+        <motion.button
           onClick={() => setMobileOpen(false)}
+          whileTap={{ scale: 0.88 }}
           style={{
             position: 'absolute', top: 20, right: 20,
             background: 'none', border: 'none', color: 'var(--muted)',
             fontSize: 24, cursor: 'pointer', lineHeight: 1,
           }}
-        >✕</button>
-        {tabs.map(t => (
-          <NavLink
-            key={t.to} to={t.to}
-            onClick={() => setMobileOpen(false)}
-            style={({ isActive }) => ({
-              fontSize: 24, fontWeight: 700, color: isActive ? 'var(--accent)' : 'white',
-              textDecoration: 'none', padding: '10px 24px', borderRadius: 12,
-              background: isActive ? 'rgba(181,242,58,0.08)' : 'transparent',
-              width: 220, textAlign: 'center',
-            })}
+        >✕</motion.button>
+        {tabs.map((t, i) => (
+          <motion.div
+            key={t.to}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 38, delay: i * 0.04 }}
           >
-            {t.label}
-          </NavLink>
+            <NavLink
+              to={t.to}
+              onClick={() => setMobileOpen(false)}
+              style={({ isActive }) => ({
+                fontSize: 24, fontWeight: 700, color: isActive ? 'var(--accent)' : 'white',
+                textDecoration: 'none', padding: '10px 24px', borderRadius: 12,
+                background: isActive ? 'rgba(181,242,58,0.08)' : 'transparent',
+                width: 220, textAlign: 'center', display: 'block',
+              })}
+            >
+              {t.label}
+            </NavLink>
+          </motion.div>
         ))}
-        <button
+        <motion.button
           onClick={handleSignOut}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { delay: tabs.length * 0.04 + 0.06 } }}
+          whileTap={{ scale: 0.95 }}
           style={{
             marginTop: 16, fontSize: 15, fontWeight: 600,
             color: 'var(--red)', background: 'transparent', border: 'none',
             cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
           }}
-        >Sign Out</button>
-      </div>
+        >Sign Out</motion.button>
+      </motion.div>
     )}
+    </AnimatePresence>
     </>
   )
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
@@ -103,17 +104,32 @@ export default function Goals() {
 
       {!loading && goals.length === 0 && (
         <div className="card" style={{ textAlign: 'center', padding: 48, border: '1px dashed rgba(255,255,255,0.1)' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-            <svg viewBox="0 0 80 80" width="72" height="72">
-              <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="2"/>
-              <circle cx="40" cy="40" r="22" fill="none" stroke="rgba(181,242,58,0.18)" strokeWidth="2"/>
-              <circle cx="40" cy="40" r="10" fill="rgba(181,242,58,0.12)" stroke="rgba(181,242,58,0.4)" strokeWidth="2">
-                <animate attributeName="r" values="9;11;9" dur="2.2s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0.8;1;0.8" dur="2.2s" repeatCount="indefinite"/>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+            <svg viewBox="0 0 120 120" width="112" height="112">
+              {/* Outer marching-ants ring */}
+              <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(181,242,58,0.15)" strokeWidth="1.5" strokeDasharray="8 5">
+                <animateTransform attributeName="transform" type="rotate" from="0 60 60" to="360 60 60" dur="22s" repeatCount="indefinite"/>
               </circle>
-              <line x1="74" y1="40" x2="52" y2="40" stroke="rgba(181,242,58,0.6)" strokeWidth="2" strokeLinecap="round"/>
-              <polygon points="52,37 46,40 52,43" fill="rgba(181,242,58,0.6)"/>
-              <line x1="40" y1="6" x2="40" y2="28" stroke="rgba(181,242,58,0.35)" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="4 3"/>
+              {/* Middle ring */}
+              <circle cx="60" cy="60" r="40" fill="none" stroke="rgba(181,242,58,0.12)" strokeWidth="1.5"/>
+              {/* Inner ring — slow pulse */}
+              <circle cx="60" cy="60" r="26" fill="none" stroke="rgba(181,242,58,0.22)" strokeWidth="1.5">
+                <animate attributeName="r" values="25;28;25" dur="3s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="0.5;1;0.5" dur="3s" repeatCount="indefinite"/>
+              </circle>
+              {/* Bullseye */}
+              <circle cx="60" cy="60" r="10" fill="rgba(181,242,58,0.15)" stroke="rgba(181,242,58,0.55)" strokeWidth="1.5">
+                <animate attributeName="r" values="9;12;9" dur="2.2s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="0.7;1;0.7" dur="2.2s" repeatCount="indefinite"/>
+              </circle>
+              {/* Crosshairs — top */}
+              <line x1="60" y1="4" x2="60" y2="30" stroke="rgba(181,242,58,0.28)" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="4 3"/>
+              {/* Crosshairs — bottom */}
+              <line x1="60" y1="90" x2="60" y2="116" stroke="rgba(181,242,58,0.28)" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="4 3"/>
+              {/* Crosshairs — left */}
+              <line x1="4" y1="60" x2="30" y2="60" stroke="rgba(181,242,58,0.28)" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="4 3"/>
+              {/* Crosshairs — right */}
+              <line x1="90" y1="60" x2="116" y2="60" stroke="rgba(181,242,58,0.28)" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="4 3"/>
             </svg>
           </div>
           <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>No goals yet</h3>
@@ -200,8 +216,12 @@ export default function Goals() {
       </div>
     </div>
 
+    <AnimatePresence>
     {showModal && (
-        <div
+        <motion.div
+          key="goal-modal-bg"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
           onClick={e => { if (e.target === e.currentTarget) setShowModal(false) }}
           style={{
             position: 'fixed',
@@ -216,16 +236,22 @@ export default function Goals() {
             zIndex: 9999,
           }}
         >
-          <div style={{
-            background: '#111113',
-            border: '1px solid rgba(255,255,255,0.07)',
-            borderRadius: '16px',
-            padding: '32px',
-            width: '440px',
-            maxWidth: '92vw',
-            position: 'relative',
-            boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
-          }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.93, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 8 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 38 }}
+            className="goal-modal"
+            style={{
+              background: '#111113',
+              border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: '16px',
+              padding: '32px',
+              width: '440px',
+              maxWidth: '92vw',
+              position: 'relative',
+              boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+            }}>
             <button
               onClick={() => setShowModal(false)}
               style={{
@@ -287,9 +313,10 @@ export default function Goals() {
                 {saving ? 'Saving...' : 'Add Goal'}
               </button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+    </AnimatePresence>
     </>
   )
 }

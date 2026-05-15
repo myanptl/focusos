@@ -3,7 +3,9 @@
     "api/generate-quiz.js":   { "maxDuration": 30 },
     "api/summarize-note.js":  { "maxDuration": 30 },
     "api/summarize-video.js": { "maxDuration": 30 },
-    "api/quiz-followup.js":   { "maxDuration": 20 }
+    "api/quiz-followup.js":   { "maxDuration": 20 },
+    "api/contact.js":         { "maxDuration": 10 },
+    "api/delete-account.js":  { "maxDuration": 15 }
   },
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/index.html" }

@@ -1078,10 +1078,14 @@ export default function Timer() {
 
             {/* Primary controls */}
             <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <button className="btn btn-accent btn-full" onClick={toggleTimer}
+              <motion.button
+                className="btn btn-accent btn-full" onClick={toggleTimer}
+                whileHover={{ scale: 1.025, boxShadow: '0 0 32px rgba(181,242,58,0.35), 0 4px 16px rgba(181,242,58,0.18)' }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                 style={{ height: 54, fontSize: 16, fontWeight: 800, letterSpacing: '0.05em' }}>
                 {running ? 'PAUSE' : timeLeft === 0 ? 'RESTART' : 'START'}
-              </button>
+              </motion.button>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button className="btn btn-ghost btn-full" onClick={reset} style={{ fontSize: 13 }}>Reset</button>
                 {phase === 'focus' && (running || hasMadeProgress) && (
@@ -1445,13 +1449,23 @@ export default function Timer() {
       )}
 
       {/* ── Reflection modal ── */}
+      <AnimatePresence>
       {reflectionOpen && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 200,
-          background: 'rgba(10,10,11,0.88)', backdropFilter: 'blur(8px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
-        }}>
-          <div className="card" style={{ maxWidth: 460, width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+        <motion.div
+          key="reflection-bg"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 200,
+            background: 'rgba(10,10,11,0.88)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+          }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.93, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 8 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 38 }}
+            className="card" style={{ maxWidth: 460, width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ textAlign: 'center', marginBottom: 24 }}>
               <div style={{ fontSize: 40, marginBottom: 10 }}>🎯</div>
               <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
@@ -1540,18 +1554,29 @@ export default function Timer() {
                 Save &amp; Start Break
               </button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* ── Quit early confirm ── */}
+      <AnimatePresence>
       {quitConfirm && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 200,
-          background: 'rgba(10,10,11,0.88)', backdropFilter: 'blur(8px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
-        }}>
-          <div className="card" style={{ maxWidth: 380, width: '100%', textAlign: 'center' }}>
+        <motion.div
+          key="quit-bg"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 200,
+            background: 'rgba(10,10,11,0.88)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+          }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.93, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 8 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 38 }}
+            className="card" style={{ maxWidth: 380, width: '100%', textAlign: 'center' }}>
             <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 10 }}>End this session?</h2>
             <p style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 24, lineHeight: 1.6 }}>
               Progress won't count toward adaptive growth. Your focus blocks streak will reset.
@@ -1567,18 +1592,29 @@ export default function Timer() {
                 End Session
               </button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* ── Keyboard shortcuts modal ── */}
+      <AnimatePresence>
       {shortcutsOpen && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 200,
-          background: 'rgba(10,10,11,0.88)', backdropFilter: 'blur(8px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
-        }} onClick={() => setShortcutsOpen(false)}>
-          <div className="card" style={{ maxWidth: 380, width: '100%' }} onClick={e => e.stopPropagation()}>
+        <motion.div
+          key="shortcuts-bg"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 200,
+            background: 'rgba(10,10,11,0.88)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+          }} onClick={() => setShortcutsOpen(false)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.93, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 8 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 38 }}
+            className="card" style={{ maxWidth: 380, width: '100%' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h2 style={{ fontSize: 18, fontWeight: 700 }}>⌨ Keyboard Shortcuts</h2>
               <button onClick={() => setShortcutsOpen(false)} style={{
@@ -1601,9 +1637,10 @@ export default function Timer() {
             <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 14 }}>
               Shortcuts are disabled when a text field is focused.
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   )
 }

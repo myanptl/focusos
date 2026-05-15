@@ -27,6 +27,13 @@ const DEFAULT_ROOMS = [
   { name: 'General Focus', description: 'Open to everyone', room_code: 'FOCUS1' },
 ]
 
+function getRoomGradient(name = '') {
+  if (name === 'SAT Prep Squad') return 'linear-gradient(135deg, rgba(181,242,58,0.22) 0%, rgba(10,10,11,0) 80%)'
+  if (name === 'AP Gauntlet')    return 'linear-gradient(135deg, rgba(96,211,248,0.20) 0%, rgba(10,10,11,0) 80%)'
+  if (name === 'General Focus')  return 'linear-gradient(135deg, rgba(168,139,250,0.20) 0%, rgba(10,10,11,0) 80%)'
+  return 'linear-gradient(135deg, rgba(181,242,58,0.14) 0%, rgba(10,10,11,0) 80%)'
+}
+
 export default function Rooms() {
   const { user, profile } = useAuth()
   const toast = useToast()
@@ -226,74 +233,85 @@ export default function Rooms() {
     return (
       <div
         key={room.id}
-        className="card card-top"
+        className="card"
         style={{
-          display: 'flex', flexDirection: 'column', gap: 14, position: 'relative',
+          display: 'flex', flexDirection: 'column', position: 'relative',
+          padding: 0, overflow: 'hidden',
           transform: hoveredRoom === room.id ? 'translateY(-4px)' : 'translateY(0)',
           boxShadow: hoveredRoom === room.id ? '0 16px 48px rgba(0,0,0,0.5)' : '0 4px 16px rgba(0,0,0,0.22)',
-          transition: 'transform 0.22s ease, box-shadow 0.22s ease',
+          transition: 'transform 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out)',
           cursor: 'default',
         }}
         onMouseEnter={() => setHoveredRoom(room.id)}
         onMouseLeave={() => setHoveredRoom(null)}
       >
-        {showDelete && hoveredRoom === room.id && (
-          <button
-            onClick={e => { e.stopPropagation(); handleDeleteRoom(room.id) }}
-            style={{
-              position: 'absolute', top: 10, right: 10,
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--muted)', fontSize: 15, padding: 4, lineHeight: 1,
-            }}
-            title="Delete room"
-          >
-            🗑️
-          </button>
-        )}
-        <div>
-          <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>{room.name}</div>
+        <div style={{
+          height: 80,
+          background: getRoomGradient(room.name),
+          padding: '12px 18px',
+          display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+          position: 'relative',
+          borderBottom: '1px solid rgba(255,255,255,0.05)',
+        }}>
+          {showDelete && hoveredRoom === room.id && (
+            <button
+              onClick={e => { e.stopPropagation(); handleDeleteRoom(room.id) }}
+              style={{
+                position: 'absolute', top: 10, right: 10,
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: 'var(--muted)', fontSize: 15, padding: 4, lineHeight: 1,
+              }}
+              title="Delete room"
+            >
+              🗑️
+            </button>
+          )}
+          <div style={{ fontWeight: 700, fontSize: 15 }}>{room.name}</div>
           {room.description && (
-            <div style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.5 }}>{room.description}</div>
+            <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.4, marginTop: 2 }}>{room.description}</div>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            {displayMembers.map((m, i) => {
-              const key = m.user_id || m.display_name || String(i)
-              const color = avatarColor(key)
-              return (
-                <div key={key + i} style={{
-                  width: 28, height: 28, borderRadius: '50%',
-                  background: color,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 11, fontWeight: 700, color: '#0a0a0b',
-                  border: '2px solid var(--card)',
-                  marginLeft: i === 0 ? 0 : -8,
-                  zIndex: displayMembers.length - i,
-                  position: 'relative',
-                }}>
-                  {getInitial(m.display_name)}
-                </div>
-              )
-            })}
+
+        <div style={{ padding: '14px 18px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              {displayMembers.map((m, i) => {
+                const key = m.user_id || m.display_name || String(i)
+                const color = avatarColor(key)
+                return (
+                  <div key={key + i} style={{
+                    width: 28, height: 28, borderRadius: '50%',
+                    background: color,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 11, fontWeight: 700, color: '#0a0a0b',
+                    border: '2px solid var(--card)',
+                    marginLeft: i === 0 ? 0 : -8,
+                    zIndex: displayMembers.length - i,
+                    position: 'relative',
+                  }}>
+                    {getInitial(m.display_name)}
+                  </div>
+                )
+              })}
+            </div>
+            {extraCount > 0 && (
+              <span style={{ fontSize: 12, color: 'var(--muted)' }}>+{extraCount} more</span>
+            )}
+            {onlineMembers.length === 0 && (
+              <span style={{ fontSize: 12, color: 'var(--muted)' }}>No one online</span>
+            )}
           </div>
-          {extraCount > 0 && (
-            <span style={{ fontSize: 12, color: 'var(--muted)' }}>+{extraCount} more</span>
-          )}
-          {onlineMembers.length === 0 && (
-            <span style={{ fontSize: 12, color: 'var(--muted)' }}>No one online</span>
-          )}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 12, color: focusingCount > 0 ? 'var(--accent)' : 'var(--muted)' }}>
-            {focusingCount > 0 ? `${focusingCount} focusing now 🔥` : `${onlineCount} online`}
-          </span>
-          <button
-            className="btn btn-ghost btn-sm"
-            onClick={() => navigate(`/rooms/${room.id}`)}
-          >
-            Join Room →
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 12, color: focusingCount > 0 ? 'var(--accent)' : 'var(--muted)' }}>
+              {focusingCount > 0 ? `${focusingCount} focusing now 🔥` : `${onlineCount} online`}
+            </span>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => navigate(`/rooms/${room.id}`)}
+            >
+              Join Room →
+            </button>
+          </div>
         </div>
       </div>
     )

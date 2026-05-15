@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ToastProvider } from './components/Toast'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -7,7 +8,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Nav from './components/Nav'
 import Footer from './components/Footer'
-import ParticleBackground from './components/ParticleBackground'
+import AppBackground from './components/AppBackground'
 import Landing from './pages/Landing'
 import Login from './pages/auth/Login'
 import Signup from './pages/auth/Signup'
@@ -42,16 +43,14 @@ function ProtectedRoute({ children }) {
 }
 
 const pageVariants = {
-  initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] } },
-  exit:    { opacity: 0, y: -8, transition: { duration: 0.18 } },
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 380, damping: 38, mass: 0.9 } },
+  exit:    { opacity: 0, y: -10, transition: { duration: 0.15, ease: [0.32, 0, 0.67, 0] } },
 }
 
 function AppShell({ children }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', position: 'relative' }}>
-      <ParticleBackground />
-      <Nav />
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 60px)', position: 'relative' }}>
       <main style={{ flex: 1, padding: '28px 24px', maxWidth: 1100, width: '100%', margin: '0 auto', boxSizing: 'border-box', position: 'relative', zIndex: 1 }}>
         <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit">
           {children}
@@ -94,7 +93,30 @@ function AppRoutes() {
     </div>
   )
 
+  const noNavPaths = ['/', '/login', '/signup', '/onboarding', '/reset-password']
+  const noNavPrefixes = ['/privacy', '/terms', '/support']
+  const showNav = user && profile?.onboarding_complete &&
+    !noNavPaths.includes(location.pathname) &&
+    !noNavPrefixes.some(p => location.pathname.startsWith(p))
+
+  const navigate = useNavigate()
+  useEffect(() => {
+    const TAB_ROUTES = ['/timer', '/quiz', '/notes', '/goals', '/streak', '/progress', '/rooms', '/settings']
+    function handleTabShortcut(e) {
+      const tag = document.activeElement?.tagName
+      const editable = document.activeElement?.isContentEditable
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || editable) return
+      const idx = parseInt(e.key) - 1
+      if (idx >= 0 && idx < TAB_ROUTES.length) navigate(TAB_ROUTES[idx])
+    }
+    window.addEventListener('keydown', handleTabShortcut)
+    return () => window.removeEventListener('keydown', handleTabShortcut)
+  }, [navigate])
+
   return (
+    <>
+      {showNav && <Nav />}
+      {showNav && <AppBackground />}
     <AnimatePresence mode="wait" initial={false}>
     <Routes location={location} key={location.pathname}>
       <Route path="/"           element={user ? <Navigate to="/timer" replace /> : <Landing />} />
@@ -123,6 +145,7 @@ function AppRoutes() {
       <Route path="*" element={<NotFound />} />
     </Routes>
     </AnimatePresence>
+    </>
   )
 }
 

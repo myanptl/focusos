@@ -1,0 +1,50 @@
+import { Resend } from 'resend'
+import { checkIPRateLimit, setSecurityHeaders, validateInput, sanitizeInput, stripFields } from './_auth.js'
+
+const CONTACT_SCHEMA = {
+  name:    { required: true,  type: 'string', maxLength: 100 },
+  email:   { required: true,  type: 'string', maxLength: 254 },
+  message: { required: true,  type: 'string', maxLength: 2000 },
+}
+
+export default async function handler(req, res) {
+  setSecurityHeaders(res)
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  const allowed = await checkIPRateLimit(req, res)
+  if (!allowed) return
+
+  const raw = stripFields(req.body || {}, ['name', 'email', 'message'])
+  const err = validateInput(raw, CONTACT_SCHEMA)
+  if (err) return res.status(400).json({ error: err })
+
+  const name    = sanitizeInput(raw.name)
+  const email   = sanitizeInput(raw.email)
+  const message = sanitizeInput(raw.message)
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Invalid email address' })
+  }
+
+  const resend = new Resend(process.env.RESEND_API_KEY)
+
+  const { error: sendError } = await resend.emails.send({
+    from: 'FocusOS Support <support@focusos.live>',
+    to:   'myan.ptl@gmail.com',
+    replyTo: email,
+    subject: `[FocusOS Support] Message from ${name}`,
+    text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
+    html: `<p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p><hr/><p>${message.replace(/\n/g, '<br/>')}</p>`,
+  })
+
+  if (sendError) {
+    console.error('Resend error:', sendError)
+    return res.status(500).json({ error: 'Failed to send message. Please try again.' })
+  }
+
+  return res.status(200).json({ ok: true })
+}
