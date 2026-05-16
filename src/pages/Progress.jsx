@@ -310,7 +310,7 @@ export default function Progress() {
         </div>
       </div>
 
-      <div className="stats-4col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
         <StatCard label="Day Streak"     value={dispStreak}   sub="days in a row"   color="var(--accent)" />
         <StatCard label="Total Minutes"  value={dispMins}     sub="minutes focused"  color="var(--cyan)" />
         <StatCard label="Sessions"       value={dispSessions} sub="completed"        color="var(--purple)" />

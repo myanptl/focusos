@@ -490,7 +490,7 @@ export default function Quiz() {
   const dc = diffColor(difficulty)
 
   return (
-    <div className="page-fade mobile-grid-stack" style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 24, alignItems: 'start' }}>
+    <div className="page-fade" style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 24, alignItems: 'start' }}>
 
       {/* ─── LEFT: Setup ─────────────────────────────────── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -1382,7 +1382,7 @@ export default function Quiz() {
               </div>
             )}
 
-            <div className="stats-4col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
               {[
                 { label: 'Score',       value: `${results.pct}%`,       color: results.pct >= 80 ? 'var(--accent)' : results.pct >= 60 ? 'var(--amber)' : 'var(--red)' },
                 { label: 'Focus Score', value: `${results.focusScore}%`, color: 'var(--cyan)' },

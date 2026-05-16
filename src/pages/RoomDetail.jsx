@@ -449,7 +449,7 @@ export default function RoomDetail() {
 
   if (loading) {
     return (
-      <div className="page-fade mobile-grid-stack" style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 20, alignItems: 'start' }}>
+      <div className="page-fade" style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 20, alignItems: 'start' }}>
         <div className="card" style={{ padding: 0, overflow: 'hidden', height: 'calc(100vh - 200px)', display: 'flex', flexDirection: 'column' }}>
           <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -521,7 +521,7 @@ export default function RoomDetail() {
   const showReset = !timerRunning && timerSecs < totalSecs && !sessionComplete
 
   return (
-    <div className="page-fade mobile-grid-stack" style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 20, alignItems: 'start' }}>
+    <div className="page-fade" style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 20, alignItems: 'start' }}>
 
       {/* ── LEFT PANEL ── */}
       <div className="card" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 200px)', padding: 0, overflow: 'hidden' }}>
