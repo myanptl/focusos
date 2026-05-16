@@ -37,8 +37,12 @@ export default async function handler(req, res) {
     to:   'myan.ptl@gmail.com',
     replyTo: email,
     subject: `[FocusOS Support] Message from ${name}`,
-    text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
-    html: `<p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p><hr/><p>${message.replace(/\n/g, '<br/>')}</p>`,
+    headers: {
+      'List-Unsubscribe': '<mailto:support@focusos.live>',
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
+    text: `From: ${name} <${email}>\n\n${message}\n\n---\nSent via FocusOS contact form`,
+    html: `<p><strong>From:</strong> ${name} &lt;<a href="mailto:${email}">${email}</a>&gt;</p><hr/><p>${message.replace(/\n/g, '<br/>')}</p>`,
   })
 
   if (sendError) {

@@ -379,6 +379,7 @@ export default function Timer() {
   const phaseRef          = useRef('focus')
   const timeLeftRef       = useRef(initFocus * 60)
   const focusDurationRef  = useRef(initFocus * 60)
+  const timerRestoredRef  = useRef(false)
 
   // keep refs in sync
   useEffect(() => { runningRef.current = running }, [running])
@@ -422,7 +423,7 @@ export default function Timer() {
     const brk  = profile.break_duration ?? 5
     setFocusMins(span)
     setFocusDuration(span * 60)
-    setTimeLeft(span * 60)
+    if (!timerRestoredRef.current) setTimeLeft(span * 60)
     setBreakMins(brk)
     setBreakDuration(brk * 60)
     setFocusBlocksStreak(profile.focus_blocks_streak ?? 0)
@@ -464,6 +465,36 @@ export default function Timer() {
       setTimeLeft(span * 60)
     }
   }, [pomodoroMode])
+
+  // ── Timer persistence: restore on route return ───────
+  // Runs after pomodoroMode effect so it wins the initial-mount ordering
+  useEffect(() => {
+    const saved = localStorage.getItem('focusos_timer_state')
+    if (!saved) return
+    try {
+      const { timeLeft: t, phase: p, ts } = JSON.parse(saved)
+      if (t > 0 && Date.now() - (ts || 0) < 4 * 60 * 60 * 1000) {
+        setTimeLeft(t)
+        setPhase(p || 'focus')
+        setRunning(false)
+        timerRestoredRef.current = true
+      }
+    } catch {}
+    localStorage.removeItem('focusos_timer_state')
+  }, [])
+
+  // Save timer state when navigating away (component unmounts)
+  useEffect(() => {
+    return () => {
+      const t = timeLeftRef.current
+      const p = phaseRef.current
+      if (t > 0) {
+        localStorage.setItem('focusos_timer_state', JSON.stringify({
+          timeLeft: t, phase: p, ts: Date.now(),
+        }))
+      }
+    }
+  }, [])
 
   // ── Ambient Sound ────────────────────────────────────
   function stopSound() {

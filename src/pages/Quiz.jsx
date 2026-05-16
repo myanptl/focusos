@@ -937,8 +937,9 @@ export default function Quiz() {
             <div className="card" style={{ textAlign: 'center', padding: 48 }}>
               <div style={{
                 fontSize: 64, color: 'var(--accent)',
-                animation: 'spin-slow 1s linear infinite',
+                animation: 'spin-slow 3s linear infinite',
                 display: 'inline-block', lineHeight: 1, marginBottom: 16,
+                width: 64, textAlign: 'center', transformOrigin: 'center',
               }}>⟳</div>
               <p style={{ color: 'var(--muted)', fontSize: 14 }}>Generating your questions...</p>
             </div>
