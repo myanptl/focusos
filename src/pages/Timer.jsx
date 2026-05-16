@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useTimerContext } from '../context/TimerContext'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import gsap from 'gsap'
@@ -217,8 +218,8 @@ function CircularTimer({ timeLeft, totalTime, phase, pomodoroMode, running, flas
   })
 
   return (
-    <div style={{ position: 'relative', width: 240, height: 240, margin: '0 auto' }}>
-      <svg width="240" height="240" viewBox="0 0 240 240" style={{ display: 'block' }}>
+    <div style={{ position: 'relative', width: 'min(240px, 80vw)', height: 'min(240px, 80vw)', margin: '0 auto' }}>
+      <svg width="100%" height="100%" viewBox="0 0 240 240" style={{ display: 'block' }}>
         {/* Pulse ring — expands outward while running */}
         {running && phase === 'focus' && (
           <circle
@@ -278,17 +279,9 @@ export default function Timer() {
   const toast = useToast()
   const navigate = useNavigate()
 
-  const initFocus = profile?.focus_duration ?? profile?.baseline_attention_span ?? 25
-  const initBreak = profile?.break_duration ?? 5
-
-  // Core timer
-  const [focusMins,    setFocusMins]    = useState(initFocus)
-  const [breakMins,    setBreakMins]    = useState(initBreak)
-  const [focusDuration, setFocusDuration] = useState(initFocus * 60)
-  const [breakDuration, setBreakDuration] = useState(initBreak * 60)
-  const [timeLeft,     setTimeLeft]     = useState(initFocus * 60)
-  const [running,      setRunning]      = useState(false)
-  const [phase,        setPhase]        = useState('focus')
+  const ctx = useTimerContext()
+  const { timeLeft, running, phase, focusMins, breakMins, focusDuration, breakDuration,
+    pomodoroMode, focusJustCompleted, breakJustCompleted } = ctx
 
   // Session stats
   const [sessionsToday,   setSessionsToday]   = useState(0)
@@ -315,10 +308,7 @@ export default function Timer() {
   // Break tips
   const [breakTips, setBreakTips] = useState(() => shuffleBreakTips())
 
-  // ── Feature: Pomodoro Mode ──
-  const [pomodoroMode, setPomodoroMode] = useState(() =>
-    localStorage.getItem('focusos_pomodoro') === 'true'
-  )
+  // pomodoroMode comes from TimerContext
 
   // ── Feature: Tasks ──
   const [tasks, setTasks]       = useState([])
@@ -372,14 +362,12 @@ export default function Timer() {
   const [flashRing, setFlashRing] = useState(false)
 
   // Refs
-  const intervalRef       = useRef(null)
   const sessionsTodayRef  = useRef(0)
   const profileLoadedRef  = useRef(false)
-  const runningRef        = useRef(false)
-  const phaseRef          = useRef('focus')
-  const timeLeftRef       = useRef(initFocus * 60)
-  const focusDurationRef  = useRef(initFocus * 60)
-  const timerRestoredRef  = useRef(false)
+  const runningRef        = useRef(running)
+  const phaseRef          = useRef(phase)
+  const timeLeftRef       = useRef(timeLeft)
+  const focusDurationRef  = useRef(focusDuration)
 
   // keep refs in sync
   useEffect(() => { runningRef.current = running }, [running])
@@ -418,14 +406,6 @@ export default function Timer() {
   useEffect(() => {
     if (!profile || profileLoadedRef.current) return
     profileLoadedRef.current = true
-    if (pomodoroMode) return
-    const span = profile.focus_duration ?? profile.baseline_attention_span ?? 25
-    const brk  = profile.break_duration ?? 5
-    setFocusMins(span)
-    setFocusDuration(span * 60)
-    if (!timerRestoredRef.current) setTimeLeft(span * 60)
-    setBreakMins(brk)
-    setBreakDuration(brk * 60)
     setFocusBlocksStreak(profile.focus_blocks_streak ?? 0)
   }, [profile])
 
@@ -450,51 +430,7 @@ export default function Timer() {
   useEffect(() => { sessionsTodayRef.current = sessionsToday }, [sessionsToday])
   useEffect(() => () => clearTimeout(recTimerRef.current), [])
 
-  // ── Pomodoro mode ────────────────────────────────────
-  useEffect(() => {
-    localStorage.setItem('focusos_pomodoro', pomodoroMode)
-    if (pomodoroMode) {
-      setFocusMins(25); setFocusDuration(25 * 60)
-      setBreakMins(5);  setBreakDuration(5 * 60)
-      setTimeLeft(25 * 60)
-    } else if (profile) {
-      const span = profile.focus_duration ?? profile.baseline_attention_span ?? 25
-      const brk  = profile.break_duration ?? 5
-      setFocusMins(span); setFocusDuration(span * 60)
-      setBreakMins(brk);  setBreakDuration(brk * 60)
-      setTimeLeft(span * 60)
-    }
-  }, [pomodoroMode])
-
-  // ── Timer persistence: restore on route return ───────
-  // Runs after pomodoroMode effect so it wins the initial-mount ordering
-  useEffect(() => {
-    const saved = localStorage.getItem('focusos_timer_state')
-    if (!saved) return
-    try {
-      const { timeLeft: t, phase: p, ts } = JSON.parse(saved)
-      if (t > 0 && Date.now() - (ts || 0) < 4 * 60 * 60 * 1000) {
-        setTimeLeft(t)
-        setPhase(p || 'focus')
-        setRunning(false)
-        timerRestoredRef.current = true
-      }
-    } catch {}
-    localStorage.removeItem('focusos_timer_state')
-  }, [])
-
-  // Save timer state when navigating away (component unmounts)
-  useEffect(() => {
-    return () => {
-      const t = timeLeftRef.current
-      const p = phaseRef.current
-      if (t > 0) {
-        localStorage.setItem('focusos_timer_state', JSON.stringify({
-          timeLeft: t, phase: p, ts: Date.now(),
-        }))
-      }
-    }
-  }, [])
+  // Timer state (timeLeft, running, phase, focusMins, breakMins, pomodoroMode) lives in TimerContext
 
   // ── Ambient Sound ────────────────────────────────────
   function stopSound() {
@@ -578,15 +514,13 @@ export default function Timer() {
       if (e.key === ' ' || e.code === 'Space') {
         e.preventDefault()
         if (phaseRef.current === 'focus' || phaseRef.current === 'break') {
-          setRunning(r => !r)
+          runningRef.current ? ctx.pause() : ctx.start()
         }
         return
       }
 
       if (e.key === 'r' || e.key === 'R') {
-        setRunning(false); setPhase('focus')
-        setTimeLeft(pomodoroMode ? 25 * 60 : focusDuration)
-        setRecommendation(null)
+        reset()
         return
       }
 
@@ -625,47 +559,24 @@ export default function Timer() {
     } catch { /* non-fatal */ }
   }
 
-  // ── Timer tick ───────────────────────────────────────
-  const tick = useCallback(() => {
-    setTimeLeft(prev => {
-      if (prev <= 1) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
-        setRunning(false)
-        handlePhaseComplete()
-        return 0
-      }
-      return prev - 1
-    })
-  }, [phase, focusMins, focusDuration, breakDuration]) // eslint-disable-line react-hooks/exhaustive-deps
+  // ── Phase completion (driven by TimerContext signals) ──
+  useEffect(() => {
+    if (!focusJustCompleted) return
+    setFlashRing(true)
+    setTimeout(() => setFlashRing(false), 1300)
+    setCompletedMins(focusMins)
+    setSessionNote(liveNoteRef.current || '')
+    setReflectionOpen(true)
+  }, [focusJustCompleted]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (running) {
-      intervalRef.current = setInterval(tick, 1000)
-    } else {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
-    return () => clearInterval(intervalRef.current)
-  }, [running, tick])
-
-  // ── Phase completion ─────────────────────────────────
-  function handlePhaseComplete() {
-    if (phase === 'focus') {
-      setFlashRing(true)
-      setTimeout(() => setFlashRing(false), 1300)
-      setCompletedMins(focusMins)
-      setSessionNote(liveNoteRef.current || '')
-      setReflectionOpen(true)
-    } else {
-      toast('Break over — back to work.', 'info')
-      setPhase('focus')
-      setTimeLeft(focusDuration)
-      setBreakTips(shuffleBreakTips())
-      setTabSwitchCount(0)
-      tabSwitchCountRef.current = 0
-    }
-  }
+    if (!breakJustCompleted) return
+    toast('Break over — back to work.', 'info')
+    setBreakTips(shuffleBreakTips())
+    setTabSwitchCount(0)
+    tabSwitchCountRef.current = 0
+    ctx.acknowledgeBreakCompleted()
+  }, [breakJustCompleted]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Save completed session ───────────────────────────
   async function saveFocusSession(mins, note, extraProfileFields = {}) {
@@ -769,8 +680,7 @@ export default function Timer() {
     setTodaySessions(prev => [...prev, { duration_minutes: mins }])
 
     if (!pomodoroMode) {
-      setFocusMins(newSpan)
-      setFocusDuration(newSpan * 60)
+      ctx.setFocusMinsCtx(newSpan)
       showRec(`Next session: try ${newSpan} min — you earned it.`)
     } else {
       showRec('Pomodoro complete! Take your break.')
@@ -794,9 +704,7 @@ export default function Timer() {
     tabSwitchCountRef.current = 0
     setReflectionOpen(false)
     setSelectedDistraction(null)
-    setPhase('break')
-    setTimeLeft(breakDuration)
-    setRunning(true)
+    ctx.startBreak()
     } catch (err) {
       console.error('Reflection submit failed:', err.message)
       toast('Could not save session. Check your connection.', 'error')
@@ -807,9 +715,7 @@ export default function Timer() {
   // ── Early quit ───────────────────────────────────────
   async function handleEarlyQuit() {
     setQuitConfirm(false)
-    setRunning(false)
-    clearInterval(intervalRef.current)
-    intervalRef.current = null
+    ctx.pause()
 
     const elapsedMins = Math.max(1, Math.floor((focusDuration - timeLeft) / 60))
 
@@ -828,8 +734,7 @@ export default function Timer() {
 
     showRec(`Next session: stay at ${focusMins} min — consistency beats length.`)
     toast('Stay consistent — short sessions still count.', 'info')
-    setPhase('focus')
-    setTimeLeft(focusDuration)
+    ctx.reset('focus')
   }
 
   // ── Recommendation banner helper ─────────────────────
@@ -841,31 +746,24 @@ export default function Timer() {
 
   // ── Timer controls ───────────────────────────────────
   function toggleTimer() {
-    if (timeLeft === 0) { setPhase('focus'); setTimeLeft(focusDuration) }
-    else setRunning(r => !r)
+    if (timeLeft === 0) ctx.reset('focus')
+    else running ? ctx.pause() : ctx.start()
   }
 
   function reset() {
-    setRunning(false); setPhase('focus')
-    setTimeLeft(pomodoroMode ? 25 * 60 : focusDuration)
+    ctx.reset('focus')
     setRecommendation(null); clearTimeout(recTimerRef.current)
     setTabSwitchCount(0); tabSwitchCountRef.current = 0
   }
 
   function updateFocusMins(mins) {
     if (pomodoroMode) return
-    setFocusMins(mins)
-    const secs = mins * 60
-    setFocusDuration(secs)
-    if (phase === 'focus' && !running) setTimeLeft(secs)
+    ctx.setFocusMinsCtx(mins)
   }
 
   function updateBreakMins(mins) {
     if (pomodoroMode) return
-    setBreakMins(mins)
-    const secs = mins * 60
-    setBreakDuration(secs)
-    if (phase === 'break' && !running) setTimeLeft(secs)
+    ctx.setBreakMinsCtx(mins)
   }
 
   // ── Task helpers ─────────────────────────────────────
@@ -1012,8 +910,8 @@ export default function Timer() {
         </div>
       </div>
 
-      {/* 2-column grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 20 }}>
+      {/* 2-column grid — stacks on mobile */}
+      <div className="timer-grid">
 
         {/* ── Left column ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -1155,7 +1053,7 @@ export default function Timer() {
                 </div>
                 <label className="toggle" style={{ flexShrink: 0 }}>
                   <input type="checkbox" checked={pomodoroMode}
-                    onChange={e => { if (!running) setPomodoroMode(e.target.checked) }} />
+                    onChange={e => { if (!running) ctx.setPomodoroMode(e.target.checked) }} />
                   <span className="toggle-slider" />
                 </label>
               </div>
@@ -1319,7 +1217,7 @@ export default function Timer() {
             const tip = STUDY_TIPS[tipOrder[tipPos]]
             return (
               <div style={{
-                background: '#111113',
+                background: 'var(--card)',
                 borderLeft: '3px solid var(--accent)',
                 borderRadius: '0 8px 8px 0',
                 padding: '16px 20px',

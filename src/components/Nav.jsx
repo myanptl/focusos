@@ -4,14 +4,14 @@ import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 
 const tabs = [
-  { to: '/timer',    label: 'Timer' },
-  { to: '/quiz',     label: 'Quiz' },
-  { to: '/notes',    label: 'Notes' },
-  { to: '/goals',    label: 'Goals' },
-  { to: '/streak',   label: 'Streak' },
-  { to: '/progress', label: 'Progress' },
-  { to: '/rooms',    label: 'Rooms' },
-  { to: '/settings', label: 'Settings' },
+  { to: '/timer',    label: 'Timer',    short: 'Timer',  icon: '⏱' },
+  { to: '/quiz',     label: 'Quiz',     short: 'Quiz',   icon: '🧠' },
+  { to: '/notes',    label: 'Notes',    short: 'Notes',  icon: '📝' },
+  { to: '/goals',    label: 'Goals',    short: 'Goals',  icon: '🎯' },
+  { to: '/streak',   label: 'Streak',   short: 'Streak', icon: '🔥' },
+  { to: '/progress', label: 'Progress', short: 'Stats',  icon: '📊' },
+  { to: '/rooms',    label: 'Rooms',    short: 'Rooms',  icon: '🏠' },
+  { to: '/settings', label: 'Settings', short: 'Cfg',    icon: '⚙️' },
 ]
 
 export default function Nav() {
@@ -232,6 +232,38 @@ export default function Nav() {
       </motion.div>
     )}
     </AnimatePresence>
+
+    {/* Mobile bottom tab bar */}
+    {isMobile && (
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200,
+        background: 'rgba(10,10,11,0.96)', backdropFilter: 'blur(16px)',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+        display: 'flex', height: 56, overflowX: 'auto',
+        scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      }}>
+        {tabs.map(t => {
+          const isActive = location.pathname === t.to || location.pathname.startsWith(t.to + '/')
+          return (
+            <NavLink key={t.to} to={t.to} style={{
+              flex: '1 0 auto', minWidth: 52, maxWidth: 80,
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              justifyContent: 'center', textDecoration: 'none',
+              color: isActive ? 'var(--accent)' : 'var(--muted)',
+              padding: '4px 2px', gap: 2, minHeight: 44,
+              borderTop: isActive ? '2px solid var(--accent)' : '2px solid transparent',
+              transition: 'color 0.15s',
+            }}>
+              <span style={{ fontSize: 17, lineHeight: 1 }}>{t.icon}</span>
+              <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
+                {t.short}
+              </span>
+            </NavLink>
+          )
+        })}
+      </div>
+    )}
     </>
   )
 }

@@ -224,9 +224,9 @@ export default function Notes() {
       <div style={{
         width: 280, flexShrink: 0,
         borderRight: '1px solid var(--border)',
-        background: 'transparent',
+        background: 'var(--card)',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
-      }}>
+      }} className="notes-sidebar">
         <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
             <div className="bebas" style={{ fontSize: 20, letterSpacing: 3, color: 'var(--accent)' }}>STUDY NOTES</div>

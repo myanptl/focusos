@@ -312,6 +312,32 @@ nav, header { position: relative; z-index: 10; }
   border-color: rgba(255,255,255,0.12) !important;
 }
 
+/* Quiz brain icon gentle float */
+@keyframes float-brain {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
+}
+
+/* Timer 2-column grid — stacks on mobile */
+.timer-grid {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  gap: 20px;
+}
+
+/* Notes sidebar — show as column on mobile */
+@media (max-width: 640px) {
+  .notes-sidebar {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border);
+    max-height: 50vh;
+  }
+  .timer-grid { grid-template-columns: 1fr; }
+  .app-main   { padding-bottom: 72px !important; }
+  .btn        { min-height: 44px; }
+}
+
 /* Button hover scale — applies to all variants; specifics above handle color */
 .btn:hover:not(:disabled) { transform: scale(1.02); }
 

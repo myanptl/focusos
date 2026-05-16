@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { TimerProvider } from './context/TimerContext'
 import { ToastProvider } from './components/Toast'
 import ErrorBoundary from './components/ErrorBoundary'
 import { Analytics } from '@vercel/analytics/react'
@@ -51,7 +52,7 @@ const pageVariants = {
 function AppShell({ children }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 60px)', position: 'relative' }}>
-      <main style={{ flex: 1, padding: '28px 24px', maxWidth: 1100, width: '100%', margin: '0 auto', boxSizing: 'border-box', position: 'relative', zIndex: 1 }}>
+      <main className="app-main" style={{ flex: 1, padding: '28px 24px', maxWidth: 1100, width: '100%', margin: '0 auto', boxSizing: 'border-box', position: 'relative', zIndex: 1 }}>
         <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit">
           {children}
         </motion.div>
@@ -155,9 +156,11 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <ToastProvider>
-            <AppRoutes />
-            <Analytics />
-            <SpeedInsights />
+            <TimerProvider>
+              <AppRoutes />
+              <Analytics />
+              <SpeedInsights />
+            </TimerProvider>
           </ToastProvider>
         </AuthProvider>
       </BrowserRouter>

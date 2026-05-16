@@ -259,8 +259,23 @@ export default function Quiz() {
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify(body),
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data?.error || `Server error ${res.status}`)
+      let data
+      try {
+        const text = await res.text()
+        if (!text.trimStart().startsWith('{') && !text.trimStart().startsWith('[')) {
+          throw new Error('Quiz generation failed. Please try again.')
+        }
+        data = JSON.parse(text)
+      } catch (parseErr) {
+        throw new Error(parseErr.message || 'Quiz generation failed. Please try again.')
+      }
+      if (!res.ok) {
+        if (res.status === 429) throw new Error('Daily limit reached. Upgrade to Pro or try again tomorrow.')
+        throw new Error(data?.error || `Server error ${res.status}`)
+      }
+      if (data.daily_limit_reached) {
+        toast('Daily Claude limit reached — switched to Llama 3.1.', 'info')
+      }
       if (!data.questions?.length) throw new Error('No questions generated. Try more detailed notes.')
 
       setModelUsed(data.model_used || 'claude')
@@ -945,7 +960,7 @@ export default function Quiz() {
             </div>
           ) : (
             <div className="card" style={{ textAlign: 'center', padding: 48 }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>🧠</div>
+              <div style={{ fontSize: 48, marginBottom: 16, display: 'inline-block', animation: 'float-brain 2s ease-in-out infinite' }}>🧠</div>
               <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Ready to test yourself?</h3>
               <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.6 }}>
                 Paste your notes and hit Generate. Claude will create personalized active recall questions.

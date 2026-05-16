@@ -193,7 +193,12 @@ async function _callClaude(prompt, apiKey, maxTokens) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] }),
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: maxTokens,
+      system: 'You are a JSON generation API. Always respond with valid JSON only. Never include explanations, markdown fences, apologies, or any plain text outside the JSON structure. If you cannot complete the request, still return a valid JSON error object like {"error":"reason"}.',
+      messages: [{ role: 'user', content: prompt }],
+    }),
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))

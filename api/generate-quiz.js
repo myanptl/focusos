@@ -215,7 +215,8 @@ export default async function handler(req, res) {
   const allowed = await checkRateLimit(supabase, user.id, 'generate-quiz')
   if (!allowed) return res.status(429).json({ error: 'Rate limit exceeded. Max 20 quiz generations per hour.' })
 
-  const { useOllama, generationsToday, today } = await getModelConfig(supabase, user.id)
+  const { useOllama, generationsToday, modelPref, today } = await getModelConfig(supabase, user.id)
+  const dailyLimitReached = modelPref === 'auto' && generationsToday >= 5
 
   // OWASP A03: Injection — whitelist only expected fields, drop everything else
   const ALLOWED_FIELDS = ['notes', 'subject', 'subjectType', 'numQuestions', 'mode', 'difficulty', 'tone',
@@ -290,7 +291,7 @@ export default async function handler(req, res) {
       const parsed = JSON.parse(match[0])
       if (!parsed.questions?.length) return res.status(502).json({ error: 'No questions generated.' })
       if (modelUsed === 'claude') await incrementClaudeCount(supabase, user.id, generationsToday, today)
-      return res.status(200).json({ questions: parsed.questions, model_used: modelUsed, ollama_fallback: ollamaFailed })
+      return res.status(200).json({ questions: parsed.questions, model_used: modelUsed, ollama_fallback: ollamaFailed, daily_limit_reached: dailyLimitReached })
     } catch (err) {
       return res.status(502).json({ error: err.message || 'Failed to generate questions.' })
     }
@@ -311,7 +312,7 @@ export default async function handler(req, res) {
     if (!parsed.questions?.length) return res.status(502).json({ error: 'No questions generated. Try more detailed notes.' })
 
     if (modelUsed === 'claude') await incrementClaudeCount(supabase, user.id, generationsToday, today)
-    return res.status(200).json({ questions: parsed.questions, model_used: modelUsed, ollama_fallback: ollamaFailed })
+    return res.status(200).json({ questions: parsed.questions, model_used: modelUsed, ollama_fallback: ollamaFailed, daily_limit_reached: dailyLimitReached })
   } catch (err) {
     return res.status(502).json({ error: err.message || 'Failed to generate quiz. Try again.' })
   }
