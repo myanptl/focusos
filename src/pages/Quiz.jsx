@@ -254,7 +254,7 @@ export default function Quiz() {
         ? { source: 'questionbank', bankSubject, numQuestions: count, mode: apiMode, difficulty, tone }
         : { notes, subject, subjectType, numQuestions: count, mode: apiMode, difficulty, tone }
       const token = await getAuthToken()
-      const res = await fetch('/api/generate-quiz', {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-quiz`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify(body),
@@ -358,7 +358,7 @@ export default function Quiz() {
     setSaGrading(true)
     try {
       const token = await getAuthToken()
-      const res = await fetch('/api/generate-quiz', {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-quiz`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({ mode: 'grade', question: q.question, correctAnswer: q.answer, userAnswer }),
