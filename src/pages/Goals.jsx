@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
+import { X } from 'lucide-react'
 
 const TEST_COLORS = { SAT: '#a855f7', ACT: '#f2c75a', AP: '#b5f23a' }
 
@@ -158,7 +159,7 @@ export default function Goals() {
                   }}>{goal.test_type}</span>
                   <span style={{ fontWeight: 600, fontSize: 16 }}>{goal.subject}</span>
                 </div>
-                <button onClick={() => deleteGoal(goal.id)} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 18 }}>✕</button>
+                <button onClick={() => deleteGoal(goal.id)} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', display: 'flex' }}><X size={18} /></button>
               </div>
 
               <div style={{ display: 'flex', gap: 20, marginBottom: 14, flexWrap: 'wrap' }}>

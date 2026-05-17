@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
+import { X } from 'lucide-react'
 
 const SUBJECTS = ['Science', 'History', 'English', 'Math', 'Other']
 const SUBJECT_COLORS = {
@@ -288,12 +289,12 @@ export default function Notes() {
                   onClick={e => deleteNote(note, e)}
                   style={{
                     background: 'none', border: 'none', color: 'transparent',
-                    cursor: 'pointer', fontSize: 12, padding: '0 2px', lineHeight: 1,
-                    transition: 'color 0.15s', fontFamily: "'DM Sans', sans-serif",
+                    cursor: 'pointer', padding: '0 2px', display: 'flex',
+                    transition: 'color 0.15s',
                   }}
                   onMouseEnter={e => e.currentTarget.style.color = 'var(--red)'}
                   onMouseLeave={e => e.currentTarget.style.color = 'transparent'}
-                >✕</button>
+                ><X size={13} /></button>
               </div>
               <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3, lineHeight: 1.3 }}>
                 {note.title || 'Untitled Note'}
@@ -474,8 +475,8 @@ export default function Notes() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: 'var(--accent)' }}>SUMMARY</div>
                   <button onClick={() => setSummaryPanel(null)} style={{
-                    background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 16, padding: 0,
-                  }}>✕</button>
+                    background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', padding: 0, display: 'flex',
+                  }}><X size={16} /></button>
                 </div>
                 {summaryPanel.summary && (
                   <p style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.6, marginBottom: 12 }}>

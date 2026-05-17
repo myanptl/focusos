@@ -2,16 +2,17 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
+import { Timer, Brain, FileText, Target, Flame, BarChart2, Users, Settings, Menu, X } from 'lucide-react'
 
 const tabs = [
-  { to: '/timer',    label: 'Timer',    short: 'Timer',  icon: '⏱' },
-  { to: '/quiz',     label: 'Quiz',     short: 'Quiz',   icon: '🧠' },
-  { to: '/notes',    label: 'Notes',    short: 'Notes',  icon: '📝' },
-  { to: '/goals',    label: 'Goals',    short: 'Goals',  icon: '🎯' },
-  { to: '/streak',   label: 'Streak',   short: 'Streak', icon: '🔥' },
-  { to: '/progress', label: 'Progress', short: 'Stats',  icon: '📊' },
-  { to: '/rooms',    label: 'Rooms',    short: 'Rooms',  icon: '🏠' },
-  { to: '/settings', label: 'Settings', short: 'Cfg',    icon: '⚙️' },
+  { to: '/timer',    label: 'Timer',    short: 'Timer',  Icon: Timer },
+  { to: '/quiz',     label: 'Quiz',     short: 'Quiz',   Icon: Brain },
+  { to: '/notes',    label: 'Notes',    short: 'Notes',  Icon: FileText },
+  { to: '/goals',    label: 'Goals',    short: 'Goals',  Icon: Target },
+  { to: '/streak',   label: 'Streak',   short: 'Streak', Icon: Flame },
+  { to: '/progress', label: 'Progress', short: 'Stats',  Icon: BarChart2 },
+  { to: '/rooms',    label: 'Rooms',    short: 'Rooms',  Icon: Users },
+  { to: '/settings', label: 'Settings', short: 'Cfg',    Icon: Settings },
 ]
 
 export default function Nav() {
@@ -105,14 +106,14 @@ export default function Nav() {
               borderRadius: 8, width: 34, height: 34,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
-          >☰</motion.button>
+          ><Menu size={18} /></motion.button>
         )}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 5,
           background: 'rgba(242,199,90,0.1)', border: '1px solid rgba(242,199,90,0.25)',
           borderRadius: 20, padding: '4px 10px', fontSize: 13,
         }}>
-          <span>🔥</span>
+          <Flame size={14} color="var(--amber)" />
           <span style={{ fontWeight: 700, color: 'var(--amber)' }}>{streak}</span>
         </div>
 
@@ -196,7 +197,7 @@ export default function Nav() {
             background: 'none', border: 'none', color: 'var(--muted)',
             fontSize: 24, cursor: 'pointer', lineHeight: 1,
           }}
-        >✕</motion.button>
+        ><X size={20} /></motion.button>
         {tabs.map((t, i) => (
           <motion.div
             key={t.to}
@@ -255,7 +256,7 @@ export default function Nav() {
               borderTop: isActive ? '2px solid var(--accent)' : '2px solid transparent',
               transition: 'color 0.15s',
             }}>
-              <span style={{ fontSize: 17, lineHeight: 1 }}>{t.icon}</span>
+              <t.Icon size={19} />
               <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
                 {t.short}
               </span>

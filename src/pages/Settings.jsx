@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
+import { Check, X } from 'lucide-react'
 
 const ACCENT_COLORS = [
   { name: 'Lime',   value: '#b5f23a' },
@@ -312,7 +313,7 @@ export default function Settings() {
                   )}
                   {aiModelPref === opt.key && (
                     <span style={{ width: 16, height: 16, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontSize: 9, color: '#0a0a0b', fontWeight: 900 }}>✓</span>
+                      <Check size={10} color="#0a0a0b" strokeWidth={3} />
                     </span>
                   )}
                 </button>
@@ -535,7 +536,7 @@ export default function Settings() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f87171' }}>Delete Account</h2>
               <button onClick={() => setShowDeleteModal(false)} disabled={deleteLoading}
-                style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 20 }}>✕</button>
+                style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', display: 'flex' }}><X size={20} /></button>
             </div>
             <p style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 16, lineHeight: 1.6 }}>
               This will permanently delete your account and all associated data — sessions, quiz results, goals, notes, and streaks. <strong style={{ color: 'var(--text)' }}>This cannot be undone.</strong>
@@ -571,7 +572,7 @@ export default function Settings() {
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h2 style={{ fontSize: 18, fontWeight: 700 }}>Research Citations</h2>
-              <button onClick={() => setShowCitations(false)} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 20 }}>✕</button>
+              <button onClick={() => setShowCitations(false)} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', display: 'flex' }}><X size={20} /></button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {CITATIONS.map((c, i) => (

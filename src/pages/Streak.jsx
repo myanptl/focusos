@@ -3,16 +3,17 @@ import gsap from 'gsap'
 import Confetti from 'react-confetti'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
+import { Target, Flame, Zap, Clock, Star, Brain, GraduationCap, Gem } from 'lucide-react'
 
 const BADGES = [
-  { id: 'first_focus',   label: 'First Focus',   icon: '🎯', desc: 'Complete your first session',    check: (p)          => (p?.total_sessions ?? 0) >= 1 },
-  { id: 'on_fire',       label: 'On Fire',        icon: '🔥', desc: '3-day streak',                  check: (p)          => (p?.streak_count ?? 0) >= 3 },
-  { id: 'unstoppable',   label: 'Unstoppable',    icon: '⚡', desc: '7-day streak',                  check: (p)          => (p?.streak_count ?? 0) >= 7 },
-  { id: 'hour_hero',     label: 'Hour Hero',      icon: '⏰', desc: '60+ minutes in a single day',   check: (_, log)     => log.some(d => d.total_minutes >= 60) },
-  { id: 'five_sessions', label: 'Five Sessions',  icon: '✋', desc: 'Complete 5 total sessions',     check: (p)          => (p?.total_sessions ?? 0) >= 5 },
-  { id: 'deep_worker',   label: 'Deep Worker',    icon: '🧠', desc: 'Complete a 35+ min session',   check: (_, __, s)   => s.some(x => x.duration_minutes >= 35) },
-  { id: 'goal_setter',   label: 'Goal Setter',    icon: '🎓', desc: 'Add your first score goal',    check: (_p, _l, _s, g) => g.length >= 1 },
-  { id: 'diamond_mind',  label: 'Diamond Mind',   icon: '💎', desc: '10-day streak',                check: (p)          => (p?.streak_count ?? 0) >= 10 },
+  { id: 'first_focus',   label: 'First Focus',   Icon: Target,        desc: 'Complete your first session',    check: (p)          => (p?.total_sessions ?? 0) >= 1 },
+  { id: 'on_fire',       label: 'On Fire',        Icon: Flame,         desc: '3-day streak',                  check: (p)          => (p?.streak_count ?? 0) >= 3 },
+  { id: 'unstoppable',   label: 'Unstoppable',    Icon: Zap,           desc: '7-day streak',                  check: (p)          => (p?.streak_count ?? 0) >= 7 },
+  { id: 'hour_hero',     label: 'Hour Hero',      Icon: Clock,         desc: '60+ minutes in a single day',   check: (_, log)     => log.some(d => d.total_minutes >= 60) },
+  { id: 'five_sessions', label: 'Five Sessions',  Icon: Star,          desc: 'Complete 5 total sessions',     check: (p)          => (p?.total_sessions ?? 0) >= 5 },
+  { id: 'deep_worker',   label: 'Deep Worker',    Icon: Brain,         desc: 'Complete a 35+ min session',   check: (_, __, s)   => s.some(x => x.duration_minutes >= 35) },
+  { id: 'goal_setter',   label: 'Goal Setter',    Icon: GraduationCap, desc: 'Add your first score goal',    check: (_p, _l, _s, g) => g.length >= 1 },
+  { id: 'diamond_mind',  label: 'Diamond Mind',   Icon: Gem,           desc: '10-day streak',                check: (p)          => (p?.streak_count ?? 0) >= 10 },
 ]
 
 function FlameDecor() {
@@ -234,7 +235,9 @@ export default function Streak() {
                 opacity: unlocked ? 1 : 0.35,
                 filter: unlocked ? 'none' : 'grayscale(1)',
               }}>
-                <div style={{ fontSize: 36, marginBottom: 6 }}>{badge.icon}</div>
+                <div style={{ marginBottom: 6, display: 'flex' }}>
+                  <badge.Icon size={32} color={unlocked ? 'var(--accent)' : 'var(--muted)'} />
+                </div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: unlocked ? 'var(--accent)' : 'var(--text)', marginBottom: 3 }}>{badge.label}</div>
                 <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.4 }}>{badge.desc}</div>
               </div>

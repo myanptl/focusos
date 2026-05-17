@@ -6,6 +6,7 @@ import gsap from 'gsap'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
+import { VolumeX, Waves, Music, Music2, FileText, Flame, Target, X, Timer as TimerIcon } from 'lucide-react'
 
 // ── Constants ────────────────────────────────────────────
 const LEVELS = [
@@ -49,10 +50,10 @@ const SPOTIFY_PLAYLISTS = [
 ]
 
 const SOUND_OPTIONS = [
-  { id: 'silent',   label: 'Silent',   icon: '🔇' },
-  { id: 'brown',    label: 'Brown',    icon: '〰️' },
-  { id: 'baroque',  label: 'Baroque',  icon: '🎹' },
-  { id: 'classical',label: 'Classical',icon: '🎻' },
+  { id: 'silent',   label: 'Silent',   Icon: VolumeX },
+  { id: 'brown',    label: 'Brown',    Icon: Waves },
+  { id: 'baroque',  label: 'Baroque',  Icon: Music },
+  { id: 'classical',label: 'Classical',Icon: Music2 },
 ]
 
 const NAV_ROUTES = ['/timer', '/quiz', '/notes', '/goals', '/streak', '/progress', '/rooms', '/settings']
@@ -833,8 +834,8 @@ export default function Timer() {
             Today I will: <span style={{ color: 'var(--text)', fontWeight: 600 }}>{intention}</span>
           </span>
           <button onClick={() => { setIntention(''); localStorage.removeItem('focusos_intention') }}
-            style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 13, padding: '0 4px' }}>
-            ✕
+            style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', padding: '0 4px', display: 'flex' }}>
+            <X size={14} />
           </button>
         </div>
       ) : !showIntentionForm ? (
@@ -868,7 +869,7 @@ export default function Timer() {
             style={{ flex: 1, fontSize: 13, padding: '6px 10px' }}
           />
           <button className="btn btn-accent btn-sm" onClick={saveIntention}>Set</button>
-          <button className="btn btn-ghost btn-sm" onClick={() => setShowIntentionForm(false)}>✕</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => setShowIntentionForm(false)} style={{ display: 'flex', alignItems: 'center' }}><X size={14} /></button>
         </div>
       )}
 
@@ -884,14 +885,16 @@ export default function Timer() {
           {[
             { label: 'Sessions Today', value: sessionsToday },
             { label: 'Minutes Today',  value: minutesToday },
-            { label: 'Day Streak',     value: `${streak} 🔥` },
+            { label: 'Day Streak',     value: streak, isStreak: true },
           ].map(c => (
             <div key={c.label} className="stat-card" style={{
               padding: '8px 16px', fontSize: 13,
               display: 'flex', alignItems: 'center', gap: 6,
             }}>
               <span style={{ color: 'var(--muted)' }}>{c.label}: </span>
-              <span style={{ fontWeight: 700 }}>{c.value}</span>
+              <span style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                {c.value}{c.isStreak && <Flame size={13} color="var(--amber)" />}
+              </span>
             </div>
           ))}
           {running && phase === 'focus' && (
@@ -965,15 +968,16 @@ export default function Timer() {
                     background: 'rgba(181,242,58,0.1)', border: '1px solid rgba(181,242,58,0.25)',
                     color: 'var(--accent)',
                   }}>
-                    🎯 {focusBlocksStreak} in a row
+                    <Target size={11} style={{ display: 'inline', verticalAlign: 'middle' }} /> {focusBlocksStreak} in a row
                   </span>
                 )}
                 <button onClick={() => setNoteOpen(o => !o)} title="Session notes" style={{
                   background: noteOpen ? 'rgba(181,242,58,0.1)' : 'var(--card2)',
                   border: `1px solid ${noteOpen ? 'rgba(181,242,58,0.4)' : 'var(--border)'}`,
                   borderRadius: 6, cursor: 'pointer', padding: '2px 7px', fontSize: 14,
-                  color: noteOpen ? 'var(--accent)' : 'var(--muted)', lineHeight: 1.6,
-                }}>📝</button>
+                  color: noteOpen ? 'var(--accent)' : 'var(--muted)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}><FileText size={14} /></button>
               </div>
             </div>
 
@@ -1045,7 +1049,7 @@ export default function Timer() {
                 padding: '8px 12px', borderRadius: 8, background: 'var(--card2)', border: '1px solid var(--border)' }}>
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 600 }}>
-                    {pomodoroMode ? '⏱ Classic Pomodoro' : '⚡ Adaptive Mode'}
+                    {pomodoroMode ? <><TimerIcon size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Classic Pomodoro</> : '⚡ Adaptive Mode'}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 1 }}>
                     {pomodoroMode ? '25 min focus / 5 min break' : 'Grows with your attention span'}
@@ -1116,7 +1120,7 @@ export default function Timer() {
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
                     transition: 'all 0.15s',
                   }}>
-                    <span style={{ fontSize: 16 }}>{s.icon}</span>
+                    <s.Icon size={16} />
                     <span>{s.label}</span>
                   </button>
                 ))}
@@ -1138,8 +1142,8 @@ export default function Timer() {
                 <span>{recommendation}</span>
                 <button
                   onClick={() => { setRecommendation(null); clearTimeout(recTimerRef.current) }}
-                  style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 16, padding: 0, marginLeft: 8 }}
-                >✕</button>
+                  style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', padding: 0, marginLeft: 8, display: 'flex' }}
+                ><X size={15} /></button>
               </div>
             )}
 
@@ -1287,8 +1291,8 @@ export default function Timer() {
                     {!running && (
                       <button onClick={() => removeTask(i)} style={{
                         background: 'none', border: 'none', color: 'var(--muted)',
-                        cursor: 'pointer', fontSize: 12, padding: 0, lineHeight: 1,
-                      }}>✕</button>
+                        cursor: 'pointer', padding: 0, display: 'flex',
+                      }}><X size={13} /></button>
                     )}
                   </div>
                 ))}
@@ -1365,10 +1369,12 @@ export default function Timer() {
           boxShadow: '-8px 0 32px rgba(0,0,0,0.4)',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <div style={{ fontSize: 13, fontWeight: 700 }}>📝 Session Notes</div>
+            <div style={{ fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <FileText size={14} /> Session Notes
+            </div>
             <button onClick={() => setNoteOpen(false)} style={{
-              background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 18, padding: 0, lineHeight: 1,
-            }}>✕</button>
+              background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', padding: 0, display: 'flex',
+            }}><X size={16} /></button>
           </div>
           <textarea
             value={liveNote}
@@ -1408,7 +1414,9 @@ export default function Timer() {
             transition={{ type: 'spring', stiffness: 420, damping: 38 }}
             className="card" style={{ maxWidth: 460, width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ textAlign: 'center', marginBottom: 24 }}>
-              <div style={{ fontSize: 40, marginBottom: 10 }}>🎯</div>
+              <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>
+                <Target size={40} color="var(--accent)" />
+              </div>
               <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
                 Session complete! +{completedMins * 10} XP
               </h2>
@@ -1559,8 +1567,8 @@ export default function Timer() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h2 style={{ fontSize: 18, fontWeight: 700 }}>⌨ Keyboard Shortcuts</h2>
               <button onClick={() => setShortcutsOpen(false)} style={{
-                background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 18, padding: 0,
-              }}>✕</button>
+                background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', padding: 0, display: 'flex',
+              }}><X size={18} /></button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {SHORTCUTS.map(s => (

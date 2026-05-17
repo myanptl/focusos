@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
+import { X } from 'lucide-react'
 
 const AVATAR_COLORS = ['#b5f23a', '#60d3f8', '#a78bfa', '#fb923c', '#f472b6', '#4ade80']
 
@@ -403,8 +404,8 @@ export default function Rooms() {
               <h2 style={{ fontSize: 19, fontWeight: 700 }}>Create a Room</h2>
               <button onClick={() => setCreateOpen(false)} style={{
                 background: 'none', border: 'none', color: 'var(--muted)',
-                cursor: 'pointer', fontSize: 20, padding: 0, lineHeight: 1,
-              }}>✕</button>
+                cursor: 'pointer', padding: 0, display: 'flex',
+              }}><X size={20} /></button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -522,8 +523,8 @@ export default function Rooms() {
               <h2 style={{ fontSize: 19, fontWeight: 700 }}>Join with Code</h2>
               <button onClick={() => setJoinOpen(false)} style={{
                 background: 'none', border: 'none', color: 'var(--muted)',
-                cursor: 'pointer', fontSize: 20, padding: 0, lineHeight: 1,
-              }}>✕</button>
+                cursor: 'pointer', padding: 0, display: 'flex',
+              }}><X size={20} /></button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

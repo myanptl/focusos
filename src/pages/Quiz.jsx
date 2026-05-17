@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
+import { X, Check } from 'lucide-react'
 
 function sm2Next(grade, reps, ef, interval) {
   const q = grade === 'got' ? 5 : grade === 'almost' ? 3 : 0
@@ -685,8 +686,8 @@ export default function Quiz() {
                   position: 'absolute', top: 8, right: 8,
                   background: 'var(--card)', border: '1px solid var(--border)',
                   borderRadius: 6, cursor: 'pointer', color: 'var(--muted)',
-                  fontSize: 12, padding: '2px 7px', lineHeight: 1.6,
-                }}>✕</button>
+                  padding: '4px 7px', display: 'flex', alignItems: 'center',
+                }}><X size={12} /></button>
               )}
             </div>
             <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>drag a .txt file or paste text</div>
@@ -853,7 +854,7 @@ export default function Quiz() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {videoResult.keyPoints.map((pt, i) => (
                     <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                      <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: 12, marginTop: 2, flexShrink: 0 }}>✓</span>
+                      <Check size={13} color="var(--accent)" strokeWidth={2.5} style={{ marginTop: 2, flexShrink: 0 }} />
                       <span style={{ fontSize: 13, lineHeight: 1.5 }}>{pt}</span>
                     </div>
                   ))}
