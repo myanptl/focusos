@@ -17,6 +17,7 @@ function respond(data: unknown, status = 200) {
 }
 
 async function callClaude(prompt: string, apiKey: string, maxTokens = 4000): Promise<string> {
+  console.log('[generate-quiz] Calling Claude API, model:', MODEL, 'maxTokens:', maxTokens)
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -33,10 +34,14 @@ async function callClaude(prompt: string, apiKey: string, maxTokens = 4000): Pro
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({})) as { error?: { message?: string } }
-    throw new Error(err?.error?.message || `Claude API error ${res.status}`)
+    const msg = err?.error?.message || `Claude API error ${res.status}`
+    console.error('[generate-quiz] Claude API error:', res.status, msg)
+    throw new Error(msg)
   }
   const data = await res.json() as { content?: { text?: string }[] }
-  return data.content?.[0]?.text || ''
+  const text = data.content?.[0]?.text || ''
+  console.log('[generate-quiz] Claude response length:', text.length, 'starts with:', text.slice(0, 50))
+  return text
 }
 
 function buildPrompt(notes: string, subject: string, subjectType: string, numQuestions: number, mode: string, difficulty: string, tone: string) {
@@ -185,24 +190,38 @@ Return ONLY valid JSON:
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
+  console.log('[generate-quiz] Request received:', req.method, new URL(req.url).pathname)
+
   try {
     const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
-    if (!apiKey) return respond({ error: 'API key not configured on server.' }, 500)
+    console.log('[generate-quiz] ANTHROPIC_API_KEY present:', !!apiKey)
+    if (!apiKey) {
+      console.error('[generate-quiz] FATAL: ANTHROPIC_API_KEY secret is not set in Supabase project settings.')
+      return respond({ error: 'API key not configured on server.' }, 500)
+    }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    console.log('[generate-quiz] SUPABASE_URL present:', !!supabaseUrl, '| SERVICE_ROLE_KEY present:', !!supabaseServiceKey)
 
     // JWT auth
     const authHeader = req.headers.get('Authorization')
-    if (!authHeader?.startsWith('Bearer ')) return respond({ error: 'Unauthorized' }, 401)
+    if (!authHeader?.startsWith('Bearer ')) {
+      console.error('[generate-quiz] Auth failed: no Bearer token in Authorization header')
+      return respond({ error: 'Unauthorized' }, 401)
+    }
     const token = authHeader.split(' ')[1]
 
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: `Bearer ${token}` } },
     })
     const { data: { user }, error: authErr } = await userClient.auth.getUser()
-    if (authErr || !user) return respond({ error: 'Invalid token' }, 401)
+    if (authErr || !user) {
+      console.error('[generate-quiz] Auth failed:', authErr?.message || 'no user returned')
+      return respond({ error: 'Invalid token' }, 401)
+    }
+    console.log('[generate-quiz] Authenticated user:', user.id)
 
     const svcClient = createClient(supabaseUrl, supabaseServiceKey)
 
@@ -318,6 +337,8 @@ Deno.serve(async (req: Request) => {
     return respond({ questions: parsed.questions, model_used: 'claude', ollama_fallback: false, daily_limit_reached: dailyLimitReached })
 
   } catch (err: unknown) {
-    return respond({ error: (err as Error).message || 'Failed to generate quiz.' }, 502)
+    const msg = (err as Error).message || 'Failed to generate quiz.'
+    console.error('[generate-quiz] Unhandled error:', msg, err)
+    return respond({ error: msg }, 502)
   }
 })

@@ -254,7 +254,9 @@ export default function Quiz() {
         ? { source: 'questionbank', bankSubject, numQuestions: count, mode: apiMode, difficulty, tone }
         : { notes, subject, subjectType, numQuestions: count, mode: apiMode, difficulty, tone }
       const token = await getAuthToken()
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-quiz`, {
+      const edgeFnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-quiz`
+      console.log('[Quiz] Fetching:', edgeFnUrl, '| hasToken:', !!token, '| body:', JSON.stringify(body).slice(0, 200))
+      const res = await fetch(edgeFnUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify(body),
@@ -262,14 +264,18 @@ export default function Quiz() {
       let data
       try {
         const text = await res.text()
+        console.log('[Quiz] Response status:', res.status, '| text preview:', text.slice(0, 300))
         if (!text.trimStart().startsWith('{') && !text.trimStart().startsWith('[')) {
+          console.error('[Quiz] Non-JSON response from edge function:', text)
           throw new Error('Quiz generation failed. Please try again.')
         }
         data = JSON.parse(text)
       } catch (parseErr) {
+        console.error('[Quiz] Parse error:', parseErr)
         throw new Error(parseErr.message || 'Quiz generation failed. Please try again.')
       }
       if (!res.ok) {
+        console.error('[Quiz] API error:', res.status, data)
         if (res.status === 429) throw new Error('Daily limit reached. Upgrade to Pro or try again tomorrow.')
         throw new Error(data?.error || `Server error ${res.status}`)
       }
@@ -363,10 +369,13 @@ export default function Quiz() {
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({ mode: 'grade', question: q.question, correctAnswer: q.answer, userAnswer }),
       })
+      console.log('[Quiz] grade response status:', res.status)
       const data = await res.json()
+      if (!res.ok) console.error('[Quiz] grade error:', data)
       setSaFeedback(data)
       setRevealed(true)
-    } catch {
+    } catch (err) {
+      console.error('[Quiz] gradeShortAnswer error:', err)
       setSaFeedback({ correct: false, feedback: 'Could not grade. Check your answer manually.' })
       setRevealed(true)
     } finally {
