@@ -332,7 +332,7 @@ export default function Notes() {
                   color: selectedNote.subject === s ? SUBJECT_COLORS[s] : 'var(--muted)',
                   transition: 'all 0.12s',
                 }}>
-                  {SUBJECT_ICONS[s]} {s}
+                  {(() => { const SI = SUBJECT_ICONS[s] || Pencil; return <SI size={10} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} /> })()} {s}
                 </button>
               ))}
             </div>

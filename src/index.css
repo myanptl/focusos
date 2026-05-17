@@ -334,8 +334,26 @@ nav, header { position: relative; z-index: 10; }
     max-height: 50vh;
   }
   .timer-grid { grid-template-columns: 1fr; }
-  .app-main   { padding-bottom: 72px !important; }
+  .quiz-grid  { grid-template-columns: 1fr !important; }
+  .app-main   { padding-bottom: 72px !important; padding-left: 14px !important; padding-right: 14px !important; }
   .btn        { min-height: 44px; }
+
+  /* Notes full-width on mobile */
+  .page-fade[style*="flex"][style*="100vh"] {
+    flex-direction: column;
+  }
+
+  /* Pill touch targets */
+  .pill { min-height: 36px; padding: 6px 12px !important; }
+
+  /* Timer circle responsive */
+  svg[viewBox="0 0 200 200"] { width: 180px !important; height: 180px !important; }
+
+  /* Quiz textarea full-width */
+  textarea { width: 100% !important; }
+
+  /* Card gaps tighter on mobile */
+  .card, .card2 { padding: 16px !important; }
 }
 
 /* Button hover scale — applies to all variants; specifics above handle color */

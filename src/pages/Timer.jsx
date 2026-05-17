@@ -18,12 +18,12 @@ const LEVELS = [
 ]
 
 const BREAK_ACTIVITIES = [
-  { emoji: '🤸', text: '10 jumping jacks' },
-  { emoji: '🪟', text: 'Look out a window for 60 seconds' },
-  { emoji: '💧', text: 'Drink a glass of water' },
-  { emoji: '🧘', text: '5 deep breaths — box breathing' },
-  { emoji: '🙆', text: 'Stretch your neck and shoulders' },
-  { emoji: '🚶', text: 'Walk to another room and back' },
+  { text: '10 jumping jacks' },
+  { text: 'Look out a window for 60 seconds' },
+  { text: 'Drink a glass of water' },
+  { text: '5 deep breaths — box breathing' },
+  { text: 'Stretch your neck and shoulders' },
+  { text: 'Walk to another room and back' },
 ]
 
 const DISTRACTIONS = [
@@ -31,7 +31,7 @@ const DISTRACTIONS = [
   'Noise or environment',
   'Tired or hungry',
   'My own thoughts',
-  'Nothing — I was locked in ✅',
+  'Nothing — I was locked in',
 ]
 
 const QUOTES = [
@@ -59,21 +59,21 @@ const SOUND_OPTIONS = [
 const NAV_ROUTES = ['/timer', '/quiz', '/notes', '/goals', '/streak', '/progress', '/rooms', '/settings']
 
 const STUDY_TIPS = [
-  { tip: 'Staring at a blank wall for 10 minutes after studying helps your brain consolidate memories.', source: 'Dewar et al., Psychological Science, 2012', emoji: '🧱' },
-  { tip: 'Handwriting notes beats typing — the slower pace forces deeper processing of information.', source: 'Mueller & Oppenheimer, Psychological Science, 2014', emoji: '✍️' },
-  { tip: 'Testing yourself is 2× more effective than re-reading the same material.', source: 'Roediger & Karpicke, 2006', emoji: '🧠' },
-  { tip: 'A 10-minute walk before studying increases focus and memory retention significantly.', source: 'Hillman et al., Neuroscience, 2009', emoji: '🚶' },
-  { tip: 'Studying in different locations strengthens memory — your brain links info to environment.', source: 'Smith, 1982 — Context-dependent memory', emoji: '📍' },
-  { tip: 'The ideal study-to-break ratio is roughly 52 minutes focus, 17 minutes break.', source: 'DeskTime productivity research, 2014', emoji: '⏱️' },
-  { tip: 'Explaining a concept out loud to yourself reveals gaps in understanding. (The Feynman Technique)', source: 'Richard Feynman — Nobel Prize winner', emoji: '🦆' },
-  { tip: 'Mild dehydration (1–2%) reduces cognitive performance by up to 13%.', source: 'Masento et al., British Journal of Nutrition, 2014', emoji: '💧' },
-  { tip: 'Background music with 60–70 BPM can enhance focus — matching the brain\'s alpha waves.', source: 'Rauscher et al., 1993 — Mozart Effect', emoji: '🎵' },
-  { tip: 'Sleeping within 12 hours of learning something doubles your retention rate.', source: 'Walker, Why We Sleep, 2017', emoji: '😴' },
-  { tip: 'The spacing effect: studying material over multiple sessions beats cramming 3×.', source: 'Ebbinghaus Forgetting Curve, 1885', emoji: '📅' },
-  { tip: 'Cold water on your face or wrists triggers the dive reflex — instant alertness boost.', source: 'Mammalian dive reflex — physiology research', emoji: '❄️' },
-  { tip: 'Interleaving different subjects in one session improves long-term retention vs. blocked practice.', source: 'Kornell & Bjork, Psychological Science, 2008', emoji: '🔀' },
-  { tip: 'A 20-minute nap between study sessions restores focus as effectively as a full night\'s sleep.', source: 'Mednick et al., Nature Neuroscience, 2003', emoji: '💤' },
-  { tip: 'Writing your worries down before a test frees up working memory and improves performance.', source: 'Ramirez & Beilock, Science, 2011', emoji: '📝' },
+  { tip: 'Staring at a blank wall for 10 minutes after studying helps your brain consolidate memories.', source: 'Dewar et al., Psychological Science, 2012' },
+  { tip: 'Handwriting notes beats typing — the slower pace forces deeper processing of information.', source: 'Mueller & Oppenheimer, Psychological Science, 2014' },
+  { tip: 'Testing yourself is 2× more effective than re-reading the same material.', source: 'Roediger & Karpicke, 2006' },
+  { tip: 'A 10-minute walk before studying increases focus and memory retention significantly.', source: 'Hillman et al., Neuroscience, 2009' },
+  { tip: 'Studying in different locations strengthens memory — your brain links info to environment.', source: 'Smith, 1982 — Context-dependent memory' },
+  { tip: 'The ideal study-to-break ratio is roughly 52 minutes focus, 17 minutes break.', source: 'DeskTime productivity research, 2014' },
+  { tip: 'Explaining a concept out loud to yourself reveals gaps in understanding. (The Feynman Technique)', source: 'Richard Feynman — Nobel Prize winner' },
+  { tip: 'Mild dehydration (1–2%) reduces cognitive performance by up to 13%.', source: 'Masento et al., British Journal of Nutrition, 2014' },
+  { tip: 'Background music with 60–70 BPM can enhance focus — matching the brain\'s alpha waves.', source: 'Rauscher et al., 1993 — Mozart Effect' },
+  { tip: 'Sleeping within 12 hours of learning something doubles your retention rate.', source: 'Walker, Why We Sleep, 2017' },
+  { tip: 'The spacing effect: studying material over multiple sessions beats cramming 3×.', source: 'Ebbinghaus Forgetting Curve, 1885' },
+  { tip: 'Cold water on your face or wrists triggers the dive reflex — instant alertness boost.', source: 'Mammalian dive reflex — physiology research' },
+  { tip: 'Interleaving different subjects in one session improves long-term retention vs. blocked practice.', source: 'Kornell & Bjork, Psychological Science, 2008' },
+  { tip: 'A 20-minute nap between study sessions restores focus as effectively as a full night\'s sleep.', source: 'Mednick et al., Nature Neuroscience, 2003' },
+  { tip: 'Writing your worries down before a test frees up working memory and improves performance.', source: 'Ramirez & Beilock, Science, 2011' },
 ]
 
 function shuffleIndices(len) {
@@ -1170,10 +1170,10 @@ export default function Timer() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
                 {breakTips.map((tip, i) => (
                   <div key={i} style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
+                    display: 'flex', alignItems: 'center', gap: 10,
                     background: 'rgba(242,199,90,0.06)', borderRadius: 8, padding: '10px 12px',
                   }}>
-                    <span style={{ fontSize: 20 }}>{tip.emoji}</span>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--amber)', flexShrink: 0 }} />
                     <span style={{ fontSize: 13 }}>{tip.text}</span>
                   </div>
                 ))}
@@ -1234,12 +1234,9 @@ export default function Timer() {
                 }}>
                   DID YOU KNOW?
                 </div>
-                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>{tip.emoji}</span>
-                  <div>
-                    <p style={{ fontSize: 13, color: '#f0f0f2', lineHeight: 1.55, marginBottom: 4 }}>{tip.tip}</p>
-                    <p style={{ fontSize: 11, color: '#9494a0', fontStyle: 'italic' }}>{tip.source}</p>
-                  </div>
+                <div>
+                  <p style={{ fontSize: 13, color: '#f0f0f2', lineHeight: 1.55, marginBottom: 4 }}>{tip.tip}</p>
+                  <p style={{ fontSize: 11, color: '#9494a0', fontStyle: 'italic' }}>{tip.source}</p>
                 </div>
                 <div style={{ textAlign: 'right', marginTop: 10 }}>
                   <button onClick={nextTip} style={{

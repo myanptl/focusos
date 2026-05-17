@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
-import { X, Check, AlertTriangle, Calendar, Clock, Sparkles, Brain, RotateCcw, CheckCircle, XCircle, MapPin, Lightbulb, Minus, Bot, FlaskConical, Scroll, BookOpen, Calculator, Pencil } from 'lucide-react'
+import { X, Check, AlertTriangle, Calendar, Clock, Sparkles, Brain, RotateCcw, CheckCircle, XCircle, MapPin, Lightbulb, Minus, Bot, FlaskConical, Scroll, BookOpen, Calculator, Pencil, PlayCircle } from 'lucide-react'
 
 function sm2Next(grade, reps, ef, interval) {
   const q = grade === 'got' ? 5 : grade === 'almost' ? 3 : 0
@@ -515,7 +515,7 @@ export default function Quiz() {
   const dc = diffColor(difficulty)
 
   return (
-    <div className="page-fade" style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 24, alignItems: 'start' }}>
+    <div className="page-fade quiz-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 24, alignItems: 'start' }}>
 
       {/* ─── LEFT: Setup ─────────────────────────────────── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -609,7 +609,7 @@ export default function Quiz() {
                 >
                   {videoLoading
                     ? <><span className="spinner" style={{ width: 16, height: 16 }} /> Analyzing video...</>
-                    : '▶ Summarize Video'}
+                    : 'Summarize Video'}
                 </button>
               </>
             ) : (
@@ -626,7 +626,7 @@ export default function Quiz() {
                     onChange={e => setManualTranscript(e.target.value)}
                     placeholder="Paste the transcript text here..."
                     rows={5}
-                    style={{ resize: 'vertical', lineHeight: 1.6, marginBottom: 8 }}
+                    style={{ resize: 'none', lineHeight: 1.6, marginBottom: 8 }}
                   />
                   <button
                     className="btn btn-accent btn-full"
@@ -679,7 +679,7 @@ export default function Quiz() {
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
                 placeholder="Paste your notes here... The more detail, the better the questions."
-                style={{ resize: 'vertical', lineHeight: 1.6, height: 140, borderColor: dragOver ? 'var(--accent)' : undefined }}
+                style={{ resize: 'none', lineHeight: 1.6, height: 140, borderColor: dragOver ? 'var(--accent)' : undefined }}
               />
               {notes && (
                 <button onClick={() => setNotes('')} style={{
@@ -697,59 +697,57 @@ export default function Quiz() {
 
           {sourceMode !== 'video' && (<>
 
+          {/* Subject + count inline */}
           {sourceMode === 'notes' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <input
                 type="text"
                 placeholder="Subject (optional)"
                 value={subject}
                 onChange={e => setSubject(e.target.value)}
-                style={{ fontSize: 13 }}
+                style={{ fontSize: 13, flex: 1 }}
               />
-              <div>
-                <div className="label" style={{ marginBottom: 6 }}>Questions</div>
-                <div style={{ display: 'flex', gap: 4 }}>
-                  {[5, 10, 15].map(n => (
-                    <button key={n} className={`pill${count === n ? ' active' : ''}`}
-                      onClick={() => setCount(n)} style={{ fontSize: 12, padding: '6px 12px' }}>{n}</button>
-                  ))}
-                </div>
+              <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
+                {[5, 10, 15].map(n => (
+                  <button key={n} className={`pill${count === n ? ' active' : ''}`}
+                    onClick={() => setCount(n)} style={{ fontSize: 12, padding: '5px 10px' }}>{n}</button>
+                ))}
               </div>
             </div>
           )}
 
           {sourceMode === 'bank' && (
-            <div>
-              <div className="label" style={{ marginBottom: 6 }}>Questions</div>
-              <div style={{ display: 'flex', gap: 4 }}>
-                {[5, 10, 15].map(n => (
-                  <button key={n} className={`pill${count === n ? ' active' : ''}`}
-                    onClick={() => setCount(n)} style={{ fontSize: 12, padding: '6px 12px' }}>{n}</button>
-                ))}
-              </div>
+            <div style={{ display: 'flex', gap: 3 }}>
+              {[5, 10, 15].map(n => (
+                <button key={n} className={`pill${count === n ? ' active' : ''}`}
+                  onClick={() => setCount(n)} style={{ fontSize: 12, padding: '5px 10px' }}>{n}</button>
+              ))}
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="label" style={{ marginBottom: 6 }}>Quiz Mode</div>
-              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                {MODES.map(m => (
-                  <button key={m.key} className={`pill${mode === m.key ? ' active' : ''}`}
-                    onClick={() => setMode(m.key)} style={{ fontSize: 12, padding: '6px 12px' }}>{m.label}</button>
-                ))}
+          {/* Mode + Difficulty 2-column grid */}
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <div className="label" style={{ marginBottom: 6, fontSize: 9 }}>MODE</div>
+                <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                  {MODES.map(m => (
+                    <button key={m.key} className={`pill${mode === m.key ? ' active' : ''}`}
+                      onClick={() => setMode(m.key)} style={{ fontSize: 11, padding: '4px 8px' }}>{m.label}</button>
+                  ))}
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="label" style={{ marginBottom: 6 }}>Difficulty</div>
-              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                {DIFFICULTIES.map(d => {
-                  const short = d === 'Standard' ? 'Medium' : d === 'Exam Style' ? 'Exam' : d
-                  return (
-                    <button key={d} className={`pill${difficulty === d ? ' active' : ''}`}
-                      onClick={() => setDifficulty(d)} style={{ fontSize: 12, padding: '6px 12px' }}>{short}</button>
-                  )
-                })}
+              <div>
+                <div className="label" style={{ marginBottom: 6, fontSize: 9 }}>DIFFICULTY</div>
+                <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                  {DIFFICULTIES.map(d => {
+                    const short = d === 'Standard' ? 'Medium' : d === 'Exam Style' ? 'Exam' : d
+                    return (
+                      <button key={d} className={`pill${difficulty === d ? ' active' : ''}`}
+                        onClick={() => setDifficulty(d)} style={{ fontSize: 11, padding: '4px 8px' }}>{short}</button>
+                    )
+                  })}
+                </div>
               </div>
             </div>
           </div>
@@ -767,9 +765,12 @@ export default function Quiz() {
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-              <span style={{ fontSize: 12, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={12} />Timed 85s</span>
+          {/* Timed toggle + Generate */}
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 12, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Clock size={12} />Timed 85s per question
+              </span>
               <button onClick={() => setTimed(v => !v)} style={{
                 width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', padding: 0,
                 background: timed ? 'var(--accent)' : 'var(--border)', position: 'relative', transition: 'background 0.2s',
@@ -782,8 +783,8 @@ export default function Quiz() {
               </button>
             </div>
             <button
-              className="btn btn-accent"
-              style={{ flex: 1, height: 48, fontSize: 15, fontWeight: 800, letterSpacing: '0.04em' }}
+              className="btn btn-accent btn-full"
+              style={{ height: 48, fontSize: 15, fontWeight: 800, letterSpacing: '0.04em' }}
               onClick={generateQuiz}
               disabled={loading || (sourceMode === 'notes' && !notes.trim())}
             >
@@ -820,7 +821,7 @@ export default function Quiz() {
         {/* Video empty state */}
         {phase === 'setup' && sourceMode === 'video' && !videoResult && (
           <div className="card" style={{ textAlign: 'center', padding: 48 }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>▶</div>
+            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}><PlayCircle size={48} color="var(--muted)" /></div>
             <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Summarize a YouTube Video</h3>
             <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.6 }}>
               Paste a YouTube URL and Claude will extract the transcript and generate study notes, key terms, and practice questions.
