@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { Flame } from 'lucide-react'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -327,12 +328,12 @@ function BrowserMockup() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-            {[['Session','1 / 3'],['Today','0 min'],['Streak','4 🔥']].map(([label, val]) => (
+            {[['Session','1 / 3',false],['Today','0 min',false],['Streak','4',true]].map(([label, val, showFlame]) => (
               <div key={label} style={{
                 flex: 1, background: '#111113', borderRadius: 8, padding: '8px',
                 border: '1px solid rgba(255,255,255,0.06)', textAlign: 'center',
               }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'white' }}>{val}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>{val}{showFlame && <Flame size={11} color="var(--amber, #f2c75a)" />}</div>
                 <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', marginTop: 1 }}>{label}</div>
               </div>
             ))}

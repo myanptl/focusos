@@ -179,7 +179,7 @@ export default function Streak() {
           fontSize: 20, color: '#9494a0', fontWeight: 700,
           letterSpacing: '0.04em', position: 'relative', zIndex: 1,
           textTransform: 'uppercase', fontSize: 14,
-        }}>day streak 🔥</div>
+        }}>day streak <Flame size={16} style={{ display: 'inline', verticalAlign: 'middle' }} /></div>
         {streak === 0 && <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8 }}>Complete a focus session to start your streak!</div>}
       </div>
 

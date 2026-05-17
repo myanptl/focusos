@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
-import { X, Check } from 'lucide-react'
+import { X, Check, AlertTriangle, Calendar, Clock, Sparkles, Brain, RotateCcw, CheckCircle, XCircle, MapPin, Lightbulb, Minus, Bot, FlaskConical, Scroll, BookOpen, Calculator, Pencil } from 'lucide-react'
 
 function sm2Next(grade, reps, ef, interval) {
   const q = grade === 'got' ? 5 : grade === 'almost' ? 3 : 0
@@ -20,8 +20,8 @@ const MODES = [
   { key: 'short_answer',    label: 'Short Answer' },
   { key: 'fill_blank',      label: 'Fill in Blank' },
   { key: 'explain',         label: 'Explain It' },
-  { key: 'mixed',           label: '🎲 Mixed' },
-  { key: 'flashcards',      label: '🗂 Flashcards' },
+  { key: 'mixed',           label: 'Mixed' },
+  { key: 'flashcards',      label: 'Flashcards' },
 ]
 
 const TYPE_BADGES = {
@@ -32,7 +32,7 @@ const TYPE_BADGES = {
   true_false:      { label: 'T/F', bg: 'rgba(181,242,58,0.15)',  fg: '#b5f23a' },
 }
 const DIFFICULTIES = ['Basic', 'Standard', 'Hard', 'Exam Style']
-const SUBJECT_ICONS = { Science: '🔬', History: '📜', English: '📖', Math: '📐', Other: '✏️' }
+const SUBJECT_ICONS = { Science: FlaskConical, History: Scroll, English: BookOpen, Math: Calculator, Other: Pencil }
 
 const CONF_LABELS = ['', 'Not sure', 'Vague idea', 'Mostly sure', 'Very sure', 'Certain']
 
@@ -180,7 +180,7 @@ export default function Quiz() {
       const reader = new FileReader()
       reader.onload = e => {
         setNotes(e.target.result)
-        toast(`Notes imported from ${file.name} ✓`, 'success')
+        toast(`Notes imported from ${file.name}`, 'success')
       }
       reader.readAsText(file)
     } else if (ext === 'pdf') {
@@ -532,7 +532,7 @@ export default function Quiz() {
           <div>
             <label className="label" style={{ display: 'block', marginBottom: 8 }}>Question Source</label>
             <div style={{ display: 'flex', gap: 0, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border)' }}>
-              {[{ id: 'notes', label: '📄 My Notes' }, { id: 'bank', label: '🏦 Question Bank' }, { id: 'video', label: '▶ Video' }].map((s, i) => (
+              {[{ id: 'notes', label: 'My Notes' }, { id: 'bank', label: 'Question Bank' }, { id: 'video', label: 'Video' }].map((s, i) => (
                 <button key={s.id} onClick={() => setSourceMode(s.id)} style={{
                   flex: 1, padding: '8px 0', fontSize: 13, fontWeight: 600, cursor: 'pointer',
                   background: sourceMode === s.id ? 'var(--accent)' : 'var(--card2)',
@@ -579,7 +579,7 @@ export default function Quiz() {
                 borderRadius: 8, padding: '9px 13px', fontSize: 12, color: 'var(--amber)',
                 display: 'flex', alignItems: 'flex-start', gap: 8,
               }}>
-                <span>⚠️</span>
+                <AlertTriangle size={14} style={{ flexShrink: 0 }} />
                 <span>This video is long — only the first ~45 minutes were summarized. For best results use videos under 45 minutes.</span>
               </div>
             )}
@@ -756,7 +756,7 @@ export default function Quiz() {
 
           {dueReview.length > 0 && (
             <div style={{ fontSize: 12, color: 'var(--cyan)', background: 'rgba(96,211,248,0.08)', border: '1px solid rgba(96,211,248,0.2)', borderRadius: 8, padding: '8px 12px' }}>
-              📅 {dueReview.length} question{dueReview.length !== 1 ? 's' : ''} due for spaced review — will appear first.
+              <Calendar size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />{dueReview.length} question{dueReview.length !== 1 ? 's' : ''} due for spaced review — will appear first.
             </div>
           )}
 
@@ -769,7 +769,7 @@ export default function Quiz() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-              <span style={{ fontSize: 12, color: 'var(--muted)' }}>⏱ Timed 85s</span>
+              <span style={{ fontSize: 12, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={12} />Timed 85s</span>
               <button onClick={() => setTimed(v => !v)} style={{
                 width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', padding: 0,
                 background: timed ? 'var(--accent)' : 'var(--border)', position: 'relative', transition: 'background 0.2s',
@@ -801,12 +801,12 @@ export default function Quiz() {
                 : 'var(--muted)',
             }}>
               {modelPref === 'ollama'
-                ? '🦙 Using Llama 3.1 (Free)'
+                ? <><Bot size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Using Llama 3.1 (Free)</>
                 : modelPref === 'claude'
-                ? `✨ ${generationsToday}/5 Claude generations used today`
+                ? <><Sparkles size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />{generationsToday}/5 Claude generations used today</>
                 : generationsToday >= 5
-                ? '🦙 Switched to Llama 3.1 (free)'
-                : `✨ ${generationsToday}/5 Claude generations used today`}
+                ? <><Bot size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Switched to Llama 3.1 (free)</>
+                : <><Sparkles size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />{generationsToday}/5 Claude generations used today</>}
             </div>
           )}
 
@@ -970,7 +970,7 @@ export default function Quiz() {
             </div>
           ) : (
             <div className="card" style={{ textAlign: 'center', padding: 48 }}>
-              <div style={{ fontSize: 48, marginBottom: 16, display: 'inline-block', animation: 'float-brain 2s ease-in-out infinite' }}>🧠</div>
+              <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center', animation: 'float-brain 2s ease-in-out infinite' }}><Brain size={48} color="var(--accent)" /></div>
               <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Ready to test yourself?</h3>
               <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.6 }}>
                 Paste your notes and hit Generate. Claude will create personalized active recall questions.
@@ -1011,7 +1011,7 @@ export default function Quiz() {
                 }}
               >
                 <div style={{ position: 'absolute', top: 12, fontSize: 11, color: 'var(--muted)' }}>
-                  {fcFlipped ? '↩ tap to flip back' : '👆 tap to reveal answer'}
+                  {fcFlipped ? '↩ tap to flip back' : 'tap to reveal answer'}
                 </div>
                 {fcFlipped ? (
                   <div style={{ fontSize: 16, lineHeight: 1.6, color: 'var(--accent)', fontWeight: 600 }}>
@@ -1034,7 +1034,7 @@ export default function Quiz() {
                       color: 'var(--red)', borderRadius: 10, cursor: 'pointer',
                       fontFamily: "'DM Sans', sans-serif",
                     }}
-                  >🔄 Review Again</button>
+                  ><RotateCcw size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Review Again</button>
                   <button
                     onClick={fcHandleGotIt}
                     style={{
@@ -1043,7 +1043,7 @@ export default function Quiz() {
                       color: 'var(--accent)', borderRadius: 10, cursor: 'pointer',
                       fontFamily: "'DM Sans', sans-serif",
                     }}
-                  >✅ Got It</button>
+                  ><CheckCircle size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Got It</button>
                 </div>
               ) : (
                 <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--muted)' }}>
@@ -1064,14 +1064,14 @@ export default function Quiz() {
 
             {/* Subject watermark */}
             {(() => {
-              const mark = SUBJECT_ICONS[subjectType] || '✏️'
+              const SubjectMark = SUBJECT_ICONS[subjectType] || Pencil
               return (
                 <div style={{
                   position: 'absolute', bottom: -10, right: 10,
-                  fontSize: 140, opacity: 0.04,
+                  opacity: 0.04,
                   lineHeight: 1, pointerEvents: 'none', userSelect: 'none',
                   zIndex: 0,
-                }}>{mark}</div>
+                }}><SubjectMark size={140} /></div>
               )
             })()}
 
@@ -1117,7 +1117,7 @@ export default function Quiz() {
               </span>
               {activeQ.isReview && (
                 <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 12, background: 'rgba(242,199,90,0.15)', color: 'var(--amber)' }}>
-                  📅 Spaced Review
+                  <Calendar size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} />Spaced Review
                 </span>
               )}
               {harderQ && (
@@ -1180,7 +1180,7 @@ export default function Quiz() {
                       border: `1px solid ${isCorrect ? 'rgba(181,242,58,0.4)' : isWrong ? 'rgba(242,90,90,0.4)' : 'var(--border)'}`,
                       color: isCorrect ? 'var(--accent)' : isWrong ? 'var(--red)' : 'var(--muted)',
                     }}>
-                      {opt} {isCorrect ? ' ✓' : isWrong ? ' ✗' : ''}
+                      {opt} {isCorrect ? <Check size={12} style={{ display: 'inline', verticalAlign: 'middle', marginLeft: 4 }} /> : isWrong ? <X size={12} style={{ display: 'inline', verticalAlign: 'middle', marginLeft: 4 }} /> : ''}
                     </div>
                   )
                 })}
@@ -1212,7 +1212,7 @@ export default function Quiz() {
                 border: `1px solid ${tfResult.correct ? 'rgba(181,242,58,0.3)' : 'rgba(242,90,90,0.3)'}`,
                 color: tfResult.correct ? 'var(--accent)' : 'var(--red)',
               }}>
-                {tfResult.correct ? '✓ Correct!' : `✗ Incorrect — answer is ${activeQ.correct ? 'True' : 'False'}`}
+                {tfResult.correct ? <><Check size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Correct!</> : <><X size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Incorrect — answer is {activeQ.correct ? 'True' : 'False'}</>}
               </div>
             )}
 
@@ -1246,7 +1246,7 @@ export default function Quiz() {
                 border: `1px solid ${fbResult.correct ? 'rgba(181,242,58,0.3)' : 'rgba(242,90,90,0.3)'}`,
                 color: fbResult.correct ? 'var(--accent)' : 'var(--red)',
               }}>
-                {fbResult.correct ? `✓ Correct — "${activeQ.answer}"` : `✗ The answer was "${activeQ.answer}"`}
+                {fbResult.correct ? <><Check size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Correct — "{activeQ.answer}"</> : <><X size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />The answer was "{activeQ.answer}"</>}
               </div>
             )}
 
@@ -1268,7 +1268,7 @@ export default function Quiz() {
                 border: `1px solid ${saFeedback.correct ? 'rgba(181,242,58,0.25)' : 'rgba(242,90,90,0.25)'}`,
               }}>
                 <div style={{ fontWeight: 700, marginBottom: 6, color: saFeedback.correct ? 'var(--accent)' : 'var(--red)' }}>
-                  {saFeedback.correct ? '✓ Correct' : '✗ Needs work'}{saFeedback.score !== undefined ? ` · ${saFeedback.score}/100` : ''}
+                  {saFeedback.correct ? <><Check size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Correct</> : <><X size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Needs work</>}{saFeedback.score !== undefined ? ` · ${saFeedback.score}/100` : ''}
                 </div>
                 <div style={{ color: 'var(--muted)' }}>{saFeedback.feedback}</div>
               </div>
@@ -1326,7 +1326,7 @@ export default function Quiz() {
 
                 {activeQ.source_hint && (
                   <div style={{ fontSize: 12, color: 'var(--muted)', padding: '0 2px' }}>
-                    📍 {activeQ.source_hint}
+                    <MapPin size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />{activeQ.source_hint}
                   </div>
                 )}
 
@@ -1343,7 +1343,7 @@ export default function Quiz() {
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button className="btn" onClick={() => advance('got')}
                       style={{ flex: 1, background: 'rgba(181,242,58,0.15)', color: 'var(--accent)', border: '1px solid rgba(181,242,58,0.3)' }}>
-                      ✓ Got it
+                      <Check size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Got it
                     </button>
                     <button className="btn" onClick={() => advance('almost')}
                       style={{ flex: 1, background: 'rgba(242,199,90,0.12)', color: 'var(--amber)', border: '1px solid rgba(242,199,90,0.3)' }}>
@@ -1351,7 +1351,7 @@ export default function Quiz() {
                     </button>
                     <button className="btn" onClick={() => advance('missed')}
                       style={{ flex: 1, background: 'rgba(242,90,90,0.12)', color: 'var(--red)', border: '1px solid rgba(242,90,90,0.3)' }}>
-                      ✕ Missed
+                      <X size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Missed
                     </button>
                   </div>
                 )}
@@ -1366,7 +1366,7 @@ export default function Quiz() {
                   <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }}
                     onClick={() => requestFollowup('mini_lesson')}
                     disabled={!!followupLoading || !!miniLesson}>
-                    {followupLoading === 'mini_lesson' ? '...' : '💡 Teach Me'}
+                    {followupLoading === 'mini_lesson' ? '...' : <><Lightbulb size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Teach Me</>}
                   </button>
                 </div>
 
@@ -1395,7 +1395,7 @@ export default function Quiz() {
                   border: `1px solid ${modelUsed === 'claude' ? 'rgba(181,242,58,0.25)' : 'rgba(96,211,248,0.25)'}`,
                   color: modelUsed === 'claude' ? 'var(--accent)' : 'var(--cyan)',
                 }}>
-                  {modelUsed === 'claude' ? '✨ Generated by Claude' : '🦙 Generated by Llama 3.1'}
+                  {modelUsed === 'claude' ? <><Sparkles size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Generated by Claude</> : <><Bot size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Generated by Llama 3.1</>}
                   {ollamaFallback && <span style={{ opacity: 0.7 }}> (Ollama offline)</span>}
                 </div>
               )}
@@ -1430,8 +1430,8 @@ export default function Quiz() {
                 if (!idxs.length) return null
                 const correct = idxs.filter(i => scores[i] === 'got').length
                 const total   = idxs.length
-                const icon    = correct === total ? '✅' : correct >= total / 2 ? '😐' : '❌'
-                return { label: typeLabels[t], correct, total, icon, badge: TYPE_BADGES[t] }
+                const [Icon, iconColor] = correct === total ? [CheckCircle, 'var(--accent)'] : correct >= total / 2 ? [Minus, 'var(--amber)'] : [XCircle, 'var(--red)']
+                return { label: typeLabels[t], correct, total, Icon, iconColor, badge: TYPE_BADGES[t] }
               }).filter(Boolean)
               if (!rows.length) return null
               return (
@@ -1443,7 +1443,7 @@ export default function Quiz() {
                         <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 10, background: r.badge?.bg, color: r.badge?.fg }}>{r.badge?.label}</span>
                         <span style={{ flex: 1, fontSize: 13 }}>{r.label}</span>
                         <span style={{ fontSize: 13, fontWeight: 600 }}>{r.correct}/{r.total}</span>
-                        <span>{r.icon}</span>
+                        <r.Icon size={14} color={r.iconColor} />
                       </div>
                     ))}
                   </div>
@@ -1457,7 +1457,7 @@ export default function Quiz() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {results.weakTopics.map((t, i) => (
                     <div key={i} style={{ background: 'rgba(242,199,90,0.06)', border: '1px solid rgba(242,199,90,0.15)', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: 'var(--muted)' }}>
-                      ⚠ {t}
+                      <AlertTriangle size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />{t}
                     </div>
                   ))}
                 </div>
@@ -1475,7 +1475,7 @@ export default function Quiz() {
                     </div>
                   ))}
                 </div>
-                <p style={{ fontSize: 12, color: 'var(--cyan)', marginTop: 10 }}>📅 Saved for spaced repetition review.</p>
+                <p style={{ fontSize: 12, color: 'var(--cyan)', marginTop: 10 }}><Calendar size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Saved for spaced repetition review.</p>
               </div>
             )}
 

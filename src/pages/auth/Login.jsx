@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
+import { Mail } from 'lucide-react'
 
 function GoogleIcon() {
   return (
@@ -119,7 +120,7 @@ export default function Login() {
   if (view === 'forgot' && forgotSent) return shell(
     'Email sent!',
     <div style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: 48, marginBottom: 16 }}>✉️</div>
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}><Mail size={48} color="var(--accent)" /></div>
       <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.65, marginBottom: 20 }}>
         Check your email for a reset link. It expires in <strong style={{ color: 'var(--text)' }}>1 hour</strong>.
       </p>

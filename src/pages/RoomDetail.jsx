@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
+import { Target, Database, DoorOpen, Flame, Mic, Clipboard } from 'lucide-react'
 
 const AVATAR_COLORS = ['#b5f23a', '#60d3f8', '#a78bfa', '#fb923c', '#f472b6', '#4ade80']
 
@@ -207,7 +208,7 @@ export default function RoomDetail() {
             payload.new.is_focusing === true &&
             prevMember?.is_focusing === false
           ) {
-            toast(`${payload.new.display_name} started a focus session 💪`, 'info')
+            toast(`${payload.new.display_name} started a focus session`, 'info')
           }
           if (
             payload.new.user_id !== user.id &&
@@ -219,7 +220,7 @@ export default function RoomDetail() {
               (new Date(payload.new.last_seen).getTime() - new Date(prevMember.focus_start_time).getTime()) / 60000
             )
             if (mins >= 5) {
-              toast(`${payload.new.display_name} completed ${mins} min! 🎯`, 'success')
+              toast(`${payload.new.display_name} completed ${mins} min!`, 'success')
             }
           }
           return updated
@@ -487,7 +488,7 @@ export default function RoomDetail() {
     return (
       <div className="page-fade">
         <div className="card" style={{ maxWidth: 520, margin: '60px auto', textAlign: 'center', padding: 36 }}>
-          <div style={{ fontSize: 36, marginBottom: 14 }}>🗄️</div>
+          <div style={{ marginBottom: 14, display: 'flex', justifyContent: 'center' }}><Database size={36} color="var(--muted)" /></div>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 10 }}>Database Setup Required</h2>
           <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.65 }}>
             The Study Rooms tables don't exist yet. Run the Rooms migration SQL in your Supabase dashboard to get started.
@@ -504,7 +505,7 @@ export default function RoomDetail() {
     return (
       <div className="page-fade">
         <div className="card" style={{ maxWidth: 420, margin: '60px auto', textAlign: 'center', padding: 36 }}>
-          <div style={{ fontSize: 36, marginBottom: 14 }}>🚪</div>
+          <div style={{ marginBottom: 14, display: 'flex', justifyContent: 'center' }}><DoorOpen size={36} color="var(--muted)" /></div>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 10 }}>Room not found</h2>
           <p style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 20 }}>
             This room may have been deleted or the link is invalid.
@@ -544,11 +545,11 @@ export default function RoomDetail() {
                 }}
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--muted)', fontSize: 14, padding: 2, lineHeight: 1,
+                  color: 'var(--muted)', padding: 2, display: 'flex',
                 }}
                 title="Copy room code"
               >
-                📋
+                <Clipboard size={14} />
               </button>
             </div>
           </div>
@@ -556,7 +557,7 @@ export default function RoomDetail() {
           <div style={{ fontSize: 13, color: 'var(--muted)' }}>
             <span>{members.length} member{members.length !== 1 ? 's' : ''}</span>
             {focusingCount > 0 && (
-              <span> · <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{focusingCount} focusing now 🔥</span></span>
+              <span> · <span style={{ color: 'var(--accent)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 3 }}>{focusingCount} focusing now <Flame size={12} /></span></span>
             )}
           </div>
 
@@ -572,7 +573,7 @@ export default function RoomDetail() {
           }}>
             <div style={{ display: 'flex',
               alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '18px' }}>🎙️</span>
+              <Mic size={18} color="var(--muted)" />
               <div>
                 <div style={{ fontSize: '13px',
                   fontWeight: 600, color: 'white' }}>
@@ -650,9 +651,9 @@ export default function RoomDetail() {
                     </div>
                     <div style={{ fontSize: 12 }}>
                       {m.is_focusing ? (
-                        <span style={{ color: 'var(--accent)' }}>🟢 Focusing — {dur}m</span>
+                        <span style={{ color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)', display: 'inline-block', flexShrink: 0 }} />Focusing — {dur}m</span>
                       ) : (
-                        <span style={{ color: 'var(--muted)' }}>⚪ Idle</span>
+                        <span style={{ color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--muted)', display: 'inline-block', flexShrink: 0 }} />Idle</span>
                       )}
                     </div>
                     {m.current_task && (
@@ -766,8 +767,8 @@ export default function RoomDetail() {
               background: 'rgba(181,242,58,0.12)', border: '1px solid rgba(181,242,58,0.3)',
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
             }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--accent)' }}>
-                🎯 Session Complete! {completedLen} min logged
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Target size={15} /> Session Complete! {completedLen} min logged
               </div>
               <button
                 className="btn btn-accent btn-sm"

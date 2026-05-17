@@ -6,7 +6,7 @@ import gsap from 'gsap'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
-import { VolumeX, Waves, Music, Music2, FileText, Flame, Target, X, Timer as TimerIcon } from 'lucide-react'
+import { VolumeX, Waves, Music, Music2, FileText, Flame, Target, X, Timer as TimerIcon, Zap } from 'lucide-react'
 
 // ── Constants ────────────────────────────────────────────
 const LEVELS = [
@@ -1049,7 +1049,7 @@ export default function Timer() {
                 padding: '8px 12px', borderRadius: 8, background: 'var(--card2)', border: '1px solid var(--border)' }}>
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 600 }}>
-                    {pomodoroMode ? <><TimerIcon size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Classic Pomodoro</> : '⚡ Adaptive Mode'}
+                    {pomodoroMode ? <><TimerIcon size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Classic Pomodoro</> : <><Zap size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Adaptive Mode</>}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 1 }}>
                     {pomodoroMode ? '25 min focus / 5 min break' : 'Grows with your attention span'}
@@ -1204,7 +1204,7 @@ export default function Timer() {
                       onMouseEnter={e => e.currentTarget.style.background = 'rgba(30,215,96,0.12)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'rgba(30,215,96,0.06)'}
                     >
-                      <span>♫ {name}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Music size={12} />{name}</span>
                       <span style={{ fontSize: 10, opacity: 0.7 }}>Open in Spotify →</span>
                     </button>
                   ))}

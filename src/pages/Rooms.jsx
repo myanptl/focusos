@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
-import { X } from 'lucide-react'
+import { X, Database, Trash2, Flame } from 'lucide-react'
 
 const AVATAR_COLORS = ['#b5f23a', '#60d3f8', '#a78bfa', '#fb923c', '#f472b6', '#4ade80']
 
@@ -210,7 +210,7 @@ export default function Rooms() {
     return (
       <div className="page-fade">
         <div className="card" style={{ maxWidth: 520, margin: '60px auto', textAlign: 'center', padding: 36 }}>
-          <div style={{ fontSize: 36, marginBottom: 14 }}>🗄️</div>
+          <div style={{ marginBottom: 14, display: 'flex', justifyContent: 'center' }}><Database size={36} color="var(--muted)" /></div>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 10 }}>Database Setup Required</h2>
           <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.65 }}>
             The Study Rooms tables don't exist yet. Run the Rooms migration SQL in your Supabase dashboard to get started.
@@ -260,11 +260,11 @@ export default function Rooms() {
               style={{
                 position: 'absolute', top: 10, right: 10,
                 background: 'none', border: 'none', cursor: 'pointer',
-                color: 'var(--muted)', fontSize: 15, padding: 4, lineHeight: 1,
+                color: 'var(--muted)', padding: 4, display: 'flex',
               }}
               title="Delete room"
             >
-              🗑️
+              <Trash2 size={15} />
             </button>
           )}
           <div style={{ fontWeight: 700, fontSize: 15 }}>{room.name}</div>
@@ -304,7 +304,7 @@ export default function Rooms() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 12, color: focusingCount > 0 ? 'var(--accent)' : 'var(--muted)' }}>
-              {focusingCount > 0 ? `${focusingCount} focusing now 🔥` : `${onlineCount} online`}
+              {focusingCount > 0 ? <>{focusingCount} focusing now <Flame size={12} style={{ display: 'inline', verticalAlign: 'middle' }} /></> : `${onlineCount} online`}
             </span>
             <button
               className="btn btn-ghost btn-sm"

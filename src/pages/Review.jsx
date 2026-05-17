@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
+import { Flame, Check } from 'lucide-react'
 
 function pad2(n) { return String(n).padStart(2, '0') }
 
@@ -152,10 +153,12 @@ export default function Review() {
         {[
           { label: 'Minutes Focused', value: thisWeekMins, color: 'var(--accent)' },
           { label: 'Sessions', value: thisWeekSessions, color: 'var(--cyan)' },
-          { label: 'Day Streak', value: streak + ' 🔥', color: 'var(--amber)' },
+          { label: 'Day Streak', value: streak, showFlame: true, color: 'var(--amber)' },
         ].map(c => (
           <div key={c.label} className="card" style={{ textAlign: 'center' }}>
-            <div className="bebas" style={{ fontSize: 38, color: c.color, lineHeight: 1, marginBottom: 4 }}>{c.value}</div>
+            <div className="bebas" style={{ fontSize: 38, color: c.color, lineHeight: 1, marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+              {c.value}{c.showFlame && <Flame size={24} color={c.color} />}
+            </div>
             <div style={{ fontSize: 12, color: 'var(--muted)' }}>{c.label}</div>
           </div>
         ))}
@@ -249,7 +252,7 @@ export default function Review() {
           marginBottom: 14, border: '1px solid var(--border)',
         }}>{buildShareText()}</pre>
         <button className="btn btn-accent" onClick={copyShare}>
-          {copied ? '✓ Copied!' : 'Copy to Clipboard'}
+          {copied ? <><Check size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Copied!</> : 'Copy to Clipboard'}
         </button>
       </div>
     </div>

@@ -58,7 +58,13 @@
       "mcp__claude_ai_Supabase__get_project",
       "mcp__claude_ai_Vercel__deploy_to_vercel",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\myan_\\\\Claude Project\\\\focusos\" -Recurse -Include \"*.js\", \"*.jsx\", \"*.ts\", \"*.tsx\" -Directory)",
-      "Bash(Select-Object -First 20)"
+      "Bash(Select-Object -First 20)",
+      "mcp__claude_ai_Vercel__list_deployments",
+      "Bash(git revert *)",
+      "mcp__claude_ai_Vercel__get_runtime_logs",
+      "mcp__claude_ai_Vercel__get_deployment_build_logs",
+      "mcp__claude_ai_Supabase__deploy_edge_function",
+      "Bash(npx supabase@latest secrets list --project-ref lypilifuagwjhjozvyje)"
     ]
   }
 }

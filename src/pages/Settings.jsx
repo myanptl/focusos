@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
-import { Check, X } from 'lucide-react'
+import { Check, X, Sparkles, Bot, BarChart2 } from 'lucide-react'
 
 const ACCENT_COLORS = [
   { name: 'Lime',   value: '#b5f23a' },
@@ -271,21 +271,21 @@ export default function Settings() {
               {[
                 {
                   key: 'auto',
-                  icon: '🤖',
+                  Icon: Bot,
                   title: 'Auto (recommended)',
                   desc: 'Uses Claude for best quality (5/day free), switches to Llama when limit reached',
                   badge: null,
                 },
                 {
                   key: 'claude',
-                  icon: '✨',
+                  Icon: Sparkles,
                   title: 'Claude Always',
                   desc: 'Always use Claude Sonnet for highest accuracy',
                   badge: '5 free per day',
                 },
                 {
                   key: 'ollama',
-                  icon: '🦙',
+                  Icon: Bot,
                   title: 'Llama 3.1 (Free)',
                   desc: 'Always use local Ollama model. Completely free, good quality.',
                   badge: 'Requires Ollama installed',
@@ -301,7 +301,7 @@ export default function Settings() {
                     outline: aiModelPref === opt.key ? '1.5px solid var(--accent)' : '1.5px solid var(--border)',
                   }}
                 >
-                  <span style={{ fontSize: 22, flexShrink: 0 }}>{opt.icon}</span>
+                  <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>{opt.Icon ? <opt.Icon size={22} /> : null}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2, color: aiModelPref === opt.key ? 'var(--accent)' : '#f0f0f2' }}>{opt.title}</div>
                     <div style={{ fontSize: 11, color: '#9494a0', lineHeight: 1.4 }}>{opt.desc}</div>
@@ -324,7 +324,7 @@ export default function Settings() {
           {/* Ollama Setup Guide — always visible */}
           <div style={{ marginTop: 8, marginBottom: 8, borderRadius: 10, border: '1px solid var(--border)', overflow: 'hidden' }}>
             <div style={{ padding: '10px 14px', background: 'var(--card2)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 14 }}>🦙</span>
+              <Bot size={14} />
               <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Llama Setup Guide</span>
             </div>
             <div>
@@ -423,8 +423,10 @@ export default function Settings() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 8, background: 'var(--card2)', border: '1px solid var(--border)' }}>
-            <span style={{ fontSize: 14 }}>
-              {ollamaChecking || ollamaStatus === null ? '⏳' : ollamaStatus === 'running' ? '🟢' : '🔴'}
+            <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              {ollamaChecking || ollamaStatus === null
+                ? <span className="spinner" style={{ width: 14, height: 14 }} />
+                : <span style={{ width: 12, height: 12, borderRadius: '50%', background: ollamaStatus === 'running' ? '#4ade80' : '#f25a5a', display: 'inline-block' }} />}
             </span>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 12, fontWeight: 600 }}>
@@ -523,7 +525,7 @@ export default function Settings() {
           <Row label="Built by" right={<span style={{ color: 'var(--muted)', fontSize: 13 }}>Myan Patel · Westford Academy · Class of 2028</span>} />
           <div style={{ paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
             <Link to="/review" className="btn btn-ghost btn-full" style={{ textDecoration: 'none', justifyContent: 'center' }}>
-              📊 Weekly Review
+              <BarChart2 size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />Weekly Review
             </Link>
             <button className="btn btn-ghost btn-full" onClick={() => setShowCitations(true)}>View Research Citations (7 papers)</button>
           </div>

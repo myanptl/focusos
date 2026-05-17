@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
+import { Target } from 'lucide-react'
 
 const attentionLevels = [
   { max: 10,  name: 'Scattered',  color: '#f25a5a',  desc: 'Building the habit. Short sessions are real sessions.' },
@@ -153,7 +154,7 @@ export default function Onboarding() {
 
         {step === 3 && (
           <div className="card page-fade" style={{ padding: 32, textAlign: 'center' }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>🎯</div>
+            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}><Target size={48} color="var(--accent)" /></div>
             <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>You're all set</h2>
 
             <div style={{

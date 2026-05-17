@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
-import { X } from 'lucide-react'
+import { X, FlaskConical, Scroll, BookOpen, Calculator, Pencil, FileText, Brain, BarChart2, Download, Eye, Edit2, Check, Trash2 } from 'lucide-react'
 
 const SUBJECTS = ['Science', 'History', 'English', 'Math', 'Other']
 const SUBJECT_COLORS = {
@@ -11,7 +11,7 @@ const SUBJECT_COLORS = {
   Math: '#a78bfa', Other: '#9494a0',
 }
 const SUBJECT_ICONS = {
-  Science: '🔬', History: '📜', English: '📖', Math: '📐', Other: '✏️',
+  Science: FlaskConical, History: Scroll, English: BookOpen, Math: Calculator, Other: Pencil,
 }
 
 function relativeDate(ts) {
@@ -252,7 +252,7 @@ export default function Notes() {
             <div style={{ padding: '32px 16px', textAlign: 'center' }}>
               {notes.length === 0 ? (
                 <>
-                  <div style={{ fontSize: 40, marginBottom: 10 }}>📝</div>
+                  <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}><FileText size={40} color="var(--muted)" /></div>
                   <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>No notes yet</div>
                   <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 14, lineHeight: 1.5 }}>
                     Create your first note to get started
@@ -283,7 +283,7 @@ export default function Notes() {
                   color: SUBJECT_COLORS[note.subject] || '#9494a0',
                   border: `1px solid ${SUBJECT_COLORS[note.subject] || '#9494a0'}44`,
                 }}>
-                  {SUBJECT_ICONS[note.subject] || '✏️'} {note.subject || 'Other'}
+                  {(() => { const SI = SUBJECT_ICONS[note.subject] || Pencil; return <SI size={10} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} /> })()} {note.subject || 'Other'}
                 </span>
                 <button
                   onClick={e => deleteNote(note, e)}
@@ -340,7 +340,7 @@ export default function Notes() {
               fontSize: 11,
               color: saveStatus === 'saved' ? 'var(--muted)' : 'var(--amber)',
             }}>
-              {saveStatus === 'saving' ? '⏳ Saving...' : saveStatus === 'unsaved' ? '● Unsaved' : '✓ Saved'}
+              {saveStatus === 'saving' ? <><span className="spinner" style={{ width: 11, height: 11, display: 'inline-block', verticalAlign: 'middle', marginRight: 4 }} />Saving...</> : saveStatus === 'unsaved' ? '● Unsaved' : <><Check size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} />Saved</>}
             </div>
           </div>
 
@@ -352,16 +352,16 @@ export default function Notes() {
             <button className="btn btn-ghost btn-sm"
               onClick={() => navigate('/quiz', { state: { prefillNotes: selectedNote.content, prefillSubject: selectedNote.subject } })}
               disabled={!selectedNote.content?.trim()} style={{ fontSize: 12 }}>
-              🧠 Generate Quiz
+              <Brain size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Generate Quiz
             </button>
             <button className="btn btn-ghost btn-sm" onClick={handleSummarize}
               disabled={summaryLoading || !selectedNote.content?.trim()} style={{ fontSize: 12 }}>
               {summaryLoading
                 ? <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span className="spinner" style={{ width: 12, height: 12 }} /> Summarizing...</span>
-                : '📊 Summarize'}
+                : <><BarChart2 size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Summarize</>}
             </button>
             <button className="btn btn-ghost btn-sm" onClick={() => setPreviewMode(m => !m)} style={{ fontSize: 12 }}>
-              {previewMode ? '✏️ Edit' : '👁 Preview'}
+              {previewMode ? <><Edit2 size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Edit</> : <><Eye size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Preview</>}
             </button>
 
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 6, alignItems: 'center', position: 'relative' }}>
@@ -372,10 +372,10 @@ export default function Notes() {
                 style={{ fontSize: 13, color: 'var(--muted)', transition: 'color 0.15s' }}
                 onMouseEnter={e => e.currentTarget.style.color = 'var(--red)'}
                 onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
-              >🗑</button>
+              ><Trash2 size={13} /></button>
 
               <button className="btn btn-ghost btn-sm" onClick={() => setExportOpen(o => !o)} style={{ fontSize: 12 }}>
-                ⬇️ Export
+                <Download size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Export
               </button>
               {exportOpen && (
                 <>
@@ -515,7 +515,7 @@ export default function Notes() {
         </div>
       ) : (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-          <div style={{ fontSize: 52 }}>📝</div>
+          <FileText size={52} color="var(--muted)" />
           <div style={{ fontSize: 16, fontWeight: 600 }}>Select a note to start editing</div>
           <div style={{ fontSize: 13, color: 'var(--muted)' }}>or</div>
           <button className="btn btn-accent" onClick={handleNewNote}>+ New Note</button>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
+import { Mail } from 'lucide-react'
 
 function GoogleIcon() {
   return (
@@ -72,7 +73,7 @@ export default function Signup() {
   if (success) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div style={{ textAlign: 'center', maxWidth: 400 }}>
-        <div style={{ fontSize: 56, marginBottom: 16 }}>📬</div>
+        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}><Mail size={56} color="var(--accent)" /></div>
         <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 10 }}>Check your email</h2>
         <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.6 }}>
           We sent a confirmation link to <strong style={{ color: 'var(--text)' }}>{email}</strong>.

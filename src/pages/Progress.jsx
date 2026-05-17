@@ -4,6 +4,7 @@ import gsap from 'gsap'
 import AnimateInView from '../components/AnimateInView'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
+import { Flame, Calendar, BarChart2, Clock, Target, Mail, AlertTriangle } from 'lucide-react'
 
 const MODE_LABELS = {
   multiple_choice: 'MC', short_answer: 'SA', fill_blank: 'FIB', explain: 'Explain',
@@ -269,7 +270,7 @@ export default function Progress() {
 
   function generateInsights() {
     const insights = []
-    if (streak >= 3) insights.push(`You're on a ${streak}-day streak — you're building a real habit. 🔥`)
+    if (streak >= 3) insights.push(`You're on a ${streak}-day streak — you're building a real habit.`)
     else if (streak === 0) insights.push('Start today to begin your streak. Even one 5-minute session counts.')
     if (avgSession >= 35) insights.push(`Your average session is ${avgSession} min — you're in Deep Work territory.`)
     else if (avgSession > 0) insights.push(`Average session: ${avgSession} min. Push to 35+ min to reach Deep Work level.`)
@@ -298,14 +299,14 @@ export default function Progress() {
             color: 'var(--text)', padding: '8px 16px', borderRadius: 8,
             fontSize: 13, fontWeight: 600, cursor: 'pointer',
           }}>
-            📅 Study Planner
+            <Calendar size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />Study Planner
           </button>
           <button onClick={() => navigate('/review')} style={{
             background: 'var(--card2)', border: '1px solid var(--border)',
             color: 'var(--text)', padding: '8px 16px', borderRadius: 8,
             fontSize: 13, fontWeight: 600, cursor: 'pointer',
           }}>
-            📊 Weekly Review
+            <BarChart2 size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />Weekly Review
           </button>
         </div>
       </div>
@@ -407,7 +408,7 @@ export default function Progress() {
                     <div style={{ fontSize: 11, color: 'var(--muted)' }}>
                       {q.quiz_date} · {MODE_LABELS[q.mode] || q.mode || 'SA'} · {q.questions_correct}/{q.questions_total} correct
                       {mins !== null ? ` · ${mins}m` : ''}
-                      {q.timed ? ' · ⏱' : ''}
+                      {q.timed ? <> · <Clock size={11} style={{ display: 'inline', verticalAlign: 'middle' }} /></> : ''}
                     </div>
                   </div>
                   {q.focus_score != null && (
@@ -430,7 +431,7 @@ export default function Progress() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {allWeakTopics.map(({ topic, count }) => (
               <div key={topic} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'rgba(242,199,90,0.06)', border: '1px solid rgba(242,199,90,0.15)', borderRadius: 8 }}>
-                <span style={{ fontSize: 13, flex: 1 }}>⚠ {topic}</span>
+                <span style={{ fontSize: 13, flex: 1, display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={13} color="var(--amber)" />{topic}</span>
                 <span style={{ fontSize: 11, color: 'var(--amber)', fontWeight: 700 }}>{count}×</span>
               </div>
             ))}
@@ -445,13 +446,13 @@ export default function Progress() {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
           {[
-            { icon: '🎯', title: 'Peak Focus Detector', desc: 'AI learns your best focus times' },
-            { icon: '📧', title: 'Weekly Email Report', desc: 'Progress summary to your inbox' },
-            { icon: '📅', title: 'Calendar Sync', desc: 'Block study time automatically' },
-            { icon: '👥', title: 'Study Partner Rooms', desc: 'Focus with friends in real time' },
+            { Icon: Target,    title: 'Peak Focus Detector', desc: 'AI learns your best focus times' },
+            { Icon: Mail,      title: 'Weekly Email Report', desc: 'Progress summary to your inbox' },
+            { Icon: Calendar,  title: 'Calendar Sync', desc: 'Block study time automatically' },
+            { Icon: Flame,     title: 'Study Partner Rooms', desc: 'Focus with friends in real time' },
           ].map(f => (
             <div key={f.title} style={{ background: 'var(--card)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: 10, padding: 14, opacity: 0.6 }}>
-              <div style={{ fontSize: 20, marginBottom: 6 }}>{f.icon}</div>
+              <div style={{ marginBottom: 6 }}><f.Icon size={20} color="var(--muted)" /></div>
               <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>{f.title}</div>
               <div style={{ fontSize: 12, color: 'var(--muted)' }}>{f.desc}</div>
             </div>

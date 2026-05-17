@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import FMark from '../components/FMark'
+import { CheckCircle, Eye, EyeOff } from 'lucide-react'
 
 function passwordStrength(pwd) {
   if (!pwd) return { label: '', color: '', pct: 0 }
@@ -96,7 +97,7 @@ export default function ResetPassword() {
           {/* Success state */}
           {success ? (
             <div style={{ textAlign: 'center', padding: '8px 0' }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
+              <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}><CheckCircle size={48} color="var(--accent)" /></div>
               <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 10 }}>Password updated!</h2>
               <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.6 }}>
                 Taking you to the app in a moment…
@@ -138,9 +139,9 @@ export default function ResetPassword() {
                     />
                     <button type="button" onClick={() => setShowPass(s => !s)} style={{
                       position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                      background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: 15, padding: 4,
+                      background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: 4, display: 'flex',
                     }}>
-                      {showPass ? '🙈' : '👁'}
+                      {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
                   {password && (

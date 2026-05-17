@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
-import { X } from 'lucide-react'
+import { X, Calendar, Pencil } from 'lucide-react'
 
 const TEST_COLORS = { SAT: '#a855f7', ACT: '#f2c75a', AP: '#b5f23a' }
 
@@ -181,7 +181,7 @@ export default function Goals() {
                       onClick={() => setEditingScore(prev => ({ ...prev, [goal.id]: goal.current_score || '' }))}
                       title="Click to edit"
                     >
-                      {goal.current_score ?? '—'} <span style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 400 }}>✎</span>
+                      {goal.current_score ?? '—'} <Pencil size={12} color="var(--muted)" style={{ display: 'inline', verticalAlign: 'middle' }} />
                     </div>
                   )}
                 </div>
@@ -208,7 +208,7 @@ export default function Goals() {
 
               {spw && (
                 <div style={{ fontSize: 13, color: 'var(--muted)', background: 'var(--card2)', borderRadius: 8, padding: '8px 12px' }}>
-                  📅 Study plan: <strong style={{ color: 'var(--text)' }}>{spw} sessions/week</strong> to reach your goal by {new Date(goal.test_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  <Calendar size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Study plan: <strong style={{ color: 'var(--text)' }}>{spw} sessions/week</strong> to reach your goal by {new Date(goal.test_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </div>
               )}
             </div>
