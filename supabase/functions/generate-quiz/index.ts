@@ -198,7 +198,8 @@ Deno.serve(async (req: Request) => {
     const key = Deno.env.get('ANTHROPIC_API_KEY') ?? ''
     return respond({
       key_present: key.length > 0,
-      key_prefix: key.length > 8 ? key.slice(0, 8) + '...' : '(empty)',
+      key_length: key.length,
+      key_prefix: key.length > 20 ? key.slice(0, 20) + '...' : '(too short)',
     })
   }
 
