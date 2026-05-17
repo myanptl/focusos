@@ -527,7 +527,7 @@ export default function Quiz() {
           </div>
         </div>
 
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: 28 }}>
           {/* Source toggle */}
           <div>
             <label className="label" style={{ display: 'block', marginBottom: 8 }}>Question Source</label>
@@ -679,7 +679,7 @@ export default function Quiz() {
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
                 placeholder="Paste your notes here... The more detail, the better the questions."
-                style={{ resize: 'none', lineHeight: 1.6, height: 140, borderColor: dragOver ? 'var(--accent)' : undefined }}
+                style={{ resize: 'none', lineHeight: 1.6, minHeight: 160, borderColor: dragOver ? 'var(--accent)' : undefined }}
               />
               {notes && (
                 <button onClick={() => setNotes('')} style={{
@@ -699,52 +699,58 @@ export default function Quiz() {
 
           {/* Subject + count inline */}
           {sourceMode === 'notes' && (
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <input
                 type="text"
                 placeholder="Subject (optional)"
                 value={subject}
                 onChange={e => setSubject(e.target.value)}
-                style={{ fontSize: 13, flex: 1 }}
+                style={{ fontSize: 14 }}
               />
-              <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
-                {[5, 10, 15].map(n => (
-                  <button key={n} className={`pill${count === n ? ' active' : ''}`}
-                    onClick={() => setCount(n)} style={{ fontSize: 12, padding: '5px 10px' }}>{n}</button>
-                ))}
+              <div>
+                <div className="label" style={{ marginBottom: 6, fontSize: 9 }}>QUESTIONS</div>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  {[5, 10, 15].map(n => (
+                    <button key={n} className={`pill${count === n ? ' active' : ''}`}
+                      onClick={() => setCount(n)} style={{ fontSize: 13, padding: '6px 14px' }}>{n}</button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
 
           {sourceMode === 'bank' && (
-            <div style={{ display: 'flex', gap: 3 }}>
-              {[5, 10, 15].map(n => (
-                <button key={n} className={`pill${count === n ? ' active' : ''}`}
-                  onClick={() => setCount(n)} style={{ fontSize: 12, padding: '5px 10px' }}>{n}</button>
-              ))}
+            <div>
+              <div className="label" style={{ marginBottom: 6, fontSize: 9 }}>QUESTIONS</div>
+              <div style={{ display: 'flex', gap: 4 }}>
+                {[5, 10, 15].map(n => (
+                  <button key={n} className={`pill${count === n ? ' active' : ''}`}
+                    onClick={() => setCount(n)} style={{ fontSize: 13, padding: '6px 14px' }}>{n}</button>
+                ))}
+              </div>
             </div>
           )}
 
           {/* Mode + Difficulty 2-column grid */}
-          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <div>
-                <div className="label" style={{ marginBottom: 6, fontSize: 9 }}>MODE</div>
-                <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                <div className="label" style={{ marginBottom: 7, fontSize: 9 }}>MODE</div>
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                   {MODES.map(m => (
                     <button key={m.key} className={`pill${mode === m.key ? ' active' : ''}`}
-                      onClick={() => setMode(m.key)} style={{ fontSize: 11, padding: '4px 8px' }}>{m.label}</button>
+                      onClick={() => setMode(m.key)} style={{ fontSize: 12, padding: '5px 10px' }}>{m.label}</button>
                   ))}
                 </div>
               </div>
               <div>
-                <div className="label" style={{ marginBottom: 6, fontSize: 9 }}>DIFFICULTY</div>
-                <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                <div className="label" style={{ marginBottom: 7, fontSize: 9 }}>DIFFICULTY</div>
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                   {DIFFICULTIES.map(d => {
                     const short = d === 'Standard' ? 'Medium' : d === 'Exam Style' ? 'Exam' : d
                     return (
                       <button key={d} className={`pill${difficulty === d ? ' active' : ''}`}
-                        onClick={() => setDifficulty(d)} style={{ fontSize: 11, padding: '4px 8px' }}>{short}</button>
+                        onClick={() => setDifficulty(d)} style={{ fontSize: 12, padding: '5px 10px' }}>{short}</button>
                     )
                   })}
                 </div>
