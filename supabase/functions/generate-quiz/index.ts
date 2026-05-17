@@ -190,7 +190,17 @@ Return ONLY valid JSON:
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
-  console.log('[generate-quiz] Request received:', req.method, new URL(req.url).pathname)
+  const url = new URL(req.url)
+  console.log('[generate-quiz] Request received:', req.method, url.pathname)
+
+  // Diagnostic endpoint — verifies the secret is present without using it
+  if (req.method === 'GET' && url.searchParams.get('action') === 'test-key') {
+    const key = Deno.env.get('ANTHROPIC_API_KEY') ?? ''
+    return respond({
+      key_present: key.length > 0,
+      key_prefix: key.length > 8 ? key.slice(0, 8) + '...' : '(empty)',
+    })
+  }
 
   try {
     const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
