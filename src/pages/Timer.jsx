@@ -260,7 +260,7 @@ function CircularTimer({ timeLeft, totalTime, phase, pomodoroMode, running, flas
             initial={{ scale: 1.1, opacity: 0.7 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.22, ease: 'easeOut' }}
-            className="bebas"
+            className="bebas glow-num"
             style={{ fontSize: 48, color, letterSpacing: 2, lineHeight: 1 }}
           >
             {fmt(timeLeft)}

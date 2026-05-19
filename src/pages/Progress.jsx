@@ -149,7 +149,7 @@ function FocusHeatmap({ hourlyMins }) {
 function StatCard({ label, value, sub, color = 'var(--accent)' }) {
   return (
     <div className="card card-top" style={{ textAlign: 'center' }}>
-      <div className="bebas" style={{ fontSize: 44, color, lineHeight: 1, marginBottom: 6, letterSpacing: '-0.01em' }}>{value}</div>
+      <div className="bebas glow-num" style={{ fontSize: 44, color, lineHeight: 1, marginBottom: 6, letterSpacing: '-0.01em' }}>{value}</div>
       <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 2 }}>{label}</div>
       {sub && <div style={{ fontSize: 12, color: 'var(--muted)' }}>{sub}</div>}
     </div>

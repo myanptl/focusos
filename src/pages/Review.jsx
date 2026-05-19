@@ -156,7 +156,7 @@ export default function Review() {
           { label: 'Day Streak', value: streak, showFlame: true, color: 'var(--amber)' },
         ].map(c => (
           <div key={c.label} className="card" style={{ textAlign: 'center' }}>
-            <div className="bebas" style={{ fontSize: 38, color: c.color, lineHeight: 1, marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+            <div className="bebas glow-num" style={{ fontSize: 38, color: c.color, lineHeight: 1, marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
               {c.value}{c.showFlame && <Flame size={24} color={c.color} />}
             </div>
             <div style={{ fontSize: 12, color: 'var(--muted)' }}>{c.label}</div>

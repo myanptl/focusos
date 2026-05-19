@@ -173,7 +173,7 @@ export default function Streak() {
           lineHeight: 1,
           position: 'relative', zIndex: 1,
           letterSpacing: '-0.02em',
-          textShadow: streak > 0 ? '0 0 60px rgba(181,242,58,0.3)' : 'none',
+          textShadow: streak > 0 ? '0 0 60px rgba(181,242,58,0.5), 0 0 120px rgba(181,242,58,0.2)' : 'none',
         }}>{streak > 0 ? displayStreak : 0}</div>
         <div style={{
           fontSize: 20, color: '#9494a0', fontWeight: 700,

@@ -69,7 +69,8 @@ export default function Nav() {
                 textDecoration: 'none', whiteSpace: 'nowrap', transition: 'color 0.15s, background 0.15s',
                 color: isActive ? 'var(--accent)' : 'var(--muted)',
                 background: isActive ? 'rgba(181,242,58,0.1)' : 'transparent',
-                border: isActive ? '1px solid rgba(181,242,58,0.25)' : '1px solid transparent',
+                border: isActive ? '1px solid rgba(181,242,58,0.28)' : '1px solid transparent',
+                boxShadow: isActive ? '0 0 16px rgba(181,242,58,0.12)' : 'none',
                 display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 0,
               }}>
                 {t.label}
@@ -77,6 +78,7 @@ export default function Nav() {
                   <div style={{
                     position: 'absolute', bottom: -1, left: '18%', right: '18%',
                     height: 2, background: 'var(--accent)', borderRadius: 1,
+                    boxShadow: '0 0 8px rgba(181,242,58,0.7)',
                   }} />
                 )}
               </NavLink>
@@ -246,6 +248,7 @@ export default function Nav() {
               color: isActive ? 'var(--accent)' : 'var(--muted)',
               padding: '4px 2px', gap: 2, minHeight: 44,
               borderTop: isActive ? '2px solid var(--accent)' : '2px solid transparent',
+              boxShadow: isActive ? 'inset 0 2px 8px rgba(181,242,58,0.15)' : 'none',
               transition: 'color 0.15s',
             }}>
               <t.Icon size={19} />
