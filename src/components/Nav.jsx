@@ -240,7 +240,7 @@ export default function Nav() {
           const isActive = location.pathname === t.to || location.pathname.startsWith(t.to + '/')
           return (
             <NavLink key={t.to} to={t.to} style={{
-              flex: '1 0 auto', minWidth: 52, maxWidth: 80,
+              flex: '1 0 0%', minWidth: 0, maxWidth: 80,
               display: 'flex', flexDirection: 'column', alignItems: 'center',
               justifyContent: 'center', textDecoration: 'none',
               color: isActive ? 'var(--accent)' : 'var(--muted)',

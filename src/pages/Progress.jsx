@@ -291,9 +291,9 @@ export default function Progress() {
 
   return (
     <div className="page-fade">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, flexWrap: 'wrap', gap: 12 }}>
         <h1 className="page-title">Progress</h1>
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <button onClick={() => navigate('/planner')} style={{
             background: 'var(--card2)', border: '1px solid var(--border)',
             color: 'var(--text)', padding: '8px 16px', borderRadius: 8,
@@ -311,7 +311,7 @@ export default function Progress() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+      <div className="grid-4-col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
         <StatCard label="Day Streak"     value={dispStreak}   sub="days in a row"   color="var(--accent)" />
         <StatCard label="Total Minutes"  value={dispMins}     sub="minutes focused"  color="var(--cyan)" />
         <StatCard label="Sessions"       value={dispSessions} sub="completed"        color="var(--purple)" />

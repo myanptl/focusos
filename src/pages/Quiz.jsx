@@ -1405,7 +1405,7 @@ export default function Quiz() {
               </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
+            <div className="grid-4-col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
               {[
                 { label: 'Score',       value: `${results.pct}%`,       color: results.pct >= 80 ? 'var(--accent)' : results.pct >= 60 ? 'var(--amber)' : 'var(--red)' },
                 { label: 'Focus Score', value: `${results.focusScore}%`, color: 'var(--cyan)' },

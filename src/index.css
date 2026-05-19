@@ -355,6 +355,12 @@ nav, header { position: relative; z-index: 10; }
 
   /* Card gaps tighter on mobile */
   .card, .card2 { padding: 16px !important; }
+
+  /* 4-column stat grids collapse to 2×2 */
+  .grid-4-col { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Hide in-app footer behind the fixed bottom tab bar */
+  .app-shell-footer { display: none; }
 }
 
 /* Button hover scale — applies to all variants; specifics above handle color */

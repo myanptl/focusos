@@ -57,7 +57,7 @@ function AppShell({ children }) {
           {children}
         </motion.div>
       </main>
-      <Footer />
+      <div className="app-shell-footer"><Footer /></div>
     </div>
   )
 }
