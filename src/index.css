@@ -527,6 +527,8 @@ nav, header { position: relative; z-index: 10; }
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto;
   gap: 16px;
+  overflow: visible;
+  padding-bottom: 8px;
 }
 .bento-timer {
   grid-column: 1;
@@ -538,21 +540,24 @@ nav, header { position: relative; z-index: 10; }
 .bento-quiz {
   grid-column: 2;
   grid-row: 1;
+  display: flex;
+  flex-direction: column;
 }
+.bento-quiz > * { flex: 1; }
 .bento-goals {
   grid-column: 2;
   grid-row: 2;
+  display: flex;
+  flex-direction: column;
 }
+.bento-goals > * { flex: 1; }
 @media (max-width: 768px) {
   .features-bento {
     grid-template-columns: 1fr;
     grid-template-rows: auto;
   }
-  .bento-timer {
-    grid-column: 1;
-    grid-row: auto;
-  }
-  .bento-quiz { grid-column: 1; grid-row: auto; }
+  .bento-timer { grid-column: 1; grid-row: auto; }
+  .bento-quiz  { grid-column: 1; grid-row: auto; }
   .bento-goals { grid-column: 1; grid-row: auto; }
 }
 

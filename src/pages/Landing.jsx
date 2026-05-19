@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { Flame } from 'lucide-react'
+import { Flame, Music, Bell, TrendingUp } from 'lucide-react'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -158,7 +158,7 @@ function Reveal({ children, delay = 0, style = {}, fromY = 40, className }) {
 }
 
 /* ─── Feature Card ────────────────────────────────────────────── */
-function FeatureCard({ title, desc, stat, index, heroArt, compact, fill }) {
+function FeatureCard({ title, desc, stat, index, heroArt, compact, fill, pills }) {
   const reduced = useReducedMotion()
 
   return (
@@ -192,7 +192,7 @@ function FeatureCard({ title, desc, stat, index, heroArt, compact, fill }) {
         </div>
       )}
 
-      <div style={{ padding: '22px 26px 28px', flex: 1 }}>
+      <div style={{ padding: '22px 26px 28px', flex: 1, display: 'flex', flexDirection: 'column' }}>
         <div style={{
           fontSize: 17, fontWeight: 700, marginBottom: 10,
           color: '#f0f0f2', letterSpacing: '-0.01em',
@@ -203,6 +203,24 @@ function FeatureCard({ title, desc, stat, index, heroArt, compact, fill }) {
           background: 'rgba(181,242,58,0.06)', border: '1px solid rgba(181,242,58,0.12)',
           borderRadius: 8, padding: '8px 12px',
         }}>{stat}</div>
+
+        {pills && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16, flex: 1, justifyContent: 'flex-end' }}>
+            {pills.map(({ icon, label }, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: 9,
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(181,242,58,0.1)',
+                borderRadius: 8, padding: '9px 13px',
+                fontSize: 12.5, color: 'var(--muted)',
+                fontWeight: 500,
+              }}>
+                <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>{icon}</span>
+                {label}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </motion.div>
   )
@@ -848,16 +866,21 @@ export default function Landing() {
                 <FeatureCard index={0} heroArt={<TimerCardArt />} fill
                   title="Adaptive Focus Timer"
                   desc="Starts at YOUR attention span. Grows with every session. No arbitrary 25-minute assumption baked in."
-                  stat="Avg user improves by 8 min in their first week" />
+                  stat="Avg user improves by 8 min in their first week"
+                  pills={[
+                    { icon: <Music size={13} color="#b5f23a" />, label: 'Focus music & ambience' },
+                    { icon: <Bell size={13} color="#b5f23a" />, label: 'Session completion alerts' },
+                    { icon: <TrendingUp size={13} color="#b5f23a" />, label: 'Attention span tracking' },
+                  ]} />
               </div>
               <div className="bento-quiz">
-                <FeatureCard index={1} heroArt={<QuizCardArt />} compact
+                <FeatureCard index={1} heroArt={<QuizCardArt />} compact fill
                   title="AI Quiz Generator"
                   desc="Paste your notes. Claude AI instantly generates active recall questions across 5 question types."
                   stat="Practice testing = #1 study technique [Dunlosky, 2013]" />
               </div>
               <div className="bento-goals">
-                <FeatureCard index={2} heroArt={<GoalCardArt />} compact
+                <FeatureCard index={2} heroArt={<GoalCardArt />} compact fill
                   title="Score Goal Tracker"
                   desc="Set your SAT, ACT, or AP target. Get a backwards study plan anchored to your test date."
                   stat="Implementation intentions increase follow-through 3× [Gollwitzer, 1999]" />
