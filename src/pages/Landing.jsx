@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { Flame, Music, Bell, TrendingUp, Zap, BarChart2, RefreshCw } from 'lucide-react'
+import { Flame, Music, Zap, BarChart2 } from 'lucide-react'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -205,21 +205,20 @@ function FeatureCard({ title, desc, stat, index, heroArt, compact, fill, pills }
         }}>{stat}</div>
 
         {pills && (
-          <div style={{
-            display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7,
-            marginTop: 16, flex: 1, alignContent: 'end',
-          }}>
-            {pills.map(({ icon, label }, i) => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
+            {pills.map(({ icon, title, subtitle }, i) => (
               <div key={i} style={{
-                display: 'flex', alignItems: 'center', gap: 7,
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(181,242,58,0.1)',
-                borderRadius: 7, padding: '8px 10px',
-                fontSize: 11.5, color: 'var(--muted)',
-                fontWeight: 500, minWidth: 0,
+                display: 'flex', alignItems: 'flex-start', gap: 12,
+                background: 'rgba(255,255,255,0.025)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderLeft: '2px solid rgba(181,242,58,0.45)',
+                borderRadius: 8, padding: '12px 14px',
               }}>
-                <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>{icon}</span>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+                <span style={{ flexShrink: 0, marginTop: 1, display: 'flex' }}>{icon}</span>
+                <div>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: '#e8e8ea', marginBottom: 3, letterSpacing: '-0.01em' }}>{title}</div>
+                  <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.55 }}>{subtitle}</div>
+                </div>
               </div>
             ))}
           </div>
@@ -871,12 +870,21 @@ export default function Landing() {
                   desc="Starts at YOUR attention span. Grows with every session. No arbitrary 25-minute assumption baked in."
                   stat="Avg user improves by 8 min in their first week"
                   pills={[
-                    { icon: <Music size={12} color="#b5f23a" />, label: 'Focus music & ambience' },
-                    { icon: <Bell size={12} color="#b5f23a" />, label: 'Session alerts' },
-                    { icon: <TrendingUp size={12} color="#b5f23a" />, label: 'Attention tracking' },
-                    { icon: <Zap size={12} color="#b5f23a" />, label: 'Adaptive length' },
-                    { icon: <BarChart2 size={12} color="#b5f23a" />, label: 'Daily progress' },
-                    { icon: <RefreshCw size={12} color="#b5f23a" />, label: 'Spaced rep breaks' },
+                    {
+                      icon: <Music size={14} color="#b5f23a" />,
+                      title: 'Brown Noise & Focus Sounds',
+                      subtitle: 'Rain, white noise, lo-fi — scientifically shown to improve concentration',
+                    },
+                    {
+                      icon: <Zap size={14} color="#b5f23a" />,
+                      title: 'Adaptive Session Length',
+                      subtitle: 'Starts at YOUR attention span and grows it session by session',
+                    },
+                    {
+                      icon: <BarChart2 size={14} color="#b5f23a" />,
+                      title: '5 Focus Levels',
+                      subtitle: 'Scattered → Flow State — track your real progress over time',
+                    },
                   ]} />
               </div>
               <div className="bento-quiz">
