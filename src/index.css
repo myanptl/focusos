@@ -124,7 +124,9 @@ h1, h2, h3 { text-wrap: balance; }
 }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-accent {
-  background: linear-gradient(135deg, #c9ff3c 0%, #b5f23a 45%, #9ed42a 100%);
+  background: linear-gradient(105deg, #b0ef30, #c2f840 30%, #b5f23a 50%, #a8de28 70%, #c2f840);
+  background-size: 200% auto;
+  animation: btnGradientFlow 4s linear infinite;
   color: #0a0a0b;
   font-weight: 700;
 }
@@ -222,7 +224,13 @@ input[type="range"]::-moz-range-thumb {
 .toggle input:checked + .toggle-slider::before { transform: translateX(20px); background: var(--accent); box-shadow: 0 0 6px rgba(181,242,58,0.5); }
 
 .progress-bar { height: 6px; background: var(--card2); border-radius: 3px; overflow: hidden; }
-.progress-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #99d428, #b5f23a, #c9ff3c); transition: width 0.4s ease; }
+.progress-bar-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, #99d428, #b5f23a 40%, #c9ff3c 60%, #b5f23a);
+  background-size: 200% auto;
+  animation: btnGradientFlow 3s linear infinite;
+  transition: width 0.4s ease;
+}
 
 .pill {
   padding: 6px 14px; border-radius: 20px;
@@ -344,8 +352,8 @@ nav, header { position: relative; z-index: 10; }
 }
 .card-hover:hover {
   transform: translateY(-4px);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.07) inset, 0 20px 48px rgba(0,0,0,0.45) !important;
-  border-color: rgba(255,255,255,0.14) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.07) inset, 0 20px 48px rgba(0,0,0,0.45), 0 0 0 1px rgba(181,242,58,0.1) !important;
+  border-color: rgba(181,242,58,0.2) !important;
 }
 
 /* Quiz brain icon gentle float */
@@ -466,19 +474,22 @@ nav, header { position: relative; z-index: 10; }
   50%       { transform: translateY(-12px) rotate(-2deg); opacity: 0.065; }
 }
 .l-btn-primary {
-  background: #b5f23a; color: #0a0a0b;
+  background: linear-gradient(105deg, #b0ef30, #c2f840 28%, #b5f23a 50%, #a8de28 72%, #c2f840);
+  background-size: 200% auto;
+  animation: btnGradientFlow 4s linear infinite;
+  color: #0a0a0b;
   border: none; border-radius: 10px;
   padding: 14px 32px; font-size: 15px; font-weight: 700;
   cursor: pointer; font-family: 'Outfit', sans-serif;
-  transition: transform 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out), background 0.15s ease;
+  transition: transform 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out);
   display: inline-flex; align-items: center; gap: 10px;
   white-space: nowrap;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset, 0 2px 8px rgba(181,242,58,0.1);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset, 0 2px 8px rgba(181,242,58,0.12);
 }
 .l-btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset, 0 6px 18px rgba(181,242,58,0.15);
-  background: #c4ff44;
+  transform: translateY(-2px);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset, 0 8px 28px rgba(181,242,58,0.24);
+  animation-duration: 1.4s;
 }
 .l-btn-primary:active {
   transform: translateY(0px) scale(0.98);
@@ -574,4 +585,80 @@ nav, header { position: relative; z-index: 10; }
 /* ── Stat card shadow upgrade ────────────────────────── */
 .stat-card {
   box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 20px rgba(0,0,0,0.18) !important;
+}
+
+/* ── Premium UI patterns (UI research: endlesstools, magicanimator, neurascape) ── */
+
+/* Flowing gradient — shared by .l-btn-primary and .btn-accent */
+@keyframes btnGradientFlow {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Hero dot grid — subtle lime dot matrix fading out downward */
+.hero-dot-grid {
+  background-image: radial-gradient(circle, rgba(181,242,58,0.09) 1px, transparent 1px);
+  background-size: 28px 28px;
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  -webkit-mask-image: radial-gradient(ellipse 110% 55% at 50% 0%, black 15%, transparent 80%);
+  mask-image: radial-gradient(ellipse 110% 55% at 50% 0%, black 15%, transparent 80%);
+}
+
+/* Eyebrow live indicator — ripple outward pulse */
+@keyframes livePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(181,242,58,0.75), 0 0 5px rgba(181,242,58,0.45); }
+  55%       { box-shadow: 0 0 0 5px rgba(181,242,58,0),  0 0 12px rgba(181,242,58,0.65); }
+}
+.live-dot { animation: livePulse 2.4s ease-in-out infinite !important; }
+
+/* Gradient lime text sweep — hero "Focus longer." */
+@keyframes textGradientSweep {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+.text-gradient-lime {
+  background: linear-gradient(115deg, #b5f23a 0%, #e8ff9e 45%, #b5f23a 90%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: textGradientSweep 6s linear infinite;
+}
+
+/* Horizontal scan line — sweeps down hero once every ~12s */
+@keyframes heroScanLine {
+  0%   { top: 0%;   opacity: 0; }
+  3%   { opacity: 1; }
+  97%  { opacity: 0.28; }
+  100% { top: 100%; opacity: 0; }
+}
+.hero-scan-line {
+  position: absolute; left: 0; right: 0; height: 1px;
+  pointer-events: none; z-index: 4;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(181,242,58,0.1) 15%,
+    rgba(181,242,58,0.35) 50%,
+    rgba(181,242,58,0.1) 85%,
+    transparent 100%
+  );
+  animation: heroScanLine 12s ease-in-out infinite;
+  top: 0;
+}
+
+/* Feature section subtle grid texture */
+.features-grid-bg {
+  background-image:
+    linear-gradient(rgba(181,242,58,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(181,242,58,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  background-position: center center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .l-btn-primary  { animation: none; background: #b5f23a; }
+  .btn-accent     { animation: none; background: linear-gradient(135deg, #c9ff3c 0%, #b5f23a 45%, #9ed42a 100%); }
+  .live-dot       { animation: none !important; box-shadow: 0 0 6px rgba(181,242,58,0.6) !important; }
+  .text-gradient-lime { animation: none; }
+  .hero-scan-line { display: none; }
 }

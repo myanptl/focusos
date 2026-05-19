@@ -167,7 +167,7 @@ function FeatureCard({ title, desc, stat, index, heroArt, compact, fill, pills }
       whileInView={reduced ? {} : { opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.65, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={reduced ? {} : { y: -4 }}
+      whileHover={reduced ? {} : { y: -5, boxShadow: '0 1px 0 rgba(255,255,255,0.04) inset, 0 16px 48px rgba(0,0,0,0.38), 0 0 0 1px rgba(181,242,58,0.18)' }}
       style={{
         background: '#111113',
         border: '1px solid rgba(255,255,255,0.07)',
@@ -328,7 +328,7 @@ function BrowserMockup() {
             padding: '0 14px', height: 40, display: 'flex', alignItems: 'center', gap: 8,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginRight: 8 }}>
-              <span style={{ fontSize: 12, color: '#b5f23a', display: 'inline-block', animation: 'spin-slow 8s linear infinite' }}>⟳</span>
+              <span style={{ fontSize: 12, color: '#b5f23a', display: 'inline-block', animation: 'spin 8s linear infinite' }}>⟳</span>
               <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '3px', color: 'white' }}>FOCUSOS</span>
             </div>
             {['Timer','Quiz','Goals','Streak'].map((t, i) => (
@@ -636,6 +636,8 @@ export default function Landing() {
         }}>
           <OrbBackground />
           <ParticleCanvas />
+          <div className="hero-dot-grid" aria-hidden />
+          <div className="hero-scan-line" aria-hidden />
 
           {/* Grain — fixed pseudo-element equivalent, pointer-events-none */}
           <div style={{
@@ -723,11 +725,9 @@ export default function Landing() {
                   marginBottom: 28,
                 }}
               >
-                <span style={{
+                <span className="live-dot" style={{
                   width: 6, height: 6, borderRadius: '50%',
-                  background: '#b5f23a',
-                  boxShadow: '0 0 6px rgba(181,242,58,0.7)',
-                  flexShrink: 0,
+                  background: '#b5f23a', flexShrink: 0,
                 }} />
                 Built on peer-reviewed attention research
               </motion.div>
@@ -754,10 +754,10 @@ export default function Landing() {
                 style={{
                   fontSize: 'clamp(42px, 5.8vw, 80px)', fontWeight: 800,
                   lineHeight: 1.02, letterSpacing: '-0.025em',
-                  margin: '0 0 30px', color: '#b5f23a',
+                  margin: '0 0 30px',
                 }}
               >
-                Focus longer.
+                <span className="text-gradient-lime">Focus longer.</span>
               </motion.h1>
 
               {/* Subhead */}
@@ -794,6 +794,7 @@ export default function Landing() {
                 <button className="l-btn-outline"
                   onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
                   See how it works
+                  <span style={{ fontSize: 13, opacity: 0.7 }}>↓</span>
                 </button>
               </motion.div>
             </div>
@@ -835,7 +836,7 @@ export default function Landing() {
                 ].map((text, j) => (
                   <span key={j} style={{ padding: '0 6px', fontSize: 12.5, color: 'var(--muted)', fontWeight: 500, letterSpacing: '0.01em' }}>
                     {text}
-                    <span style={{ margin: '0 18px', color: 'rgba(181,242,58,0.3)' }}>·</span>
+                    <span style={{ margin: '0 16px', color: 'rgba(181,242,58,0.45)', fontSize: 8 }}>◆</span>
                   </span>
                 ))}
               </span>
@@ -844,7 +845,7 @@ export default function Landing() {
         </section>
 
         {/* ════ FEATURES — asymmetric bento grid ═══════════════════ */}
-        <section id="features" className="scroll-section" style={{
+        <section id="features" className="scroll-section features-grid-bg" style={{
           padding: 'clamp(80px, 9vw, 128px) clamp(20px, 4vw, 56px)',
         }}>
           <div style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -859,7 +860,8 @@ export default function Landing() {
                 fontSize: 'clamp(28px, 3.8vw, 48px)', fontWeight: 800,
                 lineHeight: 1.12, letterSpacing: '-0.02em', maxWidth: 520,
               }}>
-                Everything you need to actually study.
+                Everything you need to{' '}
+                <span style={{ color: '#b5f23a' }}>actually study.</span>
               </h2>
             </Reveal>
 

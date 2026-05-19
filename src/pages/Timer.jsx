@@ -220,7 +220,11 @@ function CircularTimer({ timeLeft, totalTime, phase, pomodoroMode, running, flas
 
   return (
     <div style={{ position: 'relative', width: 'min(240px, 80vw)', height: 'min(240px, 80vw)', margin: '0 auto' }}>
-      <svg width="100%" height="100%" viewBox="0 0 240 240" style={{ display: 'block' }}>
+      <svg width="100%" height="100%" viewBox="0 0 240 240" style={{
+        display: 'block',
+        filter: running && phase === 'focus' ? 'drop-shadow(0 0 14px rgba(181,242,58,0.42))' : 'none',
+        transition: 'filter 0.7s ease',
+      }}>
         {/* Pulse ring — expands outward while running */}
         {running && phase === 'focus' && (
           <circle
