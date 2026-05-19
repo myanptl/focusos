@@ -132,7 +132,7 @@ function OrbBackground() {
             left: orb.left, top: orb.top,
             width: orb.w, height: orb.h,
             borderRadius: '50%',
-            background: `radial-gradient(circle, rgba(181,242,58,${orb.op}) 0%, transparent 72%)`,
+            background: `radial-gradient(circle, rgba(181,242,58,${orb.op}) 0%, rgba(181,242,58,0) 72%)`,
             filter: 'blur(52px)',
             willChange: 'transform',
           }}
@@ -417,7 +417,7 @@ function TimerCardArt() {
   return (
     <div style={{
       height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'radial-gradient(ellipse 80% 70% at 50% 55%, rgba(181,242,58,0.05) 0%, transparent 70%)',
+      background: 'radial-gradient(ellipse 80% 70% at 50% 55%, rgba(181,242,58,0.05) 0%, rgba(181,242,58,0) 70%)',
       position: 'relative',
     }}>
       <svg viewBox="0 0 180 180" width="176" height="176">
@@ -457,7 +457,7 @@ function QuizCardArt() {
   return (
     <div style={{
       height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'radial-gradient(ellipse 80% 70% at 50% 55%, rgba(181,242,58,0.05) 0%, transparent 70%)',
+      background: 'radial-gradient(ellipse 80% 70% at 50% 55%, rgba(181,242,58,0.05) 0%, rgba(181,242,58,0) 70%)',
       position: 'relative', overflow: 'hidden',
     }}>
       <svg viewBox="0 0 200 200" width="200" height="200">
@@ -491,7 +491,7 @@ function GoalCardArt() {
   return (
     <div style={{
       height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'radial-gradient(ellipse 80% 70% at 50% 55%, rgba(181,242,58,0.05) 0%, transparent 70%)',
+      background: 'radial-gradient(ellipse 80% 70% at 50% 55%, rgba(181,242,58,0.05) 0%, rgba(181,242,58,0) 70%)',
       position: 'relative',
     }}>
       <svg viewBox="0 0 200 200" width="200" height="200">
@@ -667,7 +667,7 @@ export default function Landing() {
           {/* Radial glow (parallax target) */}
           <div className="hero-glow-parallax" style={{
             position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1,
-            background: 'radial-gradient(ellipse 70% 55% at 50% 50%, rgba(181,242,58,0.07) 0%, transparent 70%)',
+            background: 'radial-gradient(ellipse 70% 55% at 50% 50%, rgba(181,242,58,0.07) 0%, rgba(181,242,58,0) 70%)',
           }} />
 
           {/* Nav */}
@@ -971,7 +971,7 @@ export default function Landing() {
         <section className="scroll-section" style={{
           padding: 'clamp(80px, 10vw, 130px) clamp(20px, 4vw, 48px)',
           textAlign: 'center',
-          background: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(181,242,58,0.04) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(181,242,58,0.04) 0%, rgba(181,242,58,0) 70%)',
         }}>
           <Reveal>
             <h2 style={{

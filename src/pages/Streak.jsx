@@ -157,16 +157,6 @@ export default function Streak() {
             <FlameDecor />
           </div>
         )}
-        {/* Radial glow behind number */}
-        {streak > 0 && (
-          <div style={{
-            position: 'absolute', top: '50%', left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 260, height: 180,
-            background: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(181,242,58,0.08) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }} />
-        )}
         <div className="bebas" style={{
           fontSize: 'clamp(96px, 18vw, 140px)',
           color: 'var(--accent)',

@@ -1,12 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
-
-// Orbs: larger + brighter than Landing, distinct positions/paths
-const ORB_CONFIGS = [
-  { w: 940, h: 860, left: '52%',  top: '-24%', dur: 32, ax: [0,-72,44,0], ay: [0,54,-36,0], op: 0.057 },
-  { w: 820, h: 780, left: '-22%', top: '42%',  dur: 27, ax: [0,64,-40,0], ay: [0,-50,30,0], op: 0.051 },
-  { w: 660, h: 640, left: '22%',  top: '14%',  dur: 38, ax: [0,-46,30,0], ay: [0,40,-24,0], op: 0.036 },
-]
+import { useReducedMotion } from 'framer-motion'
 
 function AppParticles({ reduced }) {
   const ref = useRef(null)
@@ -122,28 +115,11 @@ export default function AppBackground() {
         animation: reduced ? 'none' : 'appMeshShift 20s ease-in-out infinite',
       }} />
 
-      {/* Orbs */}
+      {/* Single seamless ambient glow — center off-viewport at top, no visible edge or ring */}
       <div style={{
-        position: 'fixed', inset: 0, zIndex: 0,
-        pointerEvents: 'none', overflow: 'hidden',
-      }}>
-        {ORB_CONFIGS.map((orb, i) => (
-          <motion.div
-            key={i}
-            style={{
-              position: 'absolute',
-              left: orb.left, top: orb.top,
-              width: orb.w, height: orb.h,
-              borderRadius: '50%',
-              background: `radial-gradient(circle, rgba(181,242,58,${orb.op}) 0%, transparent 70%)`,
-              filter: 'blur(80px)',
-              willChange: 'transform',
-            }}
-            animate={reduced ? {} : { x: orb.ax, y: orb.ay }}
-            transition={{ duration: orb.dur, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        ))}
-      </div>
+        position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+        background: 'radial-gradient(ellipse 110% 70% at 60% -15%, rgba(181,242,58,0.055) 0%, rgba(181,242,58,0) 65%)',
+      }} />
 
       {/* Grain */}
       <div style={{
