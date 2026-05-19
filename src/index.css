@@ -361,6 +361,13 @@ nav, header { position: relative; z-index: 10; }
 
   /* Hide in-app footer behind the fixed bottom tab bar */
   .app-shell-footer { display: none; }
+
+  /* RoomDetail 2-col layout collapses to single column */
+  .room-detail-grid { grid-template-columns: 1fr !important; }
+  .room-left-panel { height: auto !important; max-height: none !important; }
+
+  /* Planner form and final-week grids collapse */
+  .planner-form-grid, .planner-final-grid { grid-template-columns: 1fr !important; }
 }
 
 /* Button hover scale — applies to all variants; specifics above handle color */

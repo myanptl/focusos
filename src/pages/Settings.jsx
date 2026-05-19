@@ -189,7 +189,7 @@ export default function Settings() {
   const breakPct = ((breakMins - 1) / (30 - 1)) * 100
 
   return (
-    <div className="page-fade" style={{ maxWidth: 720, margin: '0 auto', padding: '40px 24px', width: '100%' }}>
+    <div className="page-fade" style={{ maxWidth: 720, margin: '0 auto', paddingTop: '40px', width: '100%' }}>
       <h1 className="page-title" style={{ marginBottom: 24 }}>Settings</h1>
 
       <div className="card card-top" style={{ marginBottom: 16 }}>

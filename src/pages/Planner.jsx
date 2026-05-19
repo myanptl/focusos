@@ -163,7 +163,7 @@ export default function Planner() {
               </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div className="planner-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <div>
                 <label className="label" style={{ display: 'block', marginBottom: 6 }}>Test Date (optional)</label>
                 <input type="date" value={testDate} onChange={e => setTestDate(e.target.value)} />
@@ -291,7 +291,7 @@ export default function Planner() {
           ))}
 
           {/* Final week + Day before */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+          <div className="planner-final-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
             {plan.finalWeek && (
               <div className="card" style={{ border: '1px solid rgba(168,139,250,0.3)' }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#a78bfa', marginBottom: 8 }}>Final Week</div>
