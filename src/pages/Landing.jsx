@@ -842,19 +842,21 @@ export default function Landing() {
               </h2>
             </Reveal>
 
-            {/* Asymmetric bento: large left + two stacked right */}
+            {/* Asymmetric bento: Timer spans full left, Quiz + Goals stack right */}
             <div className="features-bento">
-              <div className="features-bento-left">
+              <div className="bento-timer">
                 <FeatureCard index={0} heroArt={<TimerCardArt />} fill
                   title="Adaptive Focus Timer"
                   desc="Starts at YOUR attention span. Grows with every session. No arbitrary 25-minute assumption baked in."
                   stat="Avg user improves by 8 min in their first week" />
               </div>
-              <div className="features-bento-right">
+              <div className="bento-quiz">
                 <FeatureCard index={1} heroArt={<QuizCardArt />} compact
                   title="AI Quiz Generator"
                   desc="Paste your notes. Claude AI instantly generates active recall questions across 5 question types."
                   stat="Practice testing = #1 study technique [Dunlosky, 2013]" />
+              </div>
+              <div className="bento-goals">
                 <FeatureCard index={2} heroArt={<GoalCardArt />} compact
                   title="Score Goal Tracker"
                   desc="Set your SAT, ACT, or AP target. Get a backwards study plan anchored to your test date."

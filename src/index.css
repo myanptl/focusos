@@ -525,29 +525,35 @@ nav, header { position: relative; z-index: 10; }
 .features-bento {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: auto;
   gap: 16px;
 }
-.features-bento-left {
-  grid-row: span 2;
-  height: 100%;
-}
-.features-bento-left > * { height: 100%; }
-.features-bento-right {
+.bento-timer {
+  grid-column: 1;
+  grid-row: 1 / span 2;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+}
+.bento-timer > * { flex: 1; }
+.bento-quiz {
+  grid-column: 2;
+  grid-row: 1;
+}
+.bento-goals {
+  grid-column: 2;
+  grid-row: 2;
 }
 @media (max-width: 768px) {
   .features-bento {
     grid-template-columns: 1fr;
     grid-template-rows: auto;
   }
-  .features-bento-left {
-    grid-row: span 1;
-    height: auto;
+  .bento-timer {
+    grid-column: 1;
+    grid-row: auto;
   }
-  .features-bento-left > * { height: auto; }
+  .bento-quiz { grid-column: 1; grid-row: auto; }
+  .bento-goals { grid-column: 1; grid-row: auto; }
 }
 
 /* ── Page title upgrade ──────────────────────────────── */
