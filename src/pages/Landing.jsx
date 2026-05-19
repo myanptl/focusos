@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { Flame, Music, Zap, BarChart2 } from 'lucide-react'
+import { Flame, Music, Zap, BarChart2, Trophy } from 'lucide-react'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -205,7 +205,7 @@ function FeatureCard({ title, desc, stat, index, heroArt, compact, fill, pills }
         }}>{stat}</div>
 
         {pills && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12, flex: 1 }}>
             {pills.map(({ icon, title, subtitle }, i) => (
               <div key={i} style={{
                 display: 'flex', alignItems: 'flex-start', gap: 12,
@@ -213,6 +213,7 @@ function FeatureCard({ title, desc, stat, index, heroArt, compact, fill, pills }
                 border: '1px solid rgba(255,255,255,0.06)',
                 borderLeft: '2px solid rgba(181,242,58,0.45)',
                 borderRadius: 8, padding: '12px 14px',
+                flex: 1,
               }}>
                 <span style={{ flexShrink: 0, marginTop: 1, display: 'flex' }}>{icon}</span>
                 <div>
@@ -873,7 +874,7 @@ export default function Landing() {
                     {
                       icon: <Music size={14} color="#b5f23a" />,
                       title: 'Brown Noise & Focus Sounds',
-                      subtitle: 'Rain, white noise, lo-fi — scientifically shown to improve concentration',
+                      subtitle: 'Brown noise, baroque classics, classical music — tuned for deep concentration',
                     },
                     {
                       icon: <Zap size={14} color="#b5f23a" />,
@@ -884,6 +885,11 @@ export default function Landing() {
                       icon: <BarChart2 size={14} color="#b5f23a" />,
                       title: '5 Focus Levels',
                       subtitle: 'Scattered → Flow State — track your real progress over time',
+                    },
+                    {
+                      icon: <Trophy size={14} color="#b5f23a" />,
+                      title: 'Streak & XP System',
+                      subtitle: 'Daily streaks, badges, and XP keep you coming back — habit science built in',
                     },
                   ]} />
               </div>
