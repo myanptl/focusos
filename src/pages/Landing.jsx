@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { Flame, Music, Bell, TrendingUp } from 'lucide-react'
+import { Flame, Music, Bell, TrendingUp, Zap, BarChart2, RefreshCw } from 'lucide-react'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -205,18 +205,21 @@ function FeatureCard({ title, desc, stat, index, heroArt, compact, fill, pills }
         }}>{stat}</div>
 
         {pills && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16, flex: 1, justifyContent: 'flex-end' }}>
+          <div style={{
+            display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7,
+            marginTop: 16, flex: 1, alignContent: 'end',
+          }}>
             {pills.map(({ icon, label }, i) => (
               <div key={i} style={{
-                display: 'flex', alignItems: 'center', gap: 9,
+                display: 'flex', alignItems: 'center', gap: 7,
                 background: 'rgba(255,255,255,0.03)',
                 border: '1px solid rgba(181,242,58,0.1)',
-                borderRadius: 8, padding: '9px 13px',
-                fontSize: 12.5, color: 'var(--muted)',
-                fontWeight: 500,
+                borderRadius: 7, padding: '8px 10px',
+                fontSize: 11.5, color: 'var(--muted)',
+                fontWeight: 500, minWidth: 0,
               }}>
                 <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>{icon}</span>
-                {label}
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
               </div>
             ))}
           </div>
@@ -868,9 +871,12 @@ export default function Landing() {
                   desc="Starts at YOUR attention span. Grows with every session. No arbitrary 25-minute assumption baked in."
                   stat="Avg user improves by 8 min in their first week"
                   pills={[
-                    { icon: <Music size={13} color="#b5f23a" />, label: 'Focus music & ambience' },
-                    { icon: <Bell size={13} color="#b5f23a" />, label: 'Session completion alerts' },
-                    { icon: <TrendingUp size={13} color="#b5f23a" />, label: 'Attention span tracking' },
+                    { icon: <Music size={12} color="#b5f23a" />, label: 'Focus music & ambience' },
+                    { icon: <Bell size={12} color="#b5f23a" />, label: 'Session alerts' },
+                    { icon: <TrendingUp size={12} color="#b5f23a" />, label: 'Attention tracking' },
+                    { icon: <Zap size={12} color="#b5f23a" />, label: 'Adaptive length' },
+                    { icon: <BarChart2 size={12} color="#b5f23a" />, label: 'Daily progress' },
+                    { icon: <RefreshCw size={12} color="#b5f23a" />, label: 'Spaced rep breaks' },
                   ]} />
               </div>
               <div className="bento-quiz">
