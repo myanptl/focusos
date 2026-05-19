@@ -685,7 +685,6 @@ export default function Landing() {
               <span style={{
                 fontSize: 24, color: '#b5f23a',
                 display: 'inline-block',
-                animation: 'spin-slow 8s linear infinite',
                 lineHeight: 1, fontWeight: 300,
               }}>⟳</span>
               <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: '4px', color: 'white' }}>

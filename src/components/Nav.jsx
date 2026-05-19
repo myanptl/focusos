@@ -50,11 +50,7 @@ export default function Nav() {
       height: 60,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-        <motion.span
-          animate={{ rotate: 360 }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'linear', repeatType: 'loop' }}
-          style={{ fontSize: 24, color: 'var(--accent)', display: 'inline-block', lineHeight: 1, fontWeight: 300 }}
-        >⟳</motion.span>
+        <span style={{ fontSize: 24, color: 'var(--accent)', display: 'inline-block', lineHeight: 1, fontWeight: 300 }}>⟳</span>
         <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: '4px', color: 'white' }}>
           FOCUSOS
         </span>

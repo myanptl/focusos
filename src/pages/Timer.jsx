@@ -226,7 +226,7 @@ function CircularTimer({ timeLeft, totalTime, phase, pomodoroMode, running, flas
           <circle
             cx="120" cy="120" r={R} fill="none"
             stroke={color} strokeWidth="3"
-            style={{ animation: 'ping 2s ease-out infinite', transformOrigin: '120px 120px' }}
+            style={{ animation: 'ping 2s ease-out infinite', transformOrigin: 'center', transformBox: 'fill-box' }}
           />
         )}
         {/* Track */}
@@ -238,7 +238,7 @@ function CircularTimer({ timeLeft, totalTime, phase, pomodoroMode, running, flas
           strokeDasharray={CIRC} strokeDashoffset={offset}
           transform="rotate(-90 120 120)"
           className={flashRing ? 'ring-flash' : ''}
-          style={{ transition: 'stroke-dashoffset 0.8s cubic-bezier(0.22,1,0.36,1), stroke 0.4s ease' }}
+          style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.4s ease' }}
         />
         {/* Tick marks */}
         {ticks.map((t, i) => (

@@ -518,16 +518,10 @@ export default function Quiz() {
     <div className="page-fade quiz-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 24, alignItems: 'start' }}>
 
       {/* ─── LEFT: Setup ─────────────────────────────────── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div>
-          <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--accent)' }}>Active Recall Quiz</h1>
-          <div className="research-callout" style={{ marginTop: 10 }}>
-            Practice testing rated <strong>HIGH UTILITY</strong> by Dunlosky et al. (2013) —
-            confirmed by 242 studies and 169,179 participants. [<em>Frontiers in Education, 2021</em>]
-          </div>
-        </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--accent)' }}>Active Recall Quiz</h1>
 
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: 28 }}>
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 16px' }}>
           {/* Source toggle */}
           <div>
             <label className="label" style={{ display: 'block', marginBottom: 8 }}>Question Source</label>
@@ -679,7 +673,7 @@ export default function Quiz() {
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
                 placeholder="Paste your notes here... The more detail, the better the questions."
-                style={{ resize: 'none', lineHeight: 1.6, minHeight: 160, borderColor: dragOver ? 'var(--accent)' : undefined }}
+                style={{ resize: 'none', lineHeight: 1.6, minHeight: 120, borderColor: dragOver ? 'var(--accent)' : undefined }}
               />
               {notes && (
                 <button onClick={() => setNotes('')} style={{
@@ -699,20 +693,20 @@ export default function Quiz() {
 
           {/* Subject + count inline */}
           {sourceMode === 'notes' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <input
                 type="text"
                 placeholder="Subject (optional)"
                 value={subject}
                 onChange={e => setSubject(e.target.value)}
-                style={{ fontSize: 14 }}
+                style={{ fontSize: 13 }}
               />
-              <div>
-                <div className="label" style={{ marginBottom: 6, fontSize: 9 }}>QUESTIONS</div>
-                <div style={{ display: 'flex', gap: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', color: 'var(--muted)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Qs</span>
+                <div style={{ display: 'flex', gap: 3 }}>
                   {[5, 10, 15].map(n => (
                     <button key={n} className={`pill${count === n ? ' active' : ''}`}
-                      onClick={() => setCount(n)} style={{ fontSize: 13, padding: '6px 14px' }}>{n}</button>
+                      onClick={() => setCount(n)} style={{ fontSize: 11, padding: '4px 8px' }}>{n}</button>
                   ))}
                 </div>
               </div>
@@ -720,40 +714,37 @@ export default function Quiz() {
           )}
 
           {sourceMode === 'bank' && (
-            <div>
-              <div className="label" style={{ marginBottom: 6, fontSize: 9 }}>QUESTIONS</div>
-              <div style={{ display: 'flex', gap: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', color: 'var(--muted)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Qs</span>
+              <div style={{ display: 'flex', gap: 3 }}>
                 {[5, 10, 15].map(n => (
                   <button key={n} className={`pill${count === n ? ' active' : ''}`}
-                    onClick={() => setCount(n)} style={{ fontSize: 13, padding: '6px 14px' }}>{n}</button>
+                    onClick={() => setCount(n)} style={{ fontSize: 11, padding: '4px 8px' }}>{n}</button>
                 ))}
               </div>
             </div>
           )}
 
           {/* Mode + Difficulty 2-column grid */}
-          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <div>
-                <div className="label" style={{ marginBottom: 7, fontSize: 9 }}>MODE</div>
-                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                  {MODES.map(m => (
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                {MODES.map(m => {
+                  const short = m.key === 'multiple_choice' ? 'MC' : m.key === 'short_answer' ? 'SA' : m.key === 'fill_blank' ? 'Fill' : m.key === 'flashcards' ? 'Cards' : m.label
+                  return (
                     <button key={m.key} className={`pill${mode === m.key ? ' active' : ''}`}
-                      onClick={() => setMode(m.key)} style={{ fontSize: 12, padding: '5px 10px' }}>{m.label}</button>
-                  ))}
-                </div>
+                      onClick={() => setMode(m.key)} style={{ fontSize: 11, padding: '4px 8px' }}>{short}</button>
+                  )
+                })}
               </div>
-              <div>
-                <div className="label" style={{ marginBottom: 7, fontSize: 9 }}>DIFFICULTY</div>
-                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                  {DIFFICULTIES.map(d => {
-                    const short = d === 'Standard' ? 'Medium' : d === 'Exam Style' ? 'Exam' : d
-                    return (
-                      <button key={d} className={`pill${difficulty === d ? ' active' : ''}`}
-                        onClick={() => setDifficulty(d)} style={{ fontSize: 12, padding: '5px 10px' }}>{short}</button>
-                    )
-                  })}
-                </div>
+              <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                {DIFFICULTIES.map(d => {
+                  const short = d === 'Standard' ? 'Med' : d === 'Exam Style' ? 'Exam' : d
+                  return (
+                    <button key={d} className={`pill${difficulty === d ? ' active' : ''}`}
+                      onClick={() => setDifficulty(d)} style={{ fontSize: 11, padding: '4px 8px' }}>{short}</button>
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -772,7 +763,7 @@ export default function Quiz() {
           )}
 
           {/* Timed toggle + Generate */}
-          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: 12, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <Clock size={12} />Timed 85s per question
