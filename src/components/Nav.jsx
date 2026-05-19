@@ -1,6 +1,6 @@
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { Timer, Brain, FileText, Target, Flame, BarChart2, Users, Settings, Menu, X } from 'lucide-react'
 
@@ -48,45 +48,41 @@ export default function Nav() {
       padding: '0 40px',
       display: 'flex', alignItems: 'center', gap: 16,
       height: 60,
+      willChange: 'transform',
+      transform: 'translateZ(0)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-        <span style={{ fontSize: 24, color: 'var(--accent)', display: 'inline-block', lineHeight: 1, fontWeight: 300 }}>⟳</span>
+        <span style={{ fontSize: 24, color: 'var(--accent)', display: 'inline-block', lineHeight: 1, fontWeight: 300, animation: 'spin 3s linear infinite', transformOrigin: 'center' }}>⟳</span>
         <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: '4px', color: 'white' }}>
           FOCUSOS
         </span>
       </div>
 
       {!isMobile && (
-        <LayoutGroup id="nav-tabs">
-          <div style={{ display: 'flex', gap: 4, overflowX: 'auto', flex: 1, scrollbarWidth: 'none' }}>
-            {tabs.map(t => {
-              const isActive = location.pathname === t.to || location.pathname.startsWith(t.to + '/')
-              return (
-                <NavLink key={t.to} to={t.to} style={{
-                  position: 'relative',
-                  padding: '5px 12px', borderRadius: 20, fontSize: 13, fontWeight: 500,
-                  textDecoration: 'none', whiteSpace: 'nowrap', transition: 'color 0.15s, background 0.15s',
-                  color: isActive ? 'var(--accent)' : 'var(--muted)',
-                  background: isActive ? 'rgba(181,242,58,0.1)' : 'transparent',
-                  border: isActive ? '1px solid rgba(181,242,58,0.25)' : '1px solid transparent',
-                  display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 0,
-                }}>
-                  {t.label}
-                  {isActive && (
-                    <motion.div
-                      layoutId="nav-tab-indicator"
-                      style={{
-                        position: 'absolute', bottom: -1, left: '18%', right: '18%',
-                        height: 2, background: 'var(--accent)', borderRadius: 1,
-                      }}
-                      transition={{ type: 'spring', bounce: 0.2, duration: 0.4 }}
-                    />
-                  )}
-                </NavLink>
-              )
-            })}
-          </div>
-        </LayoutGroup>
+        <div style={{ display: 'flex', gap: 4, overflowX: 'auto', flex: 1, scrollbarWidth: 'none' }}>
+          {tabs.map(t => {
+            const isActive = location.pathname === t.to || location.pathname.startsWith(t.to + '/')
+            return (
+              <NavLink key={t.to} to={t.to} style={{
+                position: 'relative',
+                padding: '5px 12px', borderRadius: 20, fontSize: 13, fontWeight: 500,
+                textDecoration: 'none', whiteSpace: 'nowrap', transition: 'color 0.15s, background 0.15s',
+                color: isActive ? 'var(--accent)' : 'var(--muted)',
+                background: isActive ? 'rgba(181,242,58,0.1)' : 'transparent',
+                border: isActive ? '1px solid rgba(181,242,58,0.25)' : '1px solid transparent',
+                display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 0,
+              }}>
+                {t.label}
+                {isActive && (
+                  <div style={{
+                    position: 'absolute', bottom: -1, left: '18%', right: '18%',
+                    height: 2, background: 'var(--accent)', borderRadius: 1,
+                  }} />
+                )}
+              </NavLink>
+            )
+          })}
+        </div>
       )}
       {isMobile && <div style={{ flex: 1 }} />}
 

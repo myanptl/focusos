@@ -44,9 +44,9 @@ function ProtectedRoute({ children }) {
 }
 
 const pageVariants = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 380, damping: 38, mass: 0.9 } },
-  exit:    { opacity: 0, y: -10, transition: { duration: 0.15, ease: [0.32, 0, 0.67, 0] } },
+  initial: { opacity: 0, y: 14 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.22, ease: [0.22, 1, 0.36, 1] } },
+  exit:    { opacity: 0, y: -8, transition: { duration: 0.15, ease: [0.32, 0, 0.67, 0] } },
 }
 
 function AppShell({ children }) {
@@ -70,7 +70,7 @@ function LegalShell({ children }) {
           <span style={{
             fontSize: 24, color: 'var(--accent)',
             display: 'inline-block',
-            animation: 'spin-slow 8s linear infinite',
+            animation: 'spin 3s linear infinite',
             lineHeight: 1, fontWeight: 300,
           }}>⟳</span>
           <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: '4px', color: 'white' }}>FOCUSOS</span>
