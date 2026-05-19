@@ -372,9 +372,11 @@ nav, header { position: relative; z-index: 10; }
   .app-main   { padding-bottom: 72px !important; padding-left: 14px !important; padding-right: 14px !important; }
   .btn        { min-height: 44px; }
 
-  /* Notes full-width on mobile */
+  /* Notes full-width on mobile — fix margin bleed to match reduced padding */
   .page-fade[style*="flex"][style*="100vh"] {
     flex-direction: column;
+    margin-left: -14px !important;
+    margin-right: -14px !important;
   }
 
   /* Pill touch targets */
