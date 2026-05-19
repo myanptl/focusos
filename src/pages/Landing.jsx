@@ -686,7 +686,7 @@ export default function Landing() {
                 fontSize: 24, color: '#b5f23a',
                 display: 'inline-block',
                 lineHeight: 1, fontWeight: 300,
-                animation: 'spin 3s linear infinite', transformOrigin: 'center',
+                animation: 'spin 8s linear infinite', transformOrigin: 'center',
               }}>⟳</span>
               <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: '4px', color: 'white' }}>
                 FOCUSOS

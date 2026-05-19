@@ -52,7 +52,7 @@ export default function Nav() {
       transform: 'translateZ(0)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-        <span style={{ fontSize: 24, color: 'var(--accent)', display: 'inline-block', lineHeight: 1, fontWeight: 300, animation: 'spin 3s linear infinite', transformOrigin: 'center' }}>⟳</span>
+        <span style={{ fontSize: 24, color: 'var(--accent)', display: 'inline-block', lineHeight: 1, fontWeight: 300, animation: 'spin 8s linear infinite', transformOrigin: 'center' }}>⟳</span>
         <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: '4px', color: 'white' }}>
           FOCUSOS
         </span>

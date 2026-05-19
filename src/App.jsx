@@ -70,7 +70,7 @@ function LegalShell({ children }) {
           <span style={{
             fontSize: 24, color: 'var(--accent)',
             display: 'inline-block',
-            animation: 'spin 3s linear infinite',
+            animation: 'spin 8s linear infinite',
             lineHeight: 1, fontWeight: 300,
           }}>⟳</span>
           <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: '4px', color: 'white' }}>FOCUSOS</span>
