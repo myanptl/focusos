@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300..700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
   --lime: #b5f23a;
@@ -28,10 +28,12 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Outfit', sans-serif;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
+
+h1, h2, h3 { text-wrap: balance; }
 
 #root { min-height: 100vh; display: flex; flex-direction: column; }
 
@@ -93,7 +95,7 @@ body {
   border: 1px solid rgba(255,255,255,0.09);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 6px 28px rgba(0,0,0,0.32);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 6px 28px rgba(0,0,0,0.22), 0 0 0 0 rgba(181,242,58,0);
   position: relative;
   z-index: 1;
 }
@@ -116,7 +118,7 @@ body {
 
 .btn {
   border: none; border-radius: 10px; padding: 10px 20px;
-  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+  font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600;
   cursor: pointer; transition: transform 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out), background 0.15s ease;
   display: inline-flex; align-items: center; gap: 8px;
 }
@@ -127,8 +129,8 @@ body {
   font-weight: 700;
 }
 .btn-accent:hover:not(:disabled) {
-  transform: scale(1.025);
-  box-shadow: 0 0 36px rgba(181,242,58,0.5), 0 4px 20px rgba(181,242,58,0.28);
+  transform: translateY(-1px) scale(1.015);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.25) inset, 0 4px 16px rgba(181,242,58,0.16);
   background: linear-gradient(135deg, #d6ff4a 0%, #c2f844 45%, #aadf32 100%);
 }
 .btn-ghost {
@@ -150,7 +152,7 @@ body {
 input, textarea, select {
   background: var(--card2); border: 1px solid var(--border);
   border-radius: 8px; color: var(--text);
-  font-family: 'DM Sans', sans-serif; font-size: 14px;
+  font-family: 'Outfit', sans-serif; font-size: 14px;
   padding: 10px 14px; outline: none;
   transition: border-color 0.15s; width: 100%;
   resize: none;
@@ -466,44 +468,99 @@ nav, header { position: relative; z-index: 10; }
 .l-btn-primary {
   background: #b5f23a; color: #0a0a0b;
   border: none; border-radius: 10px;
-  padding: 14px 32px; font-size: 16px; font-weight: 700;
-  cursor: pointer; font-family: 'DM Sans', sans-serif;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 32px; font-size: 15px; font-weight: 700;
+  cursor: pointer; font-family: 'Outfit', sans-serif;
+  transition: transform 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out), background 0.15s ease;
+  display: inline-flex; align-items: center; gap: 10px;
   white-space: nowrap;
-  animation: glowPulse 2.5s ease-in-out infinite;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset, 0 2px 8px rgba(181,242,58,0.1);
 }
 .l-btn-primary:hover {
-  transform: scale(1.025);
-  box-shadow: 0 0 44px rgba(181,242,58,0.6), 0 4px 20px rgba(181,242,58,0.3);
-  animation-play-state: paused;
+  transform: translateY(-1px);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset, 0 6px 18px rgba(181,242,58,0.15);
+  background: #c4ff44;
+}
+.l-btn-primary:active {
+  transform: translateY(0px) scale(0.98);
+  transition: transform 0.1s var(--ease-out);
 }
 .l-btn-outline {
-  background: transparent; color: #f0f0f2;
-  border: 1px solid rgba(255,255,255,0.18); border-radius: 10px;
-  padding: 14px 32px; font-size: 16px; font-weight: 600;
-  cursor: pointer; font-family: 'DM Sans', sans-serif;
-  transition: border-color 0.15s, background 0.15s;
+  background: rgba(255,255,255,0.04); color: #f0f0f2;
+  border: 1px solid rgba(255,255,255,0.14); border-radius: 10px;
+  padding: 14px 32px; font-size: 15px; font-weight: 600;
+  cursor: pointer; font-family: 'Outfit', sans-serif;
+  transition: border-color 0.22s var(--ease-out), background 0.22s var(--ease-out), transform 0.22s var(--ease-out);
   white-space: nowrap;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset;
 }
 .l-btn-outline:hover {
-  border-color: rgba(255,255,255,0.45);
-  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.28);
+  background: rgba(255,255,255,0.07);
+  transform: translateY(-1px);
+}
+.l-btn-outline:active {
+  transform: translateY(0) scale(0.98);
+  transition: transform 0.1s var(--ease-out);
 }
 .l-btn-outline-sm {
-  background: transparent; color: #f0f0f2;
-  border: 1px solid rgba(255,255,255,0.18); border-radius: 8px;
-  padding: 8px 20px; font-size: 14px; font-weight: 600;
-  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  background: rgba(255,255,255,0.04); color: #f0f0f2;
+  border: 1px solid rgba(255,255,255,0.12); border-radius: 40px;
+  padding: 8px 18px; font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: 'Outfit', sans-serif;
   transition: border-color 0.15s, background 0.15s;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset;
 }
 .l-btn-outline-sm:hover {
-  border-color: rgba(255,255,255,0.45);
-  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.28);
+  background: rgba(255,255,255,0.07);
 }
 .l-footer-link { color: var(--muted); text-decoration: none; transition: color 0.15s; }
 .l-footer-link:hover { color: #b5f23a; }
 
 @media (max-width: 600px) {
   .l-btn-primary, .l-btn-outline { width: 100%; justify-content: center; }
+}
+
+/* ── Features bento grid ─────────────────────────────── */
+.features-bento {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 16px;
+}
+.features-bento-left {
+  grid-row: span 2;
+  height: 100%;
+}
+.features-bento-left > * { height: 100%; }
+.features-bento-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+@media (max-width: 768px) {
+  .features-bento {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+  .features-bento-left {
+    grid-row: span 1;
+    height: auto;
+  }
+  .features-bento-left > * { height: auto; }
+}
+
+/* ── Page title upgrade ──────────────────────────────── */
+.page-title {
+  font-size: clamp(22px, 2.4vw, 32px) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.025em !important;
+  color: var(--text) !important;
+  line-height: 1.15 !important;
+  text-wrap: balance;
+}
+
+/* ── Stat card shadow upgrade ────────────────────────── */
+.stat-card {
+  box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 20px rgba(0,0,0,0.18) !important;
 }
