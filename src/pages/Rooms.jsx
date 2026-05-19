@@ -440,7 +440,7 @@ export default function Rooms() {
                       onClick={() => setIsPublic(opt.val)}
                       style={{
                         flex: 1, padding: '8px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
-                        fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600,
+                        fontFamily: "'Outfit', sans-serif", fontSize: 13, fontWeight: 600,
                         transition: 'all 0.15s',
                         background: isPublic === opt.val ? 'var(--accent)' : 'transparent',
                         color: isPublic === opt.val ? '#0a0a0b' : 'var(--muted)',

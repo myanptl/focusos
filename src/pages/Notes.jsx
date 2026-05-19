@@ -396,7 +396,7 @@ export default function Notes() {
                         display: 'block', width: '100%', padding: '8px 12px', borderRadius: 6,
                         background: 'transparent', border: 'none', color: 'var(--text)',
                         fontSize: 13, cursor: 'pointer', textAlign: 'left',
-                        fontFamily: "'DM Sans', sans-serif",
+                        fontFamily: "'Outfit', sans-serif",
                       }}
                         onMouseEnter={e => e.currentTarget.style.background = 'var(--card2)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -424,7 +424,7 @@ export default function Notes() {
                 style={{
                   fontSize: 28, fontWeight: 800, background: 'transparent', border: 'none',
                   outline: 'none', color: 'var(--text)', marginBottom: 18, padding: 0,
-                  fontFamily: "'DM Sans', sans-serif", width: '100%',
+                  fontFamily: "'Outfit', sans-serif", width: '100%',
                   letterSpacing: '-0.02em',
                 }}
               />
@@ -453,7 +453,7 @@ export default function Notes() {
                   style={{
                     flex: 1, background: 'transparent', border: 'none', outline: 'none',
                     resize: 'none', color: 'var(--text)', fontSize: 14, lineHeight: 1.75,
-                    fontFamily: "'DM Sans', sans-serif", minHeight: 360,
+                    fontFamily: "'Outfit', sans-serif", minHeight: 360,
                     padding: 0, width: '100%',
                   }}
                 />

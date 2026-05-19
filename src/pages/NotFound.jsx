@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import LogoIcon from '../components/LogoIcon'
 
 export default function NotFound() {
   const navigate = useNavigate()
@@ -8,12 +9,7 @@ export default function NotFound() {
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center', gap: 16,
     }}>
-      <span style={{
-        fontSize: 48, color: 'var(--accent)',
-        display: 'inline-block',
-        animation: 'spin-slow 8s linear infinite',
-        lineHeight: 1, fontWeight: 300,
-      }}>⟳</span>
+      <LogoIcon size={48} />
       <div style={{
         fontFamily: "'Bebas Neue', sans-serif",
         fontSize: 120, color: 'var(--accent)',
@@ -27,7 +23,7 @@ export default function NotFound() {
           marginTop: 8, background: 'var(--accent)', color: '#000',
           border: 'none', padding: '12px 28px', borderRadius: 8,
           fontWeight: 700, fontSize: 14, cursor: 'pointer',
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Outfit', sans-serif",
         }}
       >
         Go Home

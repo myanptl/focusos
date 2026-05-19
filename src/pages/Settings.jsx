@@ -371,7 +371,7 @@ export default function Settings() {
                             padding: '0 12px', height: '100%', background: 'none', border: 'none',
                             borderLeft: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer',
                             fontSize: 11, color: copiedCmd === 'ollama pull llama3.2' ? 'var(--accent)' : 'var(--muted)',
-                            fontFamily: "'DM Sans', sans-serif", fontWeight: 600, whiteSpace: 'nowrap',
+                            fontFamily: "'Outfit', sans-serif", fontWeight: 600, whiteSpace: 'nowrap',
                             transition: 'color 0.15s', minWidth: 48,
                           }}
                         >
@@ -397,7 +397,7 @@ export default function Settings() {
                             padding: '0 12px', height: '100%', background: 'none', border: 'none',
                             borderLeft: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer',
                             fontSize: 11, color: copiedCmd === 'ollama serve' ? 'var(--accent)' : 'var(--muted)',
-                            fontFamily: "'DM Sans', sans-serif", fontWeight: 600, whiteSpace: 'nowrap',
+                            fontFamily: "'Outfit', sans-serif", fontWeight: 600, whiteSpace: 'nowrap',
                             transition: 'color 0.15s', minWidth: 48,
                           }}
                         >

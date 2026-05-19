@@ -16,7 +16,7 @@ export default class ErrorBoundary extends Component {
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
           gap: 16, color: 'white',
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Outfit', sans-serif",
         }}>
           <AlertTriangle size={48} color="var(--amber, #f2c75a)" />
           <h2 style={{ fontSize: 24, fontWeight: 700 }}>Something went wrong</h2>
@@ -29,7 +29,7 @@ export default class ErrorBoundary extends Component {
               background: '#b5f23a', color: '#000', border: 'none',
               padding: '12px 24px', borderRadius: 8,
               fontWeight: 700, cursor: 'pointer', fontSize: 14,
-              fontFamily: "'DM Sans', sans-serif",
+              fontFamily: "'Outfit', sans-serif",
             }}
           >
             Return to Home

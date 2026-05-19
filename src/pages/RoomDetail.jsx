@@ -67,7 +67,7 @@ function CircularTimer({ secs, totalSecs }) {
         {timeStr}
       </text>
       <text x="120" y="134" textAnchor="middle"
-        fontFamily="'DM Sans', sans-serif" fontSize="11"
+        fontFamily="'Outfit', sans-serif" fontSize="11"
         fill="rgba(255,255,255,0.4)" letterSpacing="2">
         FOCUS
       </text>

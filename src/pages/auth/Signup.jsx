@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import { Mail } from 'lucide-react'
+import LogoIcon from '../../components/LogoIcon'
 
 function GoogleIcon() {
   return (
@@ -90,12 +91,7 @@ export default function Signup() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div style={{ width: '100%', maxWidth: 400 }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <span style={{
-            fontSize: 64, color: 'var(--accent)',
-            display: 'inline-block',
-            animation: 'spin-slow 8s linear infinite',
-            lineHeight: 1, fontWeight: 300, marginBottom: 12,
-          }}>⟳</span>
+          <LogoIcon size={64} style={{ marginBottom: 12 }} />
           <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: '6px', color: '#f0f0f2', marginBottom: 8 }}>
             FOCUSOS
           </div>
@@ -111,7 +107,7 @@ export default function Signup() {
             gap: 10, padding: '11px 16px', borderRadius: 8, cursor: 'pointer',
             background: '#ffffff', color: '#1f1f1f',
             border: '1px solid rgba(255,255,255,0.15)',
-            fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600,
+            fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 600,
             transition: 'background 0.15s',
             marginBottom: 16,
           }}

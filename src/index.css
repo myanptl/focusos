@@ -524,7 +524,7 @@ nav, header { position: relative; z-index: 10; }
 /* ── Features bento grid ─────────────────────────────── */
 .features-bento {
   display: grid;
-  grid-template-columns: 1.45fr 1fr;
+  grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   gap: 16px;
 }

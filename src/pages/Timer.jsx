@@ -1116,7 +1116,7 @@ export default function Timer() {
                     border: `1px solid ${soundType === s.id ? 'var(--accent)' : 'var(--border)'}`,
                     background: soundType === s.id ? 'rgba(181,242,58,0.08)' : 'var(--card2)',
                     color: soundType === s.id ? 'var(--accent)' : 'var(--muted)',
-                    fontSize: 10, fontWeight: 600, fontFamily: "'DM Sans', sans-serif",
+                    fontSize: 10, fontWeight: 600, fontFamily: "'Outfit', sans-serif",
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
                     transition: 'all 0.15s',
                   }}>
@@ -1199,7 +1199,7 @@ export default function Timer() {
                         padding: '7px 10px', borderRadius: 8, cursor: 'pointer',
                         background: 'rgba(30,215,96,0.06)', border: '1px solid rgba(30,215,96,0.2)',
                         color: '#1ed760', fontSize: 12, fontWeight: 600,
-                        fontFamily: "'DM Sans', sans-serif", transition: 'background 0.15s',
+                        fontFamily: "'Outfit', sans-serif", transition: 'background 0.15s',
                       }}
                       onMouseEnter={e => e.currentTarget.style.background = 'rgba(30,215,96,0.12)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'rgba(30,215,96,0.06)'}
@@ -1242,7 +1242,7 @@ export default function Timer() {
                   <button onClick={nextTip} style={{
                     background: 'none', border: 'none', cursor: 'pointer',
                     fontSize: 12, color: '#9494a0',
-                    fontFamily: "'DM Sans', sans-serif", padding: 0,
+                    fontFamily: "'Outfit', sans-serif", padding: 0,
                     transition: 'color 0.15s',
                   }}
                     onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
@@ -1343,7 +1343,7 @@ export default function Timer() {
           <button onClick={() => setShortcutsOpen(true)} style={{
             background: 'transparent', border: '1px solid var(--border)', borderRadius: 8,
             color: 'var(--muted)', fontSize: 12, cursor: 'pointer', padding: '8px 12px',
-            fontFamily: "'DM Sans', sans-serif", textAlign: 'left',
+            fontFamily: "'Outfit', sans-serif", textAlign: 'left',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <span>⌨ Keyboard shortcuts</span>
@@ -1385,7 +1385,7 @@ export default function Timer() {
             {liveNote && (
               <button onClick={() => setLiveNote('')} style={{
                 background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 11,
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: "'Outfit', sans-serif",
               }}>Clear</button>
             )}
           </div>

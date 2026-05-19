@@ -1030,7 +1030,7 @@ export default function Quiz() {
                       flex: 1, padding: '14px 0', fontSize: 14, fontWeight: 700,
                       background: 'rgba(242,90,90,0.08)', border: '1px solid rgba(242,90,90,0.3)',
                       color: 'var(--red)', borderRadius: 10, cursor: 'pointer',
-                      fontFamily: "'DM Sans', sans-serif",
+                      fontFamily: "'Outfit', sans-serif",
                     }}
                   ><RotateCcw size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Review Again</button>
                   <button
@@ -1039,7 +1039,7 @@ export default function Quiz() {
                       flex: 1, padding: '14px 0', fontSize: 14, fontWeight: 700,
                       background: 'rgba(181,242,58,0.1)', border: '1px solid rgba(181,242,58,0.3)',
                       color: 'var(--accent)', borderRadius: 10, cursor: 'pointer',
-                      fontFamily: "'DM Sans', sans-serif",
+                      fontFamily: "'Outfit', sans-serif",
                     }}
                   ><CheckCircle size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Got It</button>
                 </div>
