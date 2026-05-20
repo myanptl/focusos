@@ -68,7 +68,7 @@ export default function Nav() {
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <span style={{
-            fontSize: 21, color: 'var(--accent)', display: 'inline-block',
+            fontSize: 24, color: 'var(--accent)', display: 'inline-block',
             lineHeight: 1, fontWeight: 300, animation: 'spin 8s linear infinite',
             transformOrigin: 'center',
           }}>⟳</span>

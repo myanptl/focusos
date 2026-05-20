@@ -684,7 +684,7 @@ export default function Landing() {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{
-                  fontSize: 22, color: '#b5f23a',
+                  fontSize: 24, color: '#b5f23a',
                   display: 'inline-block', lineHeight: 1, fontWeight: 300,
                   animation: 'spin 8s linear infinite', transformOrigin: 'center',
                 }}>⟳</span>
