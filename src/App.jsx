@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Nav from './components/Nav'
 import Footer from './components/Footer'
 import AppBackground from './components/AppBackground'
-import Landing from './pages/Landing'
+import Landing from './pages/LandingV2'
 import Login from './pages/auth/Login'
 import Signup from './pages/auth/Signup'
 import ResetPassword from './pages/ResetPassword'
@@ -127,6 +127,7 @@ function AppRoutes() {
 
       <Route path="/timer"    element={<ProtectedRoute><ErrorBoundary><AppShell><Timer /></AppShell></ErrorBoundary></ProtectedRoute>} />
       <Route path="/quiz"     element={<ProtectedRoute><ErrorBoundary><AppShell><Quiz /></AppShell></ErrorBoundary></ProtectedRoute>} />
+
       <Route path="/goals"    element={<ProtectedRoute><ErrorBoundary><AppShell><Goals /></AppShell></ErrorBoundary></ProtectedRoute>} />
       <Route path="/streak"   element={<ProtectedRoute><ErrorBoundary><AppShell><Streak /></AppShell></ErrorBoundary></ProtectedRoute>} />
       <Route path="/progress" element={<ProtectedRoute><ErrorBoundary><AppShell><Progress /></AppShell></ErrorBoundary></ProtectedRoute>} />

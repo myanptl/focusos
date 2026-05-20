@@ -519,7 +519,7 @@ export default function Quiz() {
 
       {/* ─── LEFT: Setup ─────────────────────────────────── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--accent)' }}>Active Recall Quiz</h1>
+        <h1 className="page-title"><span className="page-title-accent">Active Recall</span> Quiz</h1>
 
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 16px' }}>
           {/* Source toggle */}
