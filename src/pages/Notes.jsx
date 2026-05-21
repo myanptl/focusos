@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
-import { X, FlaskConical, Scroll, BookOpen, Calculator, Pencil, FileText, Brain, BarChart2, Download, Eye, Edit2, Check, Trash2 } from 'lucide-react'
+import {
+  X, FlaskConical, Scroll, BookOpen, Calculator, Pencil,
+  FileText, Brain, BarChart2, Download, Eye, Edit2, Check,
+  Trash2, Search, Plus,
+} from 'lucide-react'
 
 const SUBJECTS = ['Science', 'History', 'English', 'Math', 'Other']
 const SUBJECT_COLORS = {
@@ -11,7 +15,8 @@ const SUBJECT_COLORS = {
   Math: '#a78bfa', Other: '#9494a0',
 }
 const SUBJECT_ICONS = {
-  Science: FlaskConical, History: Scroll, English: BookOpen, Math: Calculator, Other: Pencil,
+  Science: FlaskConical, History: Scroll, English: BookOpen,
+  Math: Calculator, Other: Pencil,
 }
 
 function relativeDate(ts) {
@@ -40,17 +45,15 @@ export default function Notes() {
   const [summaryPanel,   setSummaryPanel]   = useState(null)
   const [summaryLoading, setSummaryLoading] = useState(false)
   const [previewMode,    setPreviewMode]    = useState(false)
+  const [searchFocused,  setSearchFocused]  = useState(false)
 
   const textareaRef = useRef(null)
   const timerRef    = useRef(null)
 
-  // ── Load notes ───────────────────────────────────────────
   useEffect(() => {
     const loadNotes = async () => {
       const { data } = await supabase
-        .from('notes')
-        .select('*')
-        .eq('user_id', user.id)
+        .from('notes').select('*').eq('user_id', user.id)
         .order('updated_at', { ascending: false })
       setNotes(data || [])
       setListLoading(false)
@@ -58,7 +61,6 @@ export default function Notes() {
     if (user) loadNotes()
   }, [user])
 
-  // ── Debounced save ───────────────────────────────────────
   const debouncedSave = (note) => {
     clearTimeout(timerRef.current)
     setSaveStatus('unsaved')
@@ -66,10 +68,8 @@ export default function Notes() {
       setSaveStatus('saving')
       const now = new Date().toISOString()
       await supabase.from('notes').update({
-        title:      note.title,
-        content:    note.content,
-        subject:    note.subject,
-        word_count: note.word_count,
+        title: note.title, content: note.content,
+        subject: note.subject, word_count: note.word_count,
         updated_at: now,
       }).eq('id', note.id)
       setNotes(prev => prev.map(n =>
@@ -79,17 +79,12 @@ export default function Notes() {
     }, 3000)
   }
 
-  // ── Create note ──────────────────────────────────────────
   const handleNewNote = async () => {
     const newNote = {
-      id:         crypto.randomUUID(),
-      title:      'Untitled Note',
-      content:    '',
-      subject:    'Other',
-      word_count: 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      user_id:    user.id,
+      id: crypto.randomUUID(), title: 'Untitled Note', content: '',
+      subject: 'Other', word_count: 0,
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      user_id: user.id,
     }
     const { data } = await supabase.from('notes').insert(newNote).select().single()
     const saved = data || newNote
@@ -99,7 +94,6 @@ export default function Notes() {
     setSummaryPanel(null)
   }
 
-  // ── Open note ────────────────────────────────────────────
   const openNote = (note) => {
     clearTimeout(timerRef.current)
     setSelectedNote(note)
@@ -107,7 +101,6 @@ export default function Notes() {
     setSummaryPanel(null)
   }
 
-  // ── Delete note ──────────────────────────────────────────
   const deleteNote = async (note, e) => {
     e?.stopPropagation()
     await supabase.from('notes').delete().eq('id', note.id)
@@ -116,7 +109,6 @@ export default function Notes() {
     toast('Note deleted', 'info')
   }
 
-  // ── Cursor insertion ─────────────────────────────────────
   const insertAtCursor = (before, after = '') => {
     const ta = textareaRef.current
     if (!ta || !selectedNote) return
@@ -137,11 +129,8 @@ export default function Notes() {
 
   function escapeHTML(str) {
     return str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
   }
 
   function renderMarkdown(text) {
@@ -152,11 +141,9 @@ export default function Notes() {
       .replace(/\*\*(.*?)\*\*/g, '<strong style="color:white;font-weight:700">$1</strong>')
       .replace(/\*(.*?)\*/g, '<em style="color:#c0c0cc">$1</em>')
       .replace(/^- (.*)/gm, '<li style="margin:4px 0 4px 16px;color:#f0f0f2;list-style:disc">$1</li>')
-      .replace(/\n\n/g, '<br/><br/>')
-      .replace(/\n/g, '<br/>')
+      .replace(/\n\n/g, '<br/><br/>').replace(/\n/g, '<br/>')
   }
 
-  // ── Summarize ────────────────────────────────────────────
   const handleSummarize = async () => {
     if (!selectedNote?.content?.trim()) return
     setSummaryLoading(true)
@@ -164,13 +151,10 @@ export default function Notes() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
-      const res  = await fetch('/api/summarize-note', {
-        method:  'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body:    JSON.stringify({ text: selectedNote.content, subject: selectedNote.subject }),
+      const res   = await fetch('/api/summarize-note', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body:   JSON.stringify({ text: selectedNote.content, subject: selectedNote.subject }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Summarization failed.')
@@ -182,227 +166,347 @@ export default function Notes() {
     }
   }
 
-  // ── Export ───────────────────────────────────────────────
   const exportAs = (format) => {
     setExportOpen(false)
     if (!selectedNote) return
     const formatted = `# ${selectedNote.title || 'Untitled Note'}\nSubject: ${selectedNote.subject}\n\n${selectedNote.content}`
-    if (format === 'copy-plain') {
-      navigator.clipboard.writeText(selectedNote.content)
-      toast('Copied to clipboard!', 'success')
-      return
-    }
-    if (format === 'copy-formatted') {
-      navigator.clipboard.writeText(formatted)
-      toast('Copied formatted text!', 'success')
-      return
-    }
+    if (format === 'copy-plain')     { navigator.clipboard.writeText(selectedNote.content); toast('Copied!', 'success'); return }
+    if (format === 'copy-formatted') { navigator.clipboard.writeText(formatted); toast('Copied formatted!', 'success'); return }
     const ext  = format === 'md' ? '.md' : '.txt'
     const blob = new Blob([formatted], { type: 'text/plain' })
     const url  = URL.createObjectURL(blob)
     const a    = document.createElement('a')
-    a.href     = url
-    a.download = `${selectedNote.title || 'note'}${ext}`
-    a.click()
+    a.href = url; a.download = `${selectedNote.title || 'note'}${ext}`; a.click()
     setTimeout(() => URL.revokeObjectURL(url), 100)
   }
 
-  // ── Derived ──────────────────────────────────────────────
-  const filtered   = notes.filter(n => {
+  const filtered  = notes.filter(n => {
     if (!search.trim()) return true
     const q = search.toLowerCase()
     return n.title?.toLowerCase().includes(q) || n.content?.toLowerCase().includes(q)
   })
-  const wordCount  = selectedNote?.content?.trim().split(/\s+/).filter(Boolean).length || 0
+  const wordCount = selectedNote?.content?.trim().split(/\s+/).filter(Boolean).length || 0
 
-  // ── Render ───────────────────────────────────────────────
+  const toolbarButtons = [
+    { label: 'B',  title: 'Bold',    action: () => insertAtCursor('**', '**'), mono: true,   fw: 700 },
+    { label: 'I',  title: 'Italic',  action: () => insertAtCursor('*', '*'),   mono: true,   italic: true },
+    { label: 'H',  title: 'Heading', action: () => insertAtCursor('## '),      mono: true,   fw: 700 },
+    { label: '—',  title: 'Divider', action: () => insertAtCursor('\n---\n'),  mono: true },
+    { label: '•',  title: 'Bullet',  action: () => insertAtCursor('- '),       mono: false,  fs: 20 },
+  ]
+
   return (
-    <div
-      className="page-fade"
-      style={{ display: 'flex', margin: '-28px -24px', height: 'calc(100vh - 60px)', overflow: 'hidden' }}
-    >
-      {/* ── LEFT PANEL ── */}
-      <div style={{
-        width: 280, flexShrink: 0,
-        borderRight: '1px solid var(--border)',
-        background: 'var(--card)',
+    <div className="page-fade" style={{
+      display: 'flex', margin: '-28px -24px',
+      height: 'calc(100vh - 60px)', overflow: 'hidden', position: 'relative',
+    }}>
+
+      {/* ── LEFT SIDEBAR ─────────────────────────────────────── */}
+      <div className="notes-sidebar" style={{
+        width: 290, flexShrink: 0,
+        background: 'rgba(10,10,11,0.88)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        borderRight: '1px solid rgba(181,242,58,0.1)',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
-      }} className="notes-sidebar">
-        <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid var(--border)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <div className="bebas" style={{ fontSize: 20, letterSpacing: 3, color: 'var(--accent)' }}>STUDY NOTES</div>
-            <button className="btn btn-accent btn-sm" onClick={handleNewNote} style={{ fontSize: 12, padding: '4px 10px' }}>
-              + New
-            </button>
+      }}>
+
+        {/* Header */}
+        <div style={{ padding: '22px 16px 14px' }}>
+          <div className="bebas" style={{
+            fontSize: 30, letterSpacing: 4, color: 'var(--accent)',
+            marginBottom: 16, lineHeight: 1,
+          }}>NOTES</div>
+
+          {/* Search */}
+          <div style={{
+            position: 'relative', marginBottom: 12,
+            background: 'rgba(255,255,255,0.04)',
+            border: searchFocused
+              ? '1px solid rgba(181,242,58,0.45)'
+              : '1px solid rgba(255,255,255,0.07)',
+            borderRadius: 10,
+            transition: 'border-color 0.15s, box-shadow 0.15s',
+            boxShadow: searchFocused ? '0 0 0 3px rgba(181,242,58,0.09)' : 'none',
+          }}>
+            <Search size={13} color="var(--muted)" style={{
+              position: 'absolute', left: 10, top: '50%',
+              transform: 'translateY(-50%)', pointerEvents: 'none',
+            }} />
+            <input
+              placeholder="Search notes..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
+              style={{
+                width: '100%', fontSize: 13, padding: '8px 10px 8px 30px',
+                background: 'transparent', border: 'none', outline: 'none',
+                color: 'var(--text)', boxSizing: 'border-box',
+              }}
+            />
           </div>
-          <input
-            placeholder="Search notes..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{ width: '100%', fontSize: 13, padding: '7px 10px', boxSizing: 'border-box' }}
-          />
+
+          {/* New Note */}
+          <button onClick={handleNewNote} style={{
+            width: '100%', padding: '10px 16px', borderRadius: 10,
+            background: 'var(--accent)', border: 'none',
+            color: '#0a0a0b', fontSize: 13, fontWeight: 800,
+            cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', gap: 6,
+            fontFamily: "'Outfit', sans-serif", letterSpacing: '0.02em',
+            transition: 'opacity 0.15s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+          >
+            <Plus size={14} />New Note
+          </button>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '6px' }}>
+        <div style={{ height: 1, background: 'rgba(255,255,255,0.05)' }} />
+
+        {/* Note list */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '6px 10px 12px' }}>
           {listLoading ? (
-            <div style={{ padding: 20, textAlign: 'center' }}>
+            <div style={{ padding: 28, textAlign: 'center' }}>
               <span className="spinner" style={{ width: 20, height: 20 }} />
             </div>
           ) : filtered.length === 0 ? (
-            <div style={{ padding: '32px 16px', textAlign: 'center' }}>
+            <div style={{ padding: '36px 16px', textAlign: 'center' }}>
               {notes.length === 0 ? (
                 <>
-                  <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}><FileText size={40} color="var(--muted)" /></div>
+                  <FileText size={36} color="rgba(181,242,58,0.3)" style={{ marginBottom: 14 }} />
                   <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>No notes yet</div>
-                  <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 14, lineHeight: 1.5 }}>
-                    Create your first note to get started
+                  <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.55 }}>
+                    Hit New Note to start writing
                   </div>
-                  <button className="btn btn-accent btn-sm" onClick={handleNewNote}>New Note</button>
                 </>
               ) : (
-                <div style={{ fontSize: 13, color: 'var(--muted)' }}>No notes match "{search}"</div>
+                <div style={{ fontSize: 13, color: 'var(--muted)' }}>
+                  No results for "{search}"
+                </div>
               )}
             </div>
-          ) : filtered.map(note => (
-            <div
-              key={note.id}
-              onClick={() => openNote(note)}
-              style={{
-                padding: '10px 10px', borderRadius: 8, cursor: 'pointer', marginBottom: 3,
-                background: selectedNote?.id === note.id ? 'rgba(181,242,58,0.08)' : 'transparent',
-                border: `1px solid ${selectedNote?.id === note.id ? 'rgba(181,242,58,0.25)' : 'transparent'}`,
-                transition: 'all 0.12s',
-              }}
-              onMouseEnter={e => { if (selectedNote?.id !== note.id) e.currentTarget.style.background = 'var(--card2)' }}
-              onMouseLeave={e => { if (selectedNote?.id !== note.id) e.currentTarget.style.background = 'transparent' }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-                <span style={{
-                  fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 10,
-                  background: `${SUBJECT_COLORS[note.subject] || '#9494a0'}22`,
-                  color: SUBJECT_COLORS[note.subject] || '#9494a0',
-                  border: `1px solid ${SUBJECT_COLORS[note.subject] || '#9494a0'}44`,
+          ) : filtered.map(note => {
+            const isActive  = selectedNote?.id === note.id
+            const subColor  = SUBJECT_COLORS[note.subject] || '#9494a0'
+            const SubIcon   = SUBJECT_ICONS[note.subject] || Pencil
+            return (
+              <div
+                key={note.id}
+                onClick={() => openNote(note)}
+                style={{
+                  padding: '11px 12px', borderRadius: 10, cursor: 'pointer', marginBottom: 4,
+                  background: isActive
+                    ? 'rgba(181,242,58,0.07)'
+                    : 'rgba(255,255,255,0.025)',
+                  border: `1px solid ${isActive ? 'rgba(181,242,58,0.22)' : 'rgba(255,255,255,0.06)'}`,
+                  transition: 'all 0.13s',
+                  boxShadow: isActive ? '0 0 18px rgba(181,242,58,0.06)' : 'none',
+                }}
+                onMouseEnter={e => {
+                  if (!isActive) {
+                    e.currentTarget.style.background = 'rgba(181,242,58,0.04)'
+                    e.currentTarget.style.borderColor = 'rgba(181,242,58,0.15)'
+                    e.currentTarget.style.boxShadow = '0 0 14px rgba(181,242,58,0.04)'
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!isActive) {
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.025)'
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'
+                    e.currentTarget.style.boxShadow = 'none'
+                  }
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <span style={{
+                    fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 10,
+                    background: `${subColor}18`, color: subColor,
+                    border: `1px solid ${subColor}33`,
+                    display: 'inline-flex', alignItems: 'center', gap: 3,
+                  }}>
+                    <SubIcon size={9} />{note.subject || 'Other'}
+                  </span>
+                  <button
+                    onClick={e => deleteNote(note, e)}
+                    style={{
+                      background: 'none', border: 'none', color: 'transparent',
+                      cursor: 'pointer', padding: '0 2px', display: 'flex',
+                      transition: 'color 0.12s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.color = 'var(--red)'}
+                    onMouseLeave={e => e.currentTarget.style.color = 'transparent'}
+                  ><X size={12} /></button>
+                </div>
+                <div style={{
+                  fontSize: 13, fontWeight: 600, marginBottom: 3, lineHeight: 1.35,
+                  color: isActive ? 'var(--text)' : 'rgba(240,240,242,0.85)',
                 }}>
-                  {(() => { const SI = SUBJECT_ICONS[note.subject] || Pencil; return <SI size={10} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} /> })()} {note.subject || 'Other'}
-                </span>
-                <button
-                  onClick={e => deleteNote(note, e)}
-                  style={{
-                    background: 'none', border: 'none', color: 'transparent',
-                    cursor: 'pointer', padding: '0 2px', display: 'flex',
-                    transition: 'color 0.15s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--red)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'transparent'}
-                ><X size={13} /></button>
+                  {note.title || 'Untitled Note'}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 5, lineHeight: 1.4 }}>
+                  {(note.content || '').slice(0, 55)}{(note.content || '').length > 55 ? '…' : ''}
+                </div>
+                <div style={{ fontSize: 10, color: 'rgba(148,148,160,0.4)' }}>
+                  {relativeDate(note.updated_at)}
+                </div>
               </div>
-              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3, lineHeight: 1.3 }}>
-                {note.title || 'Untitled Note'}
-              </div>
-              <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 5, lineHeight: 1.4 }}>
-                {(note.content || '').slice(0, 60)}{(note.content || '').length > 60 ? '…' : ''}
-              </div>
-              <div style={{ fontSize: 10, color: 'rgba(148,148,160,0.5)' }}>
-                {relativeDate(note.updated_at)}
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
 
-      {/* ── RIGHT PANEL ── */}
+      {/* ── RIGHT PANEL ──────────────────────────────────────── */}
       {selectedNote ? (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
 
-          {/* Subject bar + save status */}
+          {/* Grain texture overlay */}
           <div style={{
-            padding: '8px 20px', borderBottom: '1px solid var(--border)',
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8,
+            position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, opacity: 0.022,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='512' height='512' filter='url(%23n)'/%3E%3C/svg%3E")`,
+            backgroundRepeat: 'repeat', backgroundSize: '200px 200px',
+          }} />
+
+          {/* Subject pill bar */}
+          <div style={{
+            padding: '9px 28px', borderBottom: '1px solid rgba(181,242,58,0.07)',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            flexWrap: 'wrap', gap: 8, position: 'relative', zIndex: 1,
+            background: 'rgba(10,10,11,0.65)', backdropFilter: 'blur(14px)',
+            WebkitBackdropFilter: 'blur(14px)',
           }}>
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-              {SUBJECTS.map(s => (
-                <button key={s} onClick={() => {
-                  const updated = { ...selectedNote, subject: s }
-                  setSelectedNote(updated)
-                  debouncedSave(updated)
-                }} style={{
-                  fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 12, cursor: 'pointer',
-                  background: selectedNote.subject === s ? `${SUBJECT_COLORS[s]}22` : 'transparent',
-                  border: `1px solid ${selectedNote.subject === s ? SUBJECT_COLORS[s] : 'var(--border)'}`,
-                  color: selectedNote.subject === s ? SUBJECT_COLORS[s] : 'var(--muted)',
-                  transition: 'all 0.12s',
-                }}>
-                  {(() => { const SI = SUBJECT_ICONS[s] || Pencil; return <SI size={10} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} /> })()} {s}
-                </button>
-              ))}
+              {SUBJECTS.map(s => {
+                const sc     = SUBJECT_COLORS[s]
+                const SI     = SUBJECT_ICONS[s] || Pencil
+                const active = selectedNote.subject === s
+                return (
+                  <button key={s} onClick={() => {
+                    const updated = { ...selectedNote, subject: s }
+                    setSelectedNote(updated)
+                    debouncedSave(updated)
+                  }} style={{
+                    fontSize: 11, fontWeight: 600, padding: '4px 11px',
+                    borderRadius: 20, cursor: 'pointer',
+                    background: active ? `${sc}1a` : 'rgba(255,255,255,0.04)',
+                    border: `1px solid ${active ? sc + '44' : 'rgba(255,255,255,0.07)'}`,
+                    color: active ? sc : 'var(--muted)',
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                    transition: 'all 0.12s', fontFamily: "'Outfit', sans-serif",
+                  }}>
+                    <SI size={10} />{s}
+                  </button>
+                )
+              })}
             </div>
             <div style={{
               fontSize: 11,
-              color: saveStatus === 'saved' ? 'var(--muted)' : 'var(--amber)',
+              color: saveStatus === 'saved' ? 'rgba(148,148,160,0.6)' : 'var(--amber)',
+              display: 'flex', alignItems: 'center', gap: 4,
             }}>
-              {saveStatus === 'saving' ? <><span className="spinner" style={{ width: 11, height: 11, display: 'inline-block', verticalAlign: 'middle', marginRight: 4 }} />Saving...</> : saveStatus === 'unsaved' ? '● Unsaved' : <><Check size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} />Saved</>}
+              {saveStatus === 'saving'
+                ? <><span className="spinner" style={{ width: 10, height: 10 }} />Saving</>
+                : saveStatus === 'unsaved'
+                ? <>● Unsaved</>
+                : <><Check size={10} />Saved</>}
             </div>
           </div>
 
-          {/* Toolbar */}
+          {/* Formatting toolbar */}
           <div style={{
-            padding: '7px 20px', borderBottom: '1px solid var(--border)',
-            display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap',
+            padding: '6px 28px', borderBottom: '1px solid rgba(255,255,255,0.04)',
+            display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap',
+            background: 'rgba(10,10,11,0.45)', position: 'relative', zIndex: 1,
           }}>
-            <button className="btn btn-ghost btn-sm"
+            {toolbarButtons.map(btn => (
+              <button key={btn.label} onClick={btn.action} title={btn.title} style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.07)',
+                borderRadius: 7, width: 28, height: 28,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'var(--muted)', cursor: 'pointer',
+                fontSize: btn.fs || 12,
+                fontStyle: btn.italic ? 'italic' : 'normal',
+                fontWeight: btn.fw || 400,
+                fontFamily: btn.mono ? "'JetBrains Mono', monospace" : "'Outfit', sans-serif",
+                transition: 'all 0.12s',
+              }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'rgba(181,242,58,0.09)'
+                  e.currentTarget.style.color = 'var(--accent)'
+                  e.currentTarget.style.borderColor = 'rgba(181,242,58,0.22)'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                  e.currentTarget.style.color = 'var(--muted)'
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'
+                }}
+              >
+                {btn.label}
+              </button>
+            ))}
+
+            <div style={{ width: 1, height: 18, background: 'rgba(255,255,255,0.07)', margin: '0 4px' }} />
+
+            <button
+              className="btn btn-ghost btn-sm"
               onClick={() => navigate('/quiz', { state: { prefillNotes: selectedNote.content, prefillSubject: selectedNote.subject } })}
-              disabled={!selectedNote.content?.trim()} style={{ fontSize: 12 }}>
-              <Brain size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Generate Quiz
+              disabled={!selectedNote.content?.trim()}
+              style={{ fontSize: 12 }}
+            >
+              <Brain size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
+              Quiz
             </button>
-            <button className="btn btn-ghost btn-sm" onClick={handleSummarize}
-              disabled={summaryLoading || !selectedNote.content?.trim()} style={{ fontSize: 12 }}>
-              {summaryLoading
-                ? <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span className="spinner" style={{ width: 12, height: 12 }} /> Summarizing...</span>
-                : <><BarChart2 size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Summarize</>}
-            </button>
+
             <button className="btn btn-ghost btn-sm" onClick={() => setPreviewMode(m => !m)} style={{ fontSize: 12 }}>
-              {previewMode ? <><Edit2 size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Edit</> : <><Eye size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Preview</>}
+              {previewMode
+                ? <><Edit2 size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Edit</>
+                : <><Eye size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Preview</>}
             </button>
 
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 6, alignItems: 'center', position: 'relative' }}>
               <button
                 className="btn btn-ghost btn-sm"
                 onClick={() => deleteNote(selectedNote)}
-                title="Delete note"
                 style={{ fontSize: 13, color: 'var(--muted)', transition: 'color 0.15s' }}
                 onMouseEnter={e => e.currentTarget.style.color = 'var(--red)'}
                 onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
-              ><Trash2 size={13} /></button>
+              >
+                <Trash2 size={13} />
+              </button>
 
               <button className="btn btn-ghost btn-sm" onClick={() => setExportOpen(o => !o)} style={{ fontSize: 12 }}>
-                <Download size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }} />Export
+                <Download size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Export
               </button>
+
               {exportOpen && (
                 <>
                   <div style={{ position: 'fixed', inset: 0, zIndex: 98 }} onClick={() => setExportOpen(false)} />
                   <div style={{
                     position: 'absolute', top: 36, right: 0, zIndex: 99,
-                    background: 'var(--card)', border: '1px solid var(--border)',
-                    borderRadius: 10, padding: 6, minWidth: 190,
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                    background: 'rgba(14,14,16,0.96)', backdropFilter: 'blur(18px)',
+                    WebkitBackdropFilter: 'blur(18px)',
+                    border: '1px solid rgba(255,255,255,0.09)',
+                    borderRadius: 12, padding: 6, minWidth: 190,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
                   }}>
                     {[
                       { id: 'copy-plain',     label: 'Copy as Text' },
-                      { id: 'copy-formatted', label: 'Copy formatted' },
-                      { id: 'txt',            label: 'Download as .txt' },
-                      { id: 'md',             label: 'Download as .md' },
+                      { id: 'copy-formatted', label: 'Copy Formatted' },
+                      { id: 'txt',            label: 'Download .txt' },
+                      { id: 'md',             label: 'Download .md' },
                     ].map(opt => (
                       <button key={opt.id} onClick={() => exportAs(opt.id)} style={{
-                        display: 'block', width: '100%', padding: '8px 12px', borderRadius: 6,
-                        background: 'transparent', border: 'none', color: 'var(--text)',
-                        fontSize: 13, cursor: 'pointer', textAlign: 'left',
-                        fontFamily: "'Outfit', sans-serif",
+                        display: 'block', width: '100%', padding: '8px 12px',
+                        borderRadius: 7, background: 'transparent', border: 'none',
+                        color: 'var(--text)', fontSize: 13, cursor: 'pointer',
+                        textAlign: 'left', fontFamily: "'Outfit', sans-serif",
                       }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'var(--card2)'}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                      >
-                        {opt.label}
-                      </button>
+                      >{opt.label}</button>
                     ))}
                   </div>
                 </>
@@ -411,7 +515,10 @@ export default function Notes() {
           </div>
 
           {/* Editor area */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px', display: 'flex', gap: 20, background: 'transparent' }}>
+          <div style={{
+            flex: 1, overflowY: 'auto', padding: '36px 44px 24px',
+            display: 'flex', gap: 26, position: 'relative', zIndex: 1,
+          }}>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <input
                 value={selectedNote.title || ''}
@@ -422,19 +529,18 @@ export default function Notes() {
                 }}
                 placeholder="Untitled Note"
                 style={{
-                  fontSize: 28, fontWeight: 800, background: 'transparent', border: 'none',
-                  outline: 'none', color: 'var(--text)', marginBottom: 18, padding: 0,
-                  fontFamily: "'Outfit', sans-serif", width: '100%',
-                  letterSpacing: '-0.02em',
+                  fontFamily: "'Bebas Neue', sans-serif",
+                  fontSize: 'clamp(32px, 4vw, 48px)',
+                  fontWeight: 400, letterSpacing: '0.04em',
+                  background: 'transparent', border: 'none', outline: 'none',
+                  color: 'var(--text)', marginBottom: 28, padding: 0,
+                  width: '100%', lineHeight: 1.05,
                 }}
               />
               {previewMode ? (
                 <div
                   dangerouslySetInnerHTML={{ __html: renderMarkdown(selectedNote.content) }}
-                  style={{
-                    flex: 1, minHeight: 360, fontSize: 14, lineHeight: 1.75,
-                    color: '#f0f0f2', padding: 0,
-                  }}
+                  style={{ flex: 1, minHeight: 360, fontSize: 15, lineHeight: 1.82, color: '#f0f0f2' }}
                 />
               ) : (
                 <textarea
@@ -449,76 +555,139 @@ export default function Notes() {
                     setSelectedNote(updated)
                     debouncedSave(updated)
                   }}
-                  placeholder="Start writing... Use ## for headers, **text** for bold, - for bullets"
+                  placeholder="Start writing...   ## Heading   **bold**   - bullet"
                   style={{
                     flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                    resize: 'none', color: 'var(--text)', fontSize: 14, lineHeight: 1.75,
-                    fontFamily: "'Outfit', sans-serif", minHeight: 360,
-                    padding: 0, width: '100%',
+                    resize: 'none', color: 'var(--text)', fontSize: 15, lineHeight: 1.82,
+                    fontFamily: "'Outfit', sans-serif", minHeight: 420, padding: 0, width: '100%',
                   }}
                 />
               )}
-              <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 10 }}>
-                {wordCount} word{wordCount !== 1 ? 's' : ''}
-              </div>
             </div>
 
-            {/* Inline summary panel */}
+            {/* Summary panel */}
             {summaryPanel && (
               <div style={{
-                width: 260, flexShrink: 0,
-                padding: 16, background: 'var(--card)',
-                borderRadius: 12, border: '1px solid var(--border)',
-                overflowY: 'auto', alignSelf: 'flex-start',
-                position: 'sticky', top: 0,
+                width: 272, flexShrink: 0, padding: '18px 18px',
+                background: 'rgba(14,14,16,0.92)', backdropFilter: 'blur(18px)',
+                WebkitBackdropFilter: 'blur(18px)',
+                borderRadius: 14, border: '1px solid rgba(181,242,58,0.14)',
+                overflowY: 'auto', alignSelf: 'flex-start', position: 'sticky', top: 0,
+                boxShadow: '0 8px 40px rgba(0,0,0,0.5), 0 0 24px rgba(181,242,58,0.04)',
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: 'var(--accent)' }}>SUMMARY</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 3, color: 'var(--accent)' }}>
+                    AI SUMMARY
+                  </div>
                   <button onClick={() => setSummaryPanel(null)} style={{
-                    background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', padding: 0, display: 'flex',
-                  }}><X size={16} /></button>
+                    background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer',
+                    padding: 0, display: 'flex',
+                  }}><X size={15} /></button>
                 </div>
                 {summaryPanel.summary && (
-                  <p style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.6, marginBottom: 12 }}>
+                  <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.65, marginBottom: 14 }}>
                     {summaryPanel.summary}
                   </p>
                 )}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 14 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
                   {(summaryPanel.keyPoints || []).map((p, i) => (
-                    <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent)', flexShrink: 0, marginTop: 6 }} />
-                      <span style={{ fontSize: 12, lineHeight: 1.5 }}>{p}</span>
+                    <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                      <div style={{
+                        width: 5, height: 5, borderRadius: '50%', background: 'var(--accent)',
+                        flexShrink: 0, marginTop: 7,
+                      }} />
+                      <span style={{ fontSize: 13, lineHeight: 1.55 }}>{p}</span>
                     </div>
                   ))}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <button className="btn btn-accent btn-sm" style={{ fontSize: 12 }} onClick={() => {
-                    const txt     = `## Summary\n\n${summaryPanel.summary || ''}\n\n## Key Points\n\n${(summaryPanel.keyPoints || []).map(p => `- ${p}`).join('\n')}`
+                    const txt = `## Summary\n\n${summaryPanel.summary || ''}\n\n## Key Points\n\n${(summaryPanel.keyPoints || []).map(p => `- ${p}`).join('\n')}`
                     const updated = { ...selectedNote, content: txt }
-                    setSelectedNote(updated)
-                    debouncedSave(updated)
-                    setSummaryPanel(null)
+                    setSelectedNote(updated); debouncedSave(updated); setSummaryPanel(null)
                     toast('Note replaced with summary.', 'success')
                   }}>Replace with summary</button>
                   <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }} onClick={() => {
-                    const txt     = `\n\n## Summary\n\n${summaryPanel.summary || ''}\n\n## Key Points\n\n${(summaryPanel.keyPoints || []).map(p => `- ${p}`).join('\n')}`
+                    const txt = `\n\n## Summary\n\n${summaryPanel.summary || ''}\n\n## Key Points\n\n${(summaryPanel.keyPoints || []).map(p => `- ${p}`).join('\n')}`
                     const updated = { ...selectedNote, content: selectedNote.content + txt }
-                    setSelectedNote(updated)
-                    debouncedSave(updated)
-                    setSummaryPanel(null)
+                    setSelectedNote(updated); debouncedSave(updated); setSummaryPanel(null)
                     toast('Summary appended.', 'success')
                   }}>Add to note</button>
                 </div>
               </div>
             )}
           </div>
+
+          {/* Bottom bar */}
+          <div style={{
+            padding: '10px 44px', borderTop: '1px solid rgba(181,242,58,0.07)',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            background: 'rgba(10,10,11,0.65)', backdropFilter: 'blur(14px)',
+            WebkitBackdropFilter: 'blur(14px)', position: 'relative', zIndex: 1,
+          }}>
+            <span style={{
+              fontSize: 12, color: 'rgba(148,148,160,0.5)',
+              fontFamily: "'JetBrains Mono', monospace",
+            }}>
+              {wordCount} word{wordCount !== 1 ? 's' : ''}
+            </span>
+            <button
+              onClick={handleSummarize}
+              disabled={summaryLoading || !selectedNote.content?.trim()}
+              style={{
+                background: summaryLoading || !selectedNote.content?.trim()
+                  ? 'rgba(181,242,58,0.28)'
+                  : 'var(--accent)',
+                border: 'none', borderRadius: 8, padding: '7px 16px',
+                color: '#0a0a0b', fontSize: 12, fontWeight: 800,
+                cursor: summaryLoading || !selectedNote.content?.trim() ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', gap: 6,
+                fontFamily: "'Outfit', sans-serif", transition: 'opacity 0.15s',
+              }}
+              onMouseEnter={e => { if (!summaryLoading && selectedNote.content?.trim()) e.currentTarget.style.opacity = '0.85' }}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+            >
+              {summaryLoading
+                ? <><span className="spinner" style={{ width: 11, height: 11 }} />Summarizing…</>
+                : <><BarChart2 size={12} />AI Summarize</>}
+            </button>
+          </div>
         </div>
       ) : (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-          <FileText size={52} color="var(--muted)" />
-          <div style={{ fontSize: 16, fontWeight: 600 }}>Select a note to start editing</div>
-          <div style={{ fontSize: 13, color: 'var(--muted)' }}>or</div>
-          <button className="btn btn-accent" onClick={handleNewNote}>+ New Note</button>
+        /* Empty state */
+        <div style={{
+          flex: 1, display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          gap: 14, position: 'relative', zIndex: 1,
+        }}>
+          <div style={{
+            width: 76, height: 76, borderRadius: 22,
+            background: 'rgba(181,242,58,0.07)',
+            border: '1px solid rgba(181,242,58,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            marginBottom: 4,
+            boxShadow: '0 0 32px rgba(181,242,58,0.06)',
+          }}>
+            <FileText size={34} color="rgba(181,242,58,0.6)" />
+          </div>
+          <div className="bebas" style={{ fontSize: 22, letterSpacing: 4, color: 'var(--text)' }}>
+            SELECT A NOTE
+          </div>
+          <div style={{ fontSize: 13, color: 'var(--muted)' }}>
+            or create a new one to start writing
+          </div>
+          <button onClick={handleNewNote} style={{
+            marginTop: 6, background: 'var(--accent)', border: 'none',
+            borderRadius: 10, padding: '10px 24px',
+            color: '#0a0a0b', fontSize: 13, fontWeight: 800, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 6,
+            fontFamily: "'Outfit', sans-serif", transition: 'opacity 0.15s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+          >
+            <Plus size={14} />New Note
+          </button>
         </div>
       )}
     </div>
