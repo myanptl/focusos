@@ -204,9 +204,9 @@ export default function Notes() {
       {/* ── LEFT SIDEBAR ─────────────────────────────────────── */}
       <div className="notes-sidebar" style={{
         width: 290, flexShrink: 0,
-        background: 'rgba(10,10,11,0.88)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
+        background: 'rgba(0,0,0,0.42)',
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
         borderRight: '1px solid rgba(181,242,58,0.1)',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
       }}>
@@ -250,15 +250,16 @@ export default function Notes() {
           {/* New Note */}
           <button onClick={handleNewNote} style={{
             width: '100%', padding: '10px 16px', borderRadius: 10,
-            background: 'var(--accent)', border: 'none',
-            color: '#0a0a0b', fontSize: 13, fontWeight: 800,
+            background: 'rgba(181,242,58,0.07)',
+            border: '1px solid rgba(181,242,58,0.28)',
+            color: 'var(--accent)', fontSize: 13, fontWeight: 700,
             cursor: 'pointer', display: 'flex', alignItems: 'center',
             justifyContent: 'center', gap: 6,
             fontFamily: "'Outfit', sans-serif", letterSpacing: '0.02em',
-            transition: 'opacity 0.15s',
+            transition: 'all 0.15s',
           }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(181,242,58,0.13)'; e.currentTarget.style.borderColor = 'rgba(181,242,58,0.5)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(181,242,58,0.07)'; e.currentTarget.style.borderColor = 'rgba(181,242,58,0.28)' }}
           >
             <Plus size={14} />New Note
           </button>
@@ -660,15 +661,13 @@ export default function Notes() {
           alignItems: 'center', justifyContent: 'center',
           gap: 14, position: 'relative', zIndex: 1,
         }}>
-          <div style={{
-            width: 76, height: 76, borderRadius: 22,
-            background: 'rgba(181,242,58,0.07)',
-            border: '1px solid rgba(181,242,58,0.15)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            marginBottom: 4,
-            boxShadow: '0 0 32px rgba(181,242,58,0.06)',
-          }}>
-            <FileText size={34} color="rgba(181,242,58,0.6)" />
+          <div style={{ position: 'relative', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{
+              position: 'absolute', width: 88, height: 88, borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(181,242,58,0.14) 0%, transparent 70%)',
+              filter: 'blur(10px)',
+            }} />
+            <FileText size={38} color="rgba(181,242,58,0.42)" style={{ position: 'relative' }} />
           </div>
           <div className="bebas" style={{ fontSize: 22, letterSpacing: 4, color: 'var(--text)' }}>
             SELECT A NOTE

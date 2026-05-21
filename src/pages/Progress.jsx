@@ -10,10 +10,36 @@ const MODE_LABELS = {
   multiple_choice: 'MC', short_answer: 'SA', fill_blank: 'FIB', explain: 'Explain',
 }
 
+/* shared glass card style — applied inline to override .card solid bg */
+const gc = (extra = {}) => ({
+  background: 'rgba(0,0,0,0.42)',
+  backdropFilter: 'blur(14px)',
+  WebkitBackdropFilter: 'blur(14px)',
+  border: '1px solid rgba(181,242,58,0.1)',
+  borderRadius: 16,
+  padding: 24,
+  position: 'relative',
+  zIndex: 1,
+  ...extra,
+})
+
+/* section heading that matches LandingV2 */
+function SectionLabel({ children, color = 'var(--accent)' }) {
+  return (
+    <div style={{
+      fontFamily: "'Bebas Neue', sans-serif",
+      fontSize: 18, letterSpacing: '0.1em',
+      color, marginBottom: 14, lineHeight: 1,
+    }}>
+      {children}
+    </div>
+  )
+}
+
 function BarChart({ data }) {
-  const max = Math.max(...data.map(d => d.mins), 1)
+  const max   = Math.max(...data.map(d => d.mins), 1)
   const today = new Date().getDay()
-  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+  const days  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 
   return (
     <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: 120 }}>
@@ -44,10 +70,10 @@ function FocusHeatmap({ hourlyMins }) {
   const hasData = hourlyMins.some(m => m > 0)
 
   function heatColor(mins) {
-    if (mins === 0) return '#111113'
-    if (mins <= 30) return 'rgba(181,242,58,0.2)'
-    if (mins <= 60) return 'rgba(181,242,58,0.4)'
-    if (mins <= 120) return 'rgba(181,242,58,0.6)'
+    if (mins === 0)   return 'rgba(255,255,255,0.04)'
+    if (mins <= 30)   return 'rgba(181,242,58,0.2)'
+    if (mins <= 60)   return 'rgba(181,242,58,0.4)'
+    if (mins <= 120)  return 'rgba(181,242,58,0.6)'
     return '#b5f23a'
   }
 
@@ -63,35 +89,25 @@ function FocusHeatmap({ hourlyMins }) {
     return h < 12 ? `${h}am` : `${h - 12}pm`
   }
 
-  const peakHour = hasData ? hourlyMins.indexOf(Math.max(...hourlyMins)) : -1
-  const nonZeroHours = hourlyMins.map((m, h) => ({ m, h })).filter(x => x.m > 0)
-  const leastHour = nonZeroHours.length > 1
-    ? nonZeroHours.reduce((a, b) => a.m < b.m ? a : b).h
-    : -1
-
-  const tooltipPct = hovered !== null
-    ? Math.max(8, Math.min(92, ((hovered + 0.5) / 24) * 100))
-    : 0
+  const peakHour      = hasData ? hourlyMins.indexOf(Math.max(...hourlyMins)) : -1
+  const nonZeroHours  = hourlyMins.map((m, h) => ({ m, h })).filter(x => x.m > 0)
+  const leastHour     = nonZeroHours.length > 1
+    ? nonZeroHours.reduce((a, b) => a.m < b.m ? a : b).h : -1
+  const tooltipPct    = hovered !== null
+    ? Math.max(8, Math.min(92, ((hovered + 0.5) / 24) * 100)) : 0
 
   return (
     <div>
       <div style={{ position: 'relative', paddingTop: 40 }}>
         {hovered !== null && (
           <div style={{
-            position: 'absolute',
-            top: 4,
-            left: `${tooltipPct}%`,
+            position: 'absolute', top: 4, left: `${tooltipPct}%`,
             transform: 'translateX(-50%)',
-            background: 'var(--card2)',
-            border: '1px solid var(--border)',
-            borderRadius: 8,
-            padding: '5px 10px',
-            fontSize: 12,
-            fontWeight: 600,
+            background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(181,242,58,0.18)',
+            borderRadius: 8, padding: '5px 10px', fontSize: 12, fontWeight: 600,
             color: hourlyMins[hovered] > 0 ? 'var(--accent)' : 'var(--muted)',
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
-            zIndex: 10,
+            whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 10,
             boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
           }}>
             {hourDisplay(hovered)} — {hourlyMins[hovered] > 0 ? `${hourlyMins[hovered]} min focused` : 'no data'}
@@ -99,16 +115,13 @@ function FocusHeatmap({ hourlyMins }) {
         )}
         <div style={{ display: 'flex', gap: 3 }}>
           {hourlyMins.map((mins, h) => (
-            <div
-              key={h}
-              style={{
-                flex: 1, height: 48,
-                background: hasData ? heatColor(mins) : 'rgba(181,242,58,0.05)',
-                borderRadius: 4,
-                border: `1px solid ${hovered === h ? 'rgba(181,242,58,0.5)' : 'transparent'}`,
-                transition: 'border-color 0.1s',
-                cursor: 'default',
-              }}
+            <div key={h} style={{
+              flex: 1, height: 48,
+              background: hasData ? heatColor(mins) : 'rgba(181,242,58,0.04)',
+              borderRadius: 4,
+              border: `1px solid ${hovered === h ? 'rgba(181,242,58,0.5)' : 'transparent'}`,
+              transition: 'border-color 0.1s', cursor: 'default',
+            }}
               onMouseEnter={() => setHovered(h)}
               onMouseLeave={() => setHovered(null)}
             />
@@ -148,8 +161,21 @@ function FocusHeatmap({ hourlyMins }) {
 
 function StatCard({ label, value, sub, color = 'var(--accent)' }) {
   return (
-    <div className="card card-top" style={{ textAlign: 'center' }}>
-      <div className="bebas glow-num" style={{ fontSize: 44, color, lineHeight: 1, marginBottom: 6, letterSpacing: '-0.01em' }}>{value}</div>
+    <div style={{
+      background: 'rgba(0,0,0,0.42)',
+      backdropFilter: 'blur(14px)',
+      WebkitBackdropFilter: 'blur(14px)',
+      border: '1px solid rgba(181,242,58,0.1)',
+      borderTop: `2px solid ${color}`,
+      backgroundImage: `linear-gradient(180deg, rgba(255,255,255,0.022) 0%, transparent 45%)`,
+      borderRadius: 16, padding: 24, textAlign: 'center',
+      position: 'relative', zIndex: 1,
+    }}>
+      <div className="bebas" style={{
+        fontSize: 44, color, lineHeight: 1, marginBottom: 6, letterSpacing: '-0.01em',
+      }}>
+        {value}
+      </div>
       <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 2 }}>{label}</div>
       {sub && <div style={{ fontSize: 12, color: 'var(--muted)' }}>{sub}</div>}
     </div>
@@ -183,8 +209,7 @@ export default function Progress() {
 
   async function loadData() {
     if (!user) return
-
-    const today = new Date()
+    const today  = new Date()
     const sunday = new Date(today)
     sunday.setDate(today.getDate() - today.getDay())
     sunday.setHours(0, 0, 0, 0)
@@ -200,13 +225,10 @@ export default function Progress() {
         .order('completed_at', { ascending: false }).limit(10),
       supabase.from('quiz_results').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(10),
       supabase.from('focus_sessions')
-        .select('completed_at, duration_minutes')
-        .eq('user_id', user.id)
-        .eq('completed', true)
-        .not('completed_at', 'is', null),
+        .select('completed_at, duration_minutes').eq('user_id', user.id)
+        .eq('completed', true).not('completed_at', 'is', null),
     ])
 
-    // This-week bar chart
     const logMap = {}
     ;(logRes.data || []).forEach(d => {
       const dow = new Date(d.log_date + 'T12:00:00').getDay()
@@ -214,7 +236,6 @@ export default function Progress() {
     })
     setWeekData(Array.from({ length: 7 }, (_, i) => ({ mins: logMap[i] || 0 })))
 
-    // Heatmap: total minutes focused per hour of day
     const hourMap = Array(24).fill(0)
     ;(heatmapRes.data || []).forEach(s => {
       const h = new Date(s.completed_at).getHours()
@@ -233,10 +254,8 @@ export default function Progress() {
       ;(q.weak_topics || []).forEach(t => { topicCounts[t] = (topicCounts[t] || 0) + 1 })
     })
     setAllWeakTopics(
-      Object.entries(topicCounts)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 6)
-        .map(([topic, count]) => ({ topic, count }))
+      Object.entries(topicCounts).sort(([, a], [, b]) => b - a)
+        .slice(0, 6).map(([topic, count]) => ({ topic, count }))
     )
   }
 
@@ -246,7 +265,6 @@ export default function Progress() {
   const avgSession    = totalSessions > 0 ? Math.round(totalMins / totalSessions) : 0
   const thisWeekMins  = weekData.reduce((s, d) => s + d.mins, 0)
 
-  // GSAP stagger counter animation on first load
   useEffect(() => {
     if (statsAnimated.current) return
     const anyData = streak > 0 || totalMins > 0 || totalSessions > 0 || goalsCount > 0
@@ -262,8 +280,7 @@ export default function Progress() {
       const obj = { v: 0 }
       gsap.to(obj, {
         v: end, duration: 1.4, ease: 'power2.out', delay: i * 0.1,
-        snap: { v: 1 },
-        onUpdate: () => set(Math.round(obj.v)),
+        snap: { v: 1 }, onUpdate: () => set(Math.round(obj.v)),
       })
     })
   }, [streak, totalMins, totalSessions, goalsCount])
@@ -291,167 +308,208 @@ export default function Progress() {
 
   return (
     <div className="page-fade">
+
+      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, flexWrap: 'wrap', gap: 12 }}>
         <h1 className="page-title">Progress</h1>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button onClick={() => navigate('/planner')} style={{
-            background: 'var(--card2)', border: '1px solid var(--border)',
-            color: 'var(--text)', padding: '8px 16px', borderRadius: 8,
-            fontSize: 13, fontWeight: 600, cursor: 'pointer',
-          }}>
+            background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            color: 'var(--text)', padding: '8px 16px', borderRadius: 10,
+            fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'border-color 0.15s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(181,242,58,0.3)'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
+          >
             <Calendar size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />Study Planner
           </button>
           <button onClick={() => navigate('/review')} style={{
-            background: 'var(--card2)', border: '1px solid var(--border)',
-            color: 'var(--text)', padding: '8px 16px', borderRadius: 8,
-            fontSize: 13, fontWeight: 600, cursor: 'pointer',
-          }}>
+            background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            color: 'var(--text)', padding: '8px 16px', borderRadius: 10,
+            fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'border-color 0.15s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(181,242,58,0.3)'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
+          >
             <BarChart2 size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />Weekly Review
           </button>
         </div>
       </div>
 
+      {/* Stat cards */}
       <div className="grid-4-col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
-        <StatCard label="Day Streak"     value={dispStreak}   sub="days in a row"   color="var(--accent)" />
-        <StatCard label="Total Minutes"  value={dispMins}     sub="minutes focused"  color="var(--cyan)" />
-        <StatCard label="Sessions"       value={dispSessions} sub="completed"        color="var(--purple)" />
-        <StatCard label="Goals"          value={dispGoals}    sub="score goals set"  color="var(--amber)" />
+        <StatCard label="Day Streak"    value={dispStreak}   sub="days in a row"   color="var(--accent)" />
+        <StatCard label="Total Minutes" value={dispMins}     sub="minutes focused" color="var(--cyan)" />
+        <StatCard label="Sessions"      value={dispSessions} sub="completed"       color="var(--purple)" />
+        <StatCard label="Goals"         value={dispGoals}    sub="score goals set" color="var(--amber)" />
       </div>
 
+      {/* This Week bar chart */}
       <AnimateInView delay={0.1}>
-      <div className="card" style={{ marginBottom: 20 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div className="label">This Week</div>
-          <span style={{ fontSize: 13, color: 'var(--muted)' }}>{thisWeekMins} min total</span>
+        <div style={gc({ marginBottom: 20 })}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <SectionLabel>This Week</SectionLabel>
+            <span style={{ fontSize: 13, color: 'var(--muted)' }}>{thisWeekMins} min total</span>
+          </div>
+          <BarChart data={weekData} />
         </div>
-        <BarChart data={weekData} />
-      </div>
       </AnimateInView>
 
-      {/* Peak Focus Hours Heatmap */}
+      {/* Peak Focus Hours */}
       <AnimateInView delay={0.15}>
-      <div className="card" style={{ marginBottom: 20 }}>
-        <div className="label" style={{ marginBottom: 14 }}>Your Peak Focus Hours</div>
-        <FocusHeatmap hourlyMins={hourlyMins} />
-        <div style={{
-          marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--border)',
-          fontSize: 12, color: 'var(--muted)', fontStyle: 'italic', lineHeight: 1.55,
-        }}>
-          Circadian rhythms create predictable windows of peak cognitive performance that vary significantly by individual.{' '}
-          [<em>Folkard &amp; Monk, Chronobiology, 1985</em>]
+        <div style={gc({ marginBottom: 20 })}>
+          <SectionLabel>Your Peak Focus Hours</SectionLabel>
+          <FocusHeatmap hourlyMins={hourlyMins} />
+          <div style={{
+            marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.06)',
+            fontSize: 12, color: 'var(--muted)', fontStyle: 'italic', lineHeight: 1.55,
+          }}>
+            Circadian rhythms create predictable windows of peak cognitive performance that vary significantly by individual.{' '}
+            [<em>Folkard &amp; Monk, Chronobiology, 1985</em>]
+          </div>
         </div>
-      </div>
       </AnimateInView>
 
+      {/* Honest Insights */}
       <AnimateInView delay={0.1}>
-      <div className="card" style={{ marginBottom: 20 }}>
-        <div className="label" style={{ marginBottom: 14 }}>Honest Insights</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {generateInsights().map((insight, i) => (
-            <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 0', borderBottom: i < 3 ? '1px solid var(--border)' : 'none' }}>
-              <span style={{ color: 'var(--accent)', fontWeight: 700, flexShrink: 0 }}>→</span>
-              <span style={{ fontSize: 14, lineHeight: 1.5 }}>{insight}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      </AnimateInView>
-
-      {/* Session History with notes */}
-      {recentSessions.length > 0 && (
-        <div className="card" style={{ marginBottom: 20 }}>
-          <div className="label" style={{ marginBottom: 14 }}>Session History</div>
+        <div style={gc({ marginBottom: 20 })}>
+          <SectionLabel>Honest Insights</SectionLabel>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-            {recentSessions.map((s, i) => (
-              <div key={s.id} style={{
-                padding: '12px 0',
-                borderBottom: i < recentSessions.length - 1 ? '1px solid var(--border)' : 'none',
+            {generateInsights().map((insight, i) => (
+              <div key={i} style={{
+                display: 'flex', gap: 12, alignItems: 'flex-start',
+                padding: '11px 0',
+                borderBottom: i < 3 ? '1px solid rgba(255,255,255,0.05)' : 'none',
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', align: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent)' }}>
-                      {s.duration_minutes} min
-                    </span>
-                    <span style={{ fontSize: 12, color: 'var(--muted)', marginLeft: 8 }}>
-                      {s.session_date}
-                    </span>
-                  </div>
-                </div>
-                {s.notes && (
-                  <div style={{
-                    fontSize: 12, color: 'var(--muted)', marginTop: 5, lineHeight: 1.55,
-                    fontStyle: 'italic', paddingLeft: 8,
-                    borderLeft: '2px solid rgba(181,242,58,0.2)',
-                  }}>
-                    "{s.notes}"
-                  </div>
-                )}
+                <span style={{ color: 'var(--accent)', fontWeight: 700, flexShrink: 0, marginTop: 1 }}>→</span>
+                <span style={{ fontSize: 14, lineHeight: 1.55 }}>{insight}</span>
               </div>
             ))}
           </div>
         </div>
+      </AnimateInView>
+
+      {/* Session History */}
+      {recentSessions.length > 0 && (
+        <AnimateInView delay={0.1}>
+          <div style={gc({ marginBottom: 20 })}>
+            <SectionLabel>Session History</SectionLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {recentSessions.map((s, i) => (
+                <div key={s.id} style={{
+                  padding: '12px 0',
+                  borderBottom: i < recentSessions.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent)' }}>
+                        {s.duration_minutes} min
+                      </span>
+                      <span style={{ fontSize: 12, color: 'var(--muted)' }}>{s.session_date}</span>
+                    </div>
+                  </div>
+                  {s.notes && (
+                    <div style={{
+                      fontSize: 12, color: 'var(--muted)', marginTop: 6, lineHeight: 1.55,
+                      fontStyle: 'italic', paddingLeft: 10,
+                      borderLeft: '2px solid rgba(181,242,58,0.2)',
+                    }}>
+                      "{s.notes}"
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </AnimateInView>
       )}
 
       {/* Quiz History */}
       {quizHistory.length > 0 && (
-        <div className="card" style={{ marginBottom: 20 }}>
-          <div className="label" style={{ marginBottom: 14 }}>Quiz History</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {quizHistory.map(q => {
-              const pctColor = q.score_percentage >= 80 ? 'var(--accent)' : q.score_percentage >= 60 ? 'var(--amber)' : 'var(--red)'
-              const mins = q.time_taken_seconds ? Math.round(q.time_taken_seconds / 60) : null
-              return (
-                <div key={q.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
-                  <div className="bebas" style={{ fontSize: 24, color: pctColor, minWidth: 56 }}>{q.score_percentage}%</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{q.subject || 'General'}</div>
-                    <div style={{ fontSize: 11, color: 'var(--muted)' }}>
-                      {q.quiz_date} · {MODE_LABELS[q.mode] || q.mode || 'SA'} · {q.questions_correct}/{q.questions_total} correct
-                      {mins !== null ? ` · ${mins}m` : ''}
-                      {q.timed ? <> · <Clock size={11} style={{ display: 'inline', verticalAlign: 'middle' }} /></> : ''}
+        <AnimateInView delay={0.1}>
+          <div style={gc({ marginBottom: 20 })}>
+            <SectionLabel>Quiz History</SectionLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {quizHistory.map(q => {
+                const pctColor = q.score_percentage >= 80 ? 'var(--accent)' : q.score_percentage >= 60 ? 'var(--amber)' : 'var(--red)'
+                const mins = q.time_taken_seconds ? Math.round(q.time_taken_seconds / 60) : null
+                return (
+                  <div key={q.id} style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '11px 0', borderBottom: '1px solid rgba(255,255,255,0.05)',
+                  }}>
+                    <div className="bebas" style={{ fontSize: 26, color: pctColor, minWidth: 58 }}>
+                      {q.score_percentage}%
                     </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{q.subject || 'General'}</div>
+                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>
+                        {q.quiz_date} · {MODE_LABELS[q.mode] || q.mode || 'SA'} · {q.questions_correct}/{q.questions_total} correct
+                        {mins !== null ? ` · ${mins}m` : ''}
+                        {q.timed ? <> · <Clock size={11} style={{ display: 'inline', verticalAlign: 'middle' }} /></> : ''}
+                      </div>
+                    </div>
+                    {q.focus_score != null && (
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <div style={{ fontSize: 11, color: 'var(--muted)' }}>Focus</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cyan)' }}>{q.focus_score}%</div>
+                      </div>
+                    )}
                   </div>
-                  {q.focus_score != null && (
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>Focus</div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cyan)' }}>{q.focus_score}%</div>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
-        </div>
+        </AnimateInView>
       )}
 
       {/* Recurring Weak Topics */}
       {allWeakTopics.length > 0 && (
-        <div className="card" style={{ marginBottom: 20 }}>
-          <div className="label" style={{ marginBottom: 14, color: 'var(--amber)' }}>Recurring Weak Topics</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {allWeakTopics.map(({ topic, count }) => (
-              <div key={topic} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'rgba(242,199,90,0.06)', border: '1px solid rgba(242,199,90,0.15)', borderRadius: 8 }}>
-                <span style={{ fontSize: 13, flex: 1, display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={13} color="var(--amber)" />{topic}</span>
-                <span style={{ fontSize: 11, color: 'var(--amber)', fontWeight: 700 }}>{count}×</span>
-              </div>
-            ))}
+        <AnimateInView delay={0.1}>
+          <div style={gc({ marginBottom: 20, border: '1px solid rgba(242,199,90,0.15)' })}>
+            <SectionLabel color="var(--amber)">Recurring Weak Topics</SectionLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {allWeakTopics.map(({ topic, count }) => (
+                <div key={topic} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '8px 12px',
+                  background: 'rgba(242,199,90,0.06)',
+                  border: '1px solid rgba(242,199,90,0.12)', borderRadius: 8,
+                }}>
+                  <AlertTriangle size={13} color="var(--amber)" />
+                  <span style={{ fontSize: 13, flex: 1 }}>{topic}</span>
+                  <span style={{ fontSize: 11, color: 'var(--amber)', fontWeight: 700 }}>{count}×</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </AnimateInView>
       )}
 
-      <div className="card">
+      {/* Coming in V2 */}
+      <div style={gc()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div className="label">Coming in V2</div>
-          <span style={{ fontSize: 11, background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', borderRadius: 20, padding: '3px 10px', color: 'var(--muted)' }}>August 2026</span>
+          <SectionLabel>Coming in V2</SectionLabel>
+          <span style={{
+            fontSize: 11, background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20,
+            padding: '3px 10px', color: 'var(--muted)',
+          }}>August 2026</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
           {[
-            { Icon: Target,    title: 'Peak Focus Detector', desc: 'AI learns your best focus times' },
-            { Icon: Mail,      title: 'Weekly Email Report', desc: 'Progress summary to your inbox' },
-            { Icon: Calendar,  title: 'Calendar Sync', desc: 'Block study time automatically' },
-            { Icon: Flame,     title: 'Study Partner Rooms', desc: 'Focus with friends in real time' },
+            { Icon: Target,   title: 'Peak Focus Detector', desc: 'AI learns your best focus times' },
+            { Icon: Mail,     title: 'Weekly Email Report', desc: 'Progress summary to your inbox' },
+            { Icon: Calendar, title: 'Calendar Sync',       desc: 'Block study time automatically' },
+            { Icon: Flame,    title: 'Study Partner Rooms', desc: 'Focus with friends in real time' },
           ].map(f => (
-            <div key={f.title} style={{ background: 'var(--card)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: 10, padding: 14, opacity: 0.6 }}>
+            <div key={f.title} style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px dashed rgba(255,255,255,0.08)',
+              borderRadius: 10, padding: 14, opacity: 0.6,
+            }}>
               <div style={{ marginBottom: 6 }}><f.Icon size={20} color="var(--muted)" /></div>
               <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>{f.title}</div>
               <div style={{ fontSize: 12, color: 'var(--muted)' }}>{f.desc}</div>
@@ -459,6 +517,7 @@ export default function Progress() {
           ))}
         </div>
       </div>
+
     </div>
   )
 }
