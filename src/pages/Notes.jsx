@@ -204,10 +204,10 @@ export default function Notes() {
       {/* ── LEFT SIDEBAR ─────────────────────────────────────── */}
       <div className="notes-sidebar" style={{
         width: 290, flexShrink: 0,
-        background: 'rgba(0,0,0,0.42)',
-        backdropFilter: 'blur(14px)',
-        WebkitBackdropFilter: 'blur(14px)',
-        borderRight: '1px solid rgba(181,242,58,0.1)',
+        background: 'rgba(255,255,255,0.03)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        borderRight: '1px solid rgba(255,255,255,0.08)',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
       }}>
 
@@ -221,10 +221,10 @@ export default function Notes() {
           {/* Search */}
           <div style={{
             position: 'relative', marginBottom: 12,
-            background: 'rgba(255,255,255,0.04)',
+            background: 'rgba(255,255,255,0.05)',
             border: searchFocused
               ? '1px solid rgba(181,242,58,0.45)'
-              : '1px solid rgba(255,255,255,0.07)',
+              : '1px solid rgba(255,255,255,0.08)',
             borderRadius: 10,
             transition: 'border-color 0.15s, box-shadow 0.15s',
             boxShadow: searchFocused ? '0 0 0 3px rgba(181,242,58,0.09)' : 'none',
@@ -250,22 +250,22 @@ export default function Notes() {
           {/* New Note */}
           <button onClick={handleNewNote} style={{
             width: '100%', padding: '10px 16px', borderRadius: 10,
-            background: 'rgba(181,242,58,0.07)',
-            border: '1px solid rgba(181,242,58,0.28)',
+            background: 'transparent',
+            border: '1px solid rgba(181,242,58,0.35)',
             color: 'var(--accent)', fontSize: 13, fontWeight: 700,
             cursor: 'pointer', display: 'flex', alignItems: 'center',
             justifyContent: 'center', gap: 6,
             fontFamily: "'Outfit', sans-serif", letterSpacing: '0.02em',
             transition: 'all 0.15s',
           }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(181,242,58,0.13)'; e.currentTarget.style.borderColor = 'rgba(181,242,58,0.5)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(181,242,58,0.07)'; e.currentTarget.style.borderColor = 'rgba(181,242,58,0.28)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(181,242,58,0.08)'; e.currentTarget.style.borderColor = 'rgba(181,242,58,0.6)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(181,242,58,0.35)' }}
           >
             <Plus size={14} />New Note
           </button>
         </div>
 
-        <div style={{ height: 1, background: 'rgba(255,255,255,0.05)' }} />
+        <div style={{ height: 1, background: 'rgba(255,255,255,0.08)' }} />
 
         {/* Note list */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '6px 10px 12px' }}>
@@ -301,22 +301,22 @@ export default function Notes() {
                   padding: '11px 12px', borderRadius: 10, cursor: 'pointer', marginBottom: 4,
                   background: isActive
                     ? 'rgba(181,242,58,0.07)'
-                    : 'rgba(255,255,255,0.025)',
-                  border: `1px solid ${isActive ? 'rgba(181,242,58,0.22)' : 'rgba(255,255,255,0.06)'}`,
+                    : 'rgba(255,255,255,0.03)',
+                  border: `1px solid ${isActive ? 'rgba(181,242,58,0.22)' : 'rgba(255,255,255,0.08)'}`,
                   transition: 'all 0.13s',
                   boxShadow: isActive ? '0 0 18px rgba(181,242,58,0.06)' : 'none',
                 }}
                 onMouseEnter={e => {
                   if (!isActive) {
-                    e.currentTarget.style.background = 'rgba(181,242,58,0.04)'
-                    e.currentTarget.style.borderColor = 'rgba(181,242,58,0.15)'
-                    e.currentTarget.style.boxShadow = '0 0 14px rgba(181,242,58,0.04)'
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.06)'
+                    e.currentTarget.style.borderColor = 'rgba(181,242,58,0.2)'
+                    e.currentTarget.style.boxShadow = '0 0 12px rgba(181,242,58,0.04)'
                   }
                 }}
                 onMouseLeave={e => {
                   if (!isActive) {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.025)'
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
                     e.currentTarget.style.boxShadow = 'none'
                   }
                 }}
