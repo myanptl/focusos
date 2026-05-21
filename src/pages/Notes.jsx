@@ -204,10 +204,11 @@ export default function Notes() {
       {/* ── LEFT SIDEBAR ─────────────────────────────────────── */}
       <div className="notes-sidebar" style={{
         width: 290, flexShrink: 0,
-        background: 'rgba(255,255,255,0.03)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        borderRight: '1px solid rgba(255,255,255,0.08)',
+        background: 'var(--card)',
+        backgroundImage: 'linear-gradient(90deg, rgba(181,242,58,0.055) 0%, transparent 30%), linear-gradient(160deg, rgba(255,255,255,0.028) 0%, transparent 55%)',
+        borderLeft: '2px solid var(--accent)',
+        borderRight: '1px solid rgba(255,255,255,0.09)',
+        boxShadow: '0 1px 0 rgba(255,255,255,0.05) inset, 4px 0 28px rgba(0,0,0,0.22)',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
       }}>
 
@@ -221,10 +222,10 @@ export default function Notes() {
           {/* Search */}
           <div style={{
             position: 'relative', marginBottom: 12,
-            background: 'rgba(255,255,255,0.05)',
+            background: 'var(--card2)',
             border: searchFocused
               ? '1px solid rgba(181,242,58,0.45)'
-              : '1px solid rgba(255,255,255,0.08)',
+              : '1px solid rgba(255,255,255,0.09)',
             borderRadius: 10,
             transition: 'border-color 0.15s, box-shadow 0.15s',
             boxShadow: searchFocused ? '0 0 0 3px rgba(181,242,58,0.09)' : 'none',
@@ -265,7 +266,7 @@ export default function Notes() {
           </button>
         </div>
 
-        <div style={{ height: 1, background: 'rgba(255,255,255,0.08)' }} />
+        <div style={{ height: 1, background: 'rgba(255,255,255,0.09)' }} />
 
         {/* Note list */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '6px 10px 12px' }}>
@@ -299,25 +300,29 @@ export default function Notes() {
                 onClick={() => openNote(note)}
                 style={{
                   padding: '11px 12px', borderRadius: 10, cursor: 'pointer', marginBottom: 4,
-                  background: isActive
-                    ? 'rgba(181,242,58,0.07)'
-                    : 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${isActive ? 'rgba(181,242,58,0.22)' : 'rgba(255,255,255,0.08)'}`,
+                  background: isActive ? 'rgba(181,242,58,0.08)' : 'var(--card)',
+                  backgroundImage: isActive
+                    ? 'linear-gradient(90deg, rgba(181,242,58,0.08) 0%, transparent 35%)'
+                    : 'linear-gradient(90deg, rgba(181,242,58,0.03) 0%, transparent 35%), linear-gradient(160deg, rgba(255,255,255,0.018) 0%, transparent 55%)',
+                  border: `1px solid ${isActive ? 'rgba(181,242,58,0.25)' : 'rgba(255,255,255,0.09)'}`,
+                  borderLeft: `2px solid ${isActive ? 'var(--accent)' : 'rgba(181,242,58,0.25)'}`,
+                  boxShadow: isActive
+                    ? '0 0 0 rgba(181,242,58,0), 0 1px 0 rgba(255,255,255,0.05) inset'
+                    : '0 1px 0 rgba(255,255,255,0.04) inset',
                   transition: 'all 0.13s',
-                  boxShadow: isActive ? '0 0 18px rgba(181,242,58,0.06)' : 'none',
                 }}
                 onMouseEnter={e => {
                   if (!isActive) {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.06)'
-                    e.currentTarget.style.borderColor = 'rgba(181,242,58,0.2)'
-                    e.currentTarget.style.boxShadow = '0 0 12px rgba(181,242,58,0.04)'
+                    e.currentTarget.style.background = 'var(--card2)'
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'
+                    e.currentTarget.style.borderLeftColor = 'rgba(181,242,58,0.5)'
                   }
                 }}
                 onMouseLeave={e => {
                   if (!isActive) {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
-                    e.currentTarget.style.boxShadow = 'none'
+                    e.currentTarget.style.background = 'var(--card)'
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'
+                    e.currentTarget.style.borderLeftColor = 'rgba(181,242,58,0.25)'
                   }
                 }}
               >
