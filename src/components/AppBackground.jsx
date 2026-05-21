@@ -35,7 +35,6 @@ function AppParticles({ reduced }) {
     function tick() {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-      // Connection lines
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i]
         for (let j = i + 1; j < particles.length; j++) {
@@ -53,9 +52,7 @@ function AppParticles({ reduced }) {
         }
       }
 
-      // Dots
       for (const p of particles) {
-        // Cursor attraction
         const cx = mouseX - p.x, cy = mouseY - p.y
         const cd = Math.sqrt(cx * cx + cy * cy)
         if (cd < 200 && cd > 0) {
@@ -107,7 +104,7 @@ export default function AppBackground() {
 
   return (
     <>
-      {/* Animated gradient mesh */}
+      {/* Gradient mesh base */}
       <div style={{
         position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
         background: 'linear-gradient(135deg, #0a0a0b 0%, #0c1005 50%, #0a0a0b 100%)',
@@ -115,18 +112,32 @@ export default function AppBackground() {
         animation: reduced ? 'none' : 'appMeshShift 20s ease-in-out infinite',
       }} />
 
-      {/* Single seamless ambient glow — center off-viewport at top, no visible edge or ring */}
+      {/* Primary lime spotlight — top center (endlesstools.io style) */}
       <div style={{
         position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
-        background: 'radial-gradient(ellipse 110% 70% at 60% -15%, rgba(181,242,58,0.055) 0%, rgba(181,242,58,0) 65%)',
+        background: 'radial-gradient(ellipse 85% 60% at 50% -8%, rgba(181,242,58,0.11) 0%, rgba(181,242,58,0.02) 55%, transparent 75%)',
+      }} />
+
+      {/* Secondary depth glow — bottom right (color interest) */}
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+        background: 'radial-gradient(ellipse 50% 40% at 92% 98%, rgba(96,211,248,0.038) 0%, transparent 65%)',
+      }} />
+
+      {/* Dot grid — subtle like endlesstools.io, fades out downward */}
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+        backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.065) 1px, transparent 1px)',
+        backgroundSize: '30px 30px',
+        maskImage: 'radial-gradient(ellipse 100% 80% at 50% 0%, black 0%, transparent 70%)',
+        WebkitMaskImage: 'radial-gradient(ellipse 100% 80% at 50% 0%, black 0%, transparent 70%)',
       }} />
 
       {/* Grain */}
       <div style={{
-        position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, opacity: 0.038,
+        position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, opacity: 0.042,
         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='512' height='512' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        backgroundRepeat: 'repeat',
-        backgroundSize: '200px 200px',
+        backgroundRepeat: 'repeat', backgroundSize: '200px 200px',
       }} />
 
       {/* Particles with cursor drift */}

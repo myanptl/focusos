@@ -82,7 +82,7 @@ export function AuthProvider({ children }) {
       email,
       password,
       options: {
-        emailRedirectTo: 'https://focusos.live',
+        emailRedirectTo: window.location.origin,
         data: { name: name || email.split('@')[0] },
       },
     })

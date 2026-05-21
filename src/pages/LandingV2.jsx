@@ -440,13 +440,22 @@ export default function LandingV2() {
         <AuroraBg />
         <ParticleCanvas />
 
-        {/* Thin line grid — more premium than dots */}
+        {/* Line grid */}
         <div aria-hidden style={{
           position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.038) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.038) 1px, transparent 1px)`,
           backgroundSize: '64px 64px',
-          maskImage: 'radial-gradient(ellipse 80% 55% at 50% 0%, black 0%, transparent 72%)',
-          WebkitMaskImage: 'radial-gradient(ellipse 80% 55% at 50% 0%, black 0%, transparent 72%)',
+          maskImage: 'radial-gradient(ellipse 85% 62% at 50% 0%, black 0%, transparent 76%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 85% 62% at 50% 0%, black 0%, transparent 76%)',
+        }} />
+        {/* Dot grid layer — adds depth (dirtylinestudio / endlesstools pattern) */}
+        <div aria-hidden style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
+          backgroundImage: 'radial-gradient(circle, rgba(181,242,58,0.1) 1px, transparent 1px)',
+          backgroundSize: '32px 32px',
+          backgroundPosition: '16px 16px',
+          maskImage: 'radial-gradient(ellipse 65% 45% at 50% 0%, black 0%, transparent 68%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 65% 45% at 50% 0%, black 0%, transparent 68%)',
         }} />
 
         {/* Film grain */}
@@ -556,11 +565,12 @@ export default function LandingV2() {
               initial={{ y: 130, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.9, delay: 0.52, ease: [0.22, 1, 0.36, 1] }}
+              className="text-gradient-lime"
               style={{
                 fontFamily: "'Bebas Neue', sans-serif",
                 fontSize: isMobile ? 'clamp(64px,18vw,96px)' : 'clamp(80px,12vw,156px)',
                 fontWeight: 400, lineHeight: 0.92,
-                letterSpacing: '0.01em', color: '#b5f23a', margin: 0,
+                letterSpacing: '0.01em', margin: 0,
               }}
             >FOCUS LONGER.</motion.h1>
           </div>
@@ -668,7 +678,7 @@ export default function LandingV2() {
           ].map(({ value, suffix, prefix, label, sub }, i) => (
             <FadeUp key={i} delay={i * 110}>
               <div style={{ textAlign: 'center' }}>
-                <div style={{
+                <div className="stat-glow" style={{
                   fontFamily: "'Bebas Neue', sans-serif",
                   fontSize: isMobile ? 56 : 'clamp(44px,5.5vw,68px)',
                   fontWeight: 400, color: '#b5f23a', lineHeight: 1,
@@ -716,7 +726,7 @@ export default function LandingV2() {
                   { icon: '✦', title: 'Streak & XP system', desc: 'Habit science keeps you coming back daily' },
                 ].map(({ icon, title, desc }, i) => (
                   <FadeUp key={title} delay={i * 70 + 180}>
-                    <div style={{
+                    <div className="card-hover" style={{
                       display: 'flex', gap: 14, alignItems: 'flex-start',
                       background: 'rgba(255,255,255,0.022)',
                       border: '1px solid rgba(255,255,255,0.07)',
@@ -855,10 +865,11 @@ export default function LandingV2() {
               { stat: '3×', label: 'More follow-through', note: 'With implementation intentions', accent: '#b5f23a' },
             ].map(({ stat, label, note, accent }, i) => (
               <FadeUp key={i} delay={i * 90}>
-                <div style={{
+                <div className="card-hover" style={{
                   background: `rgba(${accent === '#f25a5a' ? '242,90,90' : '181,242,58'},0.04)`,
                   border: `1px solid rgba(${accent === '#f25a5a' ? '242,90,90' : '181,242,58'},0.11)`,
                   borderRadius: 16, padding: '20px 18px',
+                  transition: 'transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s cubic-bezier(0.22,1,0.36,1), border-color 0.22s',
                 }}>
                   <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: isMobile ? 32 : 'clamp(28px,3vw,40px)', fontWeight: 400, color: accent, lineHeight: 1, marginBottom: 8, letterSpacing: '0.02em' }}>{stat}</div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f2', marginBottom: 4 }}>{label}</div>
