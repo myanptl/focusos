@@ -303,8 +303,8 @@ export default function Settings() {
                 >
                   <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>{opt.Icon ? <opt.Icon size={22} /> : null}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2, color: aiModelPref === opt.key ? 'var(--accent)' : '#f0f0f2' }}>{opt.title}</div>
-                    <div style={{ fontSize: 11, color: '#9494a0', lineHeight: 1.4 }}>{opt.desc}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2, color: aiModelPref === opt.key ? 'var(--accent)' : '#ffffff' }}>{opt.title}</div>
+                    <div style={{ fontSize: 11, color: '#ffffff', lineHeight: 1.4 }}>{opt.desc}</div>
                   </div>
                   {opt.badge && (
                     <span style={{ fontSize: 10, fontWeight: 600, background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', borderRadius: 20, padding: '2px 8px', color: 'var(--muted)', flexShrink: 0 }}>
