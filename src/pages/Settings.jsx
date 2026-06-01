@@ -6,14 +6,6 @@ import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
 import { Check, X, Sparkles, Bot, BarChart2 } from 'lucide-react'
 
-const ACCENT_COLORS = [
-  { name: 'Lime',   value: '#b5f23a' },
-  { name: 'Cyan',   value: '#60d3f8' },
-  { name: 'Purple', value: '#a78bfa' },
-  { name: 'Amber',  value: '#ffb340' },
-  { name: 'Red',    value: '#ff4d4d' },
-]
-
 const CITATIONS = [
   { ref: 'Pew Research Center, April 2025 (N=1,391 U.S. teens)', note: 'Teen social media and attention study' },
   { ref: 'Nivins et al., Pediatrics Open Science, Dec 2025', note: 'Screen time and cognitive outcomes in adolescents' },
@@ -56,7 +48,6 @@ export default function Settings() {
   const [breakMins, setBreakMins] = useState(profile?.break_duration ?? 5)
   const [autoBreak, setAutoBreak] = useState(profile?.auto_start_break ?? false)
   const [sound, setSound] = useState(profile?.sound_enabled ?? true)
-  const [accent, setAccent] = useState(profile?.accent_color || localStorage.getItem('focusos_accent') || '#b5f23a')
   const [resetText, setResetText] = useState('')
   const [showCitations, setShowCitations] = useState(false)
   const [stats, setStats] = useState({ sessions: 0, mins: 0, goals: 0 })
@@ -71,10 +62,6 @@ export default function Settings() {
   const [deleteError, setDeleteError]         = useState('')
 
   useEffect(() => { loadStats(); checkOllama() }, [user])
-  useEffect(() => {
-    document.documentElement.style.setProperty('--accent', accent)
-    document.documentElement.style.setProperty('--lime', accent)
-  }, [accent])
   useEffect(() => {
     if (profile?.ai_model_preference) setAiModelPref(profile.ai_model_preference)
   }, [profile])
@@ -134,15 +121,6 @@ export default function Settings() {
   async function savePreferences() {
     const err = await updateProfile({ focus_duration: focusMins, break_duration: breakMins, auto_start_break: autoBreak, sound_enabled: sound })
     if (!err) toast('Preferences saved!', 'success')
-  }
-
-  async function applyAccent(color) {
-    setAccent(color)
-    document.documentElement.style.setProperty('--accent', color)
-    document.documentElement.style.setProperty('--lime', color)
-    localStorage.setItem('focusos_accent', color)
-    await updateProfile({ accent_color: color })
-    toast('Accent color updated!', 'success')
   }
 
   async function handleSignOut() {
@@ -455,23 +433,6 @@ export default function Settings() {
             sub={<span>Disabled · <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 20, padding: '2px 8px', fontSize: 11 }}>Coming V2</span></span>}
             right={<label className="toggle"><input type="checkbox" disabled /><span className="toggle-slider" /></label>}
           />
-        </Section>
-      </div>
-
-      <div className="card card-top" style={{ marginBottom: 16 }}>
-        <Section title="Appearance">
-          <div style={{ marginBottom: 16 }}>
-            <label className="label" style={{ display: 'block', marginBottom: 10 }}>Accent Color</label>
-            <div style={{ display: 'flex', gap: 10 }}>
-              {ACCENT_COLORS.map(c => (
-                <button key={c.value} onClick={() => applyAccent(c.value)} title={c.name} style={{
-                  width: 36, height: 36, borderRadius: '50%', background: c.value, border: 'none', cursor: 'pointer',
-                  boxShadow: accent === c.value ? `0 0 0 2px var(--bg), 0 0 0 4px rgba(255,255,255,0.8)` : 'none',
-                  transition: 'box-shadow 0.15s',
-                }} />
-              ))}
-            </div>
-          </div>
         </Section>
       </div>
 

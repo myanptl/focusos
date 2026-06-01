@@ -90,8 +90,10 @@ h1, h2, h3 { text-wrap: balance; }
 .research-callout strong { color: var(--accent); }
 
 .card  {
-  background-color: var(--card);
+  background: rgba(17,17,19,0.70);
   background-image: linear-gradient(160deg, rgba(255,255,255,0.028) 0%, transparent 55%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(255,255,255,0.09);
   border-radius: 16px;
   padding: 24px;
@@ -100,8 +102,10 @@ h1, h2, h3 { text-wrap: balance; }
   z-index: 1;
 }
 .card2 {
-  background-color: var(--card2);
+  background: rgba(24,24,28,0.62);
   background-image: linear-gradient(160deg, rgba(255,255,255,0.018) 0%, transparent 55%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255,255,255,0.09);
   border-radius: 16px;
   padding: 24px;
@@ -300,8 +304,10 @@ nav, header { position: relative; z-index: 10; }
 
 /* Premium stat card used on Timer + Progress */
 .stat-card {
-  background-color: var(--card);
+  background: rgba(17,17,19,0.70);
   background-image: linear-gradient(160deg, rgba(255,255,255,0.028) 0%, transparent 55%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255,255,255,0.09);
   border-radius: 12px;
   padding: 14px 18px;
@@ -738,3 +744,13 @@ nav, header { position: relative; z-index: 10; }
   background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
   background-size: 30px 30px;
 }
+
+/* Spotlight animation for SplineScene card */
+@keyframes spotlight {
+  0% { opacity: 0; transform: translate(-72%, -62%) skewX(-23deg); }
+  100% { opacity: 1; transform: translate(-50%, -40%) skewX(-23deg); }
+}
+.animate-spotlight {
+  animation: spotlight 2s ease forwards;
+}
+
