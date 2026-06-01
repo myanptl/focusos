@@ -569,7 +569,7 @@ export default function LandingV2() {
       <div id="v2-story">
         <FlowArt aria-label="FocusOS story">
 
-          <FlowSection aria-label="The problem" style={{ backgroundColor: 'rgba(10,10,11,0.92)', color: '#f0f0f2' }}>
+          <FlowSection aria-label="The problem" style={{ backgroundColor: '#0a0a0b', color: '#f0f0f2' }}>
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'rgba(181,242,58,0.7)' }}>01 — The problem</p>
             <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', margin: '2vw 0' }} />
             <div>
@@ -584,7 +584,7 @@ export default function LandingV2() {
             </p>
           </FlowSection>
 
-          <FlowSection aria-label="The science" style={{ backgroundColor: 'rgba(9,12,18,0.92)', color: '#f0f0f2' }}>
+          <FlowSection aria-label="The science" style={{ backgroundColor: '#090c12', color: '#f0f0f2' }}>
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'rgba(181,242,58,0.7)' }}>02 — The science</p>
             <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', margin: '2vw 0' }} />
             <div>
@@ -615,7 +615,7 @@ export default function LandingV2() {
             </p>
           </FlowSection>
 
-          <FlowSection aria-label="How it works" style={{ backgroundColor: 'rgba(12,26,4,0.92)', color: '#f0f0f2' }}>
+          <FlowSection aria-label="How it works" style={{ backgroundColor: '#0c1a04', color: '#f0f0f2' }}>
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'rgba(181,242,58,0.6)' }}>03 — How it works</p>
             <hr style={{ border: 'none', borderTop: '1px solid rgba(181,242,58,0.15)', margin: '2vw 0' }} />
             <div>
@@ -655,7 +655,7 @@ export default function LandingV2() {
             </div>
           </FlowSection>
 
-          <FlowSection aria-label="Join the movement" style={{ backgroundColor: 'rgba(10,10,11,0.92)', color: '#f0f0f2' }}>
+          <FlowSection aria-label="Join the movement" style={{ backgroundColor: '#0a0a0b', color: '#f0f0f2' }}>
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'rgba(181,242,58,0.7)' }}>04 — The results</p>
             <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', margin: '2vw 0' }} />
             <div>
