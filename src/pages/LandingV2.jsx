@@ -3,7 +3,6 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { ContainerScroll } from '../components/ui/container-scroll-animation'
-import FlowArt, { FlowSection } from '../components/ui/story-scroll'
 
 function useIsMobile() {
   const [mobile, setMobile] = useState(false)
@@ -565,126 +564,6 @@ export default function LandingV2() {
         </ContainerScroll>
       </section>
 
-      {/* ════ STORY SCROLL ══════════════════════════════════════ */}
-      <div id="v2-story">
-        <FlowArt aria-label="FocusOS story">
-
-          <FlowSection aria-label="The problem" style={{ backgroundColor: '#0a0a0b', color: '#f0f0f2' }}>
-            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'rgba(181,242,58,0.7)' }}>01 — The problem</p>
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', margin: '2vw 0' }} />
-            <div>
-              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(3.5rem,12vw,13rem)', fontWeight: 700, lineHeight: 0.88, textTransform: 'uppercase', letterSpacing: '0.01em' }}>
-                ATTENTION<br />UNDER<br />ATTACK.
-              </h2>
-            </div>
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', margin: '2vw 0' }} />
-            <p style={{ maxWidth: '50ch', fontSize: 'clamp(1rem,2.5vw,1.9rem)', fontWeight: 400, lineHeight: 1.6, color: 'rgba(240,240,242,0.7)' }}>
-              The Pomodoro technique was invented in 1980 — before smartphones, social media, or infinite scroll.
-              A generic 25-minute timer doesn't know you. FocusOS does.
-            </p>
-          </FlowSection>
-
-          <FlowSection aria-label="The science" style={{ backgroundColor: '#090c12', color: '#f0f0f2' }}>
-            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'rgba(181,242,58,0.7)' }}>02 — The science</p>
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', margin: '2vw 0' }} />
-            <div>
-              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(3.5rem,12vw,13rem)', fontWeight: 700, lineHeight: 0.88, textTransform: 'uppercase', letterSpacing: '0.01em' }}>
-                BACKED<br />BY 242<br />STUDIES.
-              </h2>
-            </div>
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', margin: '2vw 0' }} />
-            <p style={{ maxWidth: '50ch', fontSize: 'clamp(1rem,2.5vw,1.9rem)', fontWeight: 400, lineHeight: 1.6, color: 'rgba(240,240,242,0.6)' }}>
-              Every feature in FocusOS is built on peer-reviewed research — not guesswork, not hustle culture, not vibes.
-            </p>
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', margin: '2vw 0' }} />
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3vw' }}>
-              {[
-                { title: 'Adaptive Span', body: 'Your focus duration grows session by session, tuned to your real baseline — not a preset timer.' },
-                { title: 'Spaced Repetition', body: 'Quiz yourself using SM-2, the algorithm proven to lock knowledge into long-term memory.' },
-                { title: 'Attention Levels', body: 'Track your progression from Building → Focused → Flow State as your brain adapts over weeks.' },
-              ].map(({ title, body }) => (
-                <div key={title} style={{ minWidth: 180, flex: 1 }}>
-                  <p style={{ marginBottom: 8, fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#b5f23a' }}>{title}</p>
-                  <p style={{ fontSize: 'clamp(0.85rem,1.3vw,1.05rem)', lineHeight: 1.65, color: 'rgba(240,240,242,0.55)' }}>{body}</p>
-                </div>
-              ))}
-            </div>
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', margin: '2vw 0' }} />
-            <p style={{ marginLeft: 'auto', maxWidth: '50ch', textAlign: 'right', fontSize: 'clamp(1rem,2.5vw,1.9rem)', fontWeight: 400, lineHeight: 1.6, color: 'rgba(240,240,242,0.6)' }}>
-              Because the research is clear — generic timers don't build focus. Adaptive ones do.
-            </p>
-          </FlowSection>
-
-          <FlowSection aria-label="How it works" style={{ backgroundColor: '#0c1a04', color: '#f0f0f2' }}>
-            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'rgba(181,242,58,0.6)' }}>03 — How it works</p>
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(181,242,58,0.15)', margin: '2vw 0' }} />
-            <div>
-              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(3.5rem,12vw,13rem)', fontWeight: 700, lineHeight: 0.88, textTransform: 'uppercase', letterSpacing: '0.01em', color: '#b5f23a' }}>
-                SET.<br />FOCUS.<br />LEVEL UP.
-              </h2>
-            </div>
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(181,242,58,0.15)', margin: '2vw 0' }} />
-            <p style={{ maxWidth: '50ch', fontSize: 'clamp(1rem,2.5vw,1.9rem)', fontWeight: 400, lineHeight: 1.6, color: 'rgba(240,240,242,0.6)' }}>
-              No configuration. No learning curve. Open the app and start building real focus in under 60 seconds.
-            </p>
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(181,242,58,0.15)', margin: '2vw 0' }} />
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3vw' }}>
-              {[
-                { title: '01 — Set Your Span',    body: "Tell FocusOS your real attention span — even if it's 8 minutes. No judgment, just data." },
-                { title: '02 — Start a Session',  body: 'Focus timer runs, tracks tab switches, logs distraction events, plays focus audio.' },
-                { title: '03 — Review & Repeat',  body: 'After each session, quiz yourself with spaced repetition cards to lock in what you studied.' },
-              ].map(({ title, body }) => (
-                <div key={title} style={{ minWidth: 180, flex: 1 }}>
-                  <p style={{ marginBottom: 8, fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(181,242,58,0.8)' }}>{title}</p>
-                  <p style={{ fontSize: 'clamp(0.85rem,1.3vw,1.05rem)', lineHeight: 1.65, color: 'rgba(240,240,242,0.5)' }}>{body}</p>
-                </div>
-              ))}
-            </div>
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(181,242,58,0.15)', margin: '2vw 0' }} />
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3vw' }}>
-              {[
-                { title: '04 — Track Your Streak', body: 'Daily streaks keep you consistent. FocusOS rewards showing up, not just grinding.' },
-                { title: '05 — Grow Your Span',    body: 'Every completed session adds minutes. Watch your focus duration climb week over week.' },
-                { title: "06 — Reach Flow State",  body: "Hit 35+ minutes of sustained focus. That's when deep work becomes effortless." },
-              ].map(({ title, body }) => (
-                <div key={title} style={{ minWidth: 180, flex: 1 }}>
-                  <p style={{ marginBottom: 8, fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(181,242,58,0.8)' }}>{title}</p>
-                  <p style={{ fontSize: 'clamp(0.85rem,1.3vw,1.05rem)', lineHeight: 1.65, color: 'rgba(240,240,242,0.5)' }}>{body}</p>
-                </div>
-              ))}
-            </div>
-          </FlowSection>
-
-          <FlowSection aria-label="Join the movement" style={{ backgroundColor: '#0a0a0b', color: '#f0f0f2' }}>
-            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'rgba(181,242,58,0.7)' }}>04 — The results</p>
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', margin: '2vw 0' }} />
-            <div>
-              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(3.5rem,12vw,13rem)', fontWeight: 700, lineHeight: 0.88, textTransform: 'uppercase', letterSpacing: '0.01em' }}>
-                YOUR BEST<br />FOCUS<br />YET.
-              </h2>
-            </div>
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', margin: '2vw 0' }} />
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3vw' }}>
-              {[
-                { stat: '2,400+', body: 'Students actively using FocusOS to study smarter every day.' },
-                { stat: '+8 min',  body: 'Average focus span gained in the first week of consistent use.' },
-                { stat: '242',    body: 'Peer-reviewed studies powering every feature in the app.' },
-              ].map(({ stat, body }) => (
-                <div key={stat} style={{ minWidth: 180, flex: 1 }}>
-                  <p style={{ marginBottom: 8, fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#b5f23a' }}>{stat}</p>
-                  <p style={{ fontSize: 'clamp(0.85rem,1.3vw,1.05rem)', lineHeight: 1.65, color: 'rgba(240,240,242,0.55)' }}>{body}</p>
-                </div>
-              ))}
-            </div>
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', margin: '2vw 0' }} />
-            <p style={{ maxWidth: '50ch', fontSize: 'clamp(1rem,2.5vw,1.9rem)', fontWeight: 400, lineHeight: 1.6, color: 'rgba(240,240,242,0.6)' }}>
-              Attention is your scarcest resource. Most apps compete for it. FocusOS builds it.
-            </p>
-          </FlowSection>
-
-        </FlowArt>
-      </div>
-
       {/* ════ CTA ════════════════════════════════════════════════ */}
       <section style={{
         padding: 'clamp(100px,12vw,160px) clamp(20px,4vw,48px)',
@@ -750,7 +629,7 @@ export default function LandingV2() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 16, color: '#b5f23a', animation: 'spin 8s linear infinite', display: 'inline-block' }}>⟳</span>
-          <span>© 2026 FocusOS · Myan Patel · Westford Academy</span>
+          <span>© 2026 FocusOS</span>
         </div>
         <div style={{ display: 'flex', gap: 20 }}>
           <a href="/privacy" className="l-footer-link">Privacy</a>
