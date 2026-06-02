@@ -569,11 +569,11 @@ export default function LandingV2() {
       <div id="v2-story" style={{ position: 'relative', zIndex: 1 }}>
         <FlowArt>
 
-          {/* Section 1 — Focus */}
-          <FlowSection aria-label="Focus" style={{ background: '#0a0a0a', justifyContent: 'center', alignItems: 'flex-start' }}>
+          {/* Section 1 — Adaptive Timer */}
+          <FlowSection aria-label="Adaptive Timer" style={{ background: '#0a0a0a', justifyContent: 'center', alignItems: 'flex-start' }}>
             <div style={{ maxWidth: 760, padding: '0 clamp(20px,5vw,56px)' }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', marginBottom: 24, textTransform: 'uppercase' }}>
-                01 — FOCUS
+                01 — ADAPTIVE TIMER
               </div>
               <h2 style={{
                 fontFamily: "'Bebas Neue', sans-serif",
@@ -581,20 +581,20 @@ export default function LandingV2() {
                 fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em',
                 color: '#f0f0f2', marginBottom: 28,
               }}>
-                STUDY SMARTER.<br />
-                <span style={{ color: '#b5f23a' }}>FOCUS LONGER.</span>
+                YOUR BRAIN.<br />
+                <span style={{ color: '#b5f23a' }}>YOUR PACE.</span>
               </h2>
-              <p style={{ fontSize: 'clamp(15px,1.5vw,19px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 520 }}>
-                FocusOS adapts to your real attention span — not a generic 25-minute timer.
+              <p style={{ fontSize: 'clamp(15px,1.5vw,19px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 560 }}>
+                Generic apps assume 25 minutes. FocusOS starts at YOUR real attention span and grows it every session. Based on attention research by Ariga &amp; Lleras, <em>Cognition</em>, 2011.
               </p>
             </div>
           </FlowSection>
 
-          {/* Section 2 — Quiz */}
-          <FlowSection aria-label="Quiz" style={{ background: '#b5f23a', justifyContent: 'center', alignItems: 'flex-end' }}>
+          {/* Section 2 — AI Quiz */}
+          <FlowSection aria-label="AI Quiz" style={{ background: '#b5f23a', justifyContent: 'center', alignItems: 'flex-end' }}>
             <div style={{ maxWidth: 760, padding: '0 clamp(20px,5vw,56px)', textAlign: 'right' }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(0,0,0,0.45)', marginBottom: 24, textTransform: 'uppercase' }}>
-                02 — QUIZ
+                02 — AI QUIZ
               </div>
               <h2 style={{
                 fontFamily: "'Bebas Neue', sans-serif",
@@ -602,19 +602,19 @@ export default function LandingV2() {
                 fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em',
                 color: '#0a0a0b', marginBottom: 28,
               }}>
-                TEST YOURSELF.<br />REMEMBER MORE.
+                PASTE NOTES.<br />GET SMARTER.
               </h2>
-              <p style={{ fontSize: 'clamp(15px,1.5vw,19px)', color: 'rgba(0,0,0,0.55)', lineHeight: 1.75, maxWidth: 520, marginLeft: 'auto' }}>
-                AI generates active recall questions from your own notes. Backed by 242 studies.
+              <p style={{ fontSize: 'clamp(15px,1.5vw,19px)', color: 'rgba(0,0,0,0.55)', lineHeight: 1.75, maxWidth: 560, marginLeft: 'auto' }}>
+                Claude AI turns your notes into active recall questions instantly. Practice testing is rated the #1 study technique — Dunlosky et al., 2013. Confirmed by 242 studies and 169,179 participants.
               </p>
             </div>
           </FlowSection>
 
-          {/* Section 3 — Goals */}
-          <FlowSection aria-label="Goals" style={{ background: '#111', justifyContent: 'center', alignItems: 'flex-start' }}>
+          {/* Section 3 — Goals & Streaks */}
+          <FlowSection aria-label="Goals and Streaks" style={{ background: '#111', justifyContent: 'center', alignItems: 'flex-start' }}>
             <div style={{ maxWidth: 760, padding: '0 clamp(20px,5vw,56px)' }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', marginBottom: 24, textTransform: 'uppercase' }}>
-                03 — GOALS
+                03 — GOALS &amp; STREAKS
               </div>
               <h2 style={{
                 fontFamily: "'Bebas Neue', sans-serif",
@@ -622,30 +622,33 @@ export default function LandingV2() {
                 fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em',
                 color: '#f0f0f2', marginBottom: 28,
               }}>
-                SET THE TARGET.<br />
-                <span style={{ color: '#b5f23a' }}>HIT IT.</span>
+                SET THE DATE.<br />
+                <span style={{ color: '#b5f23a' }}>BUILD THE HABIT.</span>
               </h2>
-              <p style={{ fontSize: 'clamp(15px,1.5vw,19px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 520 }}>
-                Backwards study planner from your test date. Implementation intentions increase follow-through 3x.
+              <p style={{ fontSize: 'clamp(15px,1.5vw,19px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 560 }}>
+                Enter your SAT, ACT, or AP test date and get a backwards study plan. Daily streaks and XP keep you consistent. Implementation intentions increase follow-through 3x — Gollwitzer, 1999.
               </p>
             </div>
           </FlowSection>
 
-          {/* Section 4 — Start */}
-          <FlowSection aria-label="Start" style={{ background: '#000', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+          {/* Section 4 — Free to Start */}
+          <FlowSection aria-label="Free to Start" style={{ background: '#000', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
             <div style={{ maxWidth: 640, padding: '0 clamp(20px,5vw,56px)' }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', marginBottom: 24, textTransform: 'uppercase' }}>
-                04 — START
+                04 — FREE TO START
               </div>
               <h2 style={{
                 fontFamily: "'Bebas Neue', sans-serif",
                 fontSize: 'clamp(52px,8vw,112px)',
                 fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em',
-                color: '#f0f0f2', marginBottom: 36,
+                color: '#f0f0f2', marginBottom: 20,
               }}>
                 READY TO<br />
                 <span style={{ color: '#b5f23a' }}>ACTUALLY FOCUS?</span>
               </h2>
+              <p style={{ fontSize: 'clamp(14px,1.3vw,17px)', color: 'rgba(255,255,255,0.38)', lineHeight: 1.7, marginBottom: 36 }}>
+                5 free AI quizzes per day. Adaptive timer. Goals tracker. No credit card.
+              </p>
               <RippleButton
                 className="l-btn-primary"
                 style={{ fontSize: 16, padding: '15px 36px' }}
