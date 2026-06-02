@@ -646,7 +646,7 @@ export default function LandingV2() {
         <FlowArt>
 
           {/* Section 1 – Adaptive Timer: text left, timer right */}
-          <FlowSection aria-label="Adaptive Timer" style={{ background: '#0a0a0a', flexDirection: 'row', alignItems: 'stretch', justifyContent: 'flex-start', padding: 0 }}>
+          <FlowSection aria-label="Adaptive Timer" style={{ background: '#0a0a0a', flexDirection: 'row', alignItems: 'stretch', justifyContent: 'flex-start', padding: 0, gap: 0 }}>
             <div style={{ flex: '1 1 50%', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(20px,3vh,36px)', padding: 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', textTransform: 'uppercase' }}>
                 01 — ADAPTIVE TIMER
@@ -664,7 +664,7 @@ export default function LandingV2() {
           </FlowSection>
 
           {/* Section 2 – AI Quiz: quiz left, text right */}
-          <FlowSection aria-label="AI Quiz" style={{ background: '#b5f23a', flexDirection: 'row', alignItems: 'stretch', justifyContent: 'flex-start', padding: 0 }}>
+          <FlowSection aria-label="AI Quiz" style={{ background: '#b5f23a', flexDirection: 'row', alignItems: 'stretch', justifyContent: 'flex-start', padding: 0, gap: 0 }}>
             <div style={{ flex: '1 1 50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)', background: 'rgba(0,0,0,0.06)' }}>
               <QuizVisual />
             </div>
@@ -682,7 +682,7 @@ export default function LandingV2() {
           </FlowSection>
 
           {/* Section 3 – Goals & Streaks: text left, heatmap right */}
-          <FlowSection aria-label="Goals and Streaks" style={{ background: '#111', flexDirection: 'row', alignItems: 'stretch', justifyContent: 'flex-start', padding: 0 }}>
+          <FlowSection aria-label="Goals and Streaks" style={{ background: '#111', flexDirection: 'row', alignItems: 'stretch', justifyContent: 'flex-start', padding: 0, gap: 0 }}>
             <div style={{ flex: '1 1 50%', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(20px,3vh,36px)', padding: 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', textTransform: 'uppercase' }}>
                 03 — GOALS &amp; STREAKS
@@ -732,7 +732,7 @@ export default function LandingV2() {
           </FlowSection>
 
           {/* Section 4 – CTA: fully centered */}
-          <FlowSection aria-label="Free to Start" style={{ background: '#000', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+          <FlowSection aria-label="Free to Start" style={{ background: '#000', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: 'clamp(48px,7vw,96px) clamp(20px,5vw,56px)' }}>
             <div style={{ maxWidth: 640, padding: '0 clamp(20px,5vw,56px)' }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', marginBottom: 24, textTransform: 'uppercase' }}>
                 04 — FREE TO START
