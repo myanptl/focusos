@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
-import { VolumeX, Waves, Music, Music2, FileText, Flame, Target, X, Timer as TimerIcon, Zap } from 'lucide-react'
+import { VolumeX, Waves, Music, Music2, FileText, Flame, Target, X, Timer as TimerIcon, Zap, Check } from 'lucide-react'
 
 // ── All constants (identical to Timer.jsx) ──────────────────────────────────
 const LEVELS = [
@@ -510,7 +510,7 @@ export default function TimerV2() {
               fontSize: 13, textAlign: 'left', transition: 'all 0.15s', fontFamily: "'Outfit', sans-serif",
             }}
           >
-            ✦ Set today's intention →
+            <Target size={12} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6 }} /> Set today's intention →
           </motion.button>
         ) : (
           <div style={{ marginBottom: 14, padding: '10px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -864,7 +864,7 @@ export default function TimerV2() {
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 8, color: '#0a0a0b', fontWeight: 900,
                       }}>
-                        {t.done && '✓'}
+                        {t.done && <Check size={8} strokeWidth={3} />}
                       </div>
                       <span style={{ fontSize: 13, flex: 1, color: t.done ? 'rgba(148,148,160,0.5)' : 'rgba(240,240,242,0.85)', textDecoration: t.done ? 'line-through' : 'none' }}>
                         {t.text}

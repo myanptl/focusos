@@ -855,7 +855,7 @@ export default function Timer() {
           onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(181,242,58,0.4)'}
           onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(181,242,58,0.2)'}
         >
-          ✦ Set today's intention →
+          <Target size={12} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6 }} /> Set today's intention →
         </button>
       ) : (
         <div style={{

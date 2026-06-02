@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { ContainerScroll } from '../components/ui/container-scroll-animation'
+import FlowArt, { FlowSection } from '../components/ui/story-scroll'
 
 function useIsMobile() {
   const [mobile, setMobile] = useState(false)
@@ -200,7 +201,7 @@ function BrowserMockup() {
 
         {/* Greeting */}
         <div style={{ fontSize: 15, fontWeight: 800, color: '#f0f0f2', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-          Good morning, <span style={{ color: '#b5f23a' }}>Myan</span>
+          Good morning, <span style={{ color: '#b5f23a' }}>User</span>
         </div>
 
         {/* Stats row */}
@@ -563,6 +564,101 @@ export default function LandingV2() {
           <BrowserMockup />
         </ContainerScroll>
       </section>
+
+      {/* ════ STORY SCROLL ══════════════════════════════════════ */}
+      <div id="v2-story" style={{ position: 'relative', zIndex: 1 }}>
+        <FlowArt>
+
+          {/* Section 1 — Focus */}
+          <FlowSection aria-label="Focus" style={{ background: '#0a0a0a', justifyContent: 'center', alignItems: 'flex-start' }}>
+            <div style={{ maxWidth: 760, padding: '0 clamp(20px,5vw,56px)' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', marginBottom: 24, textTransform: 'uppercase' }}>
+                01 — FOCUS
+              </div>
+              <h2 style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: 'clamp(52px,8vw,112px)',
+                fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em',
+                color: '#f0f0f2', marginBottom: 28,
+              }}>
+                STUDY SMARTER.<br />
+                <span style={{ color: '#b5f23a' }}>FOCUS LONGER.</span>
+              </h2>
+              <p style={{ fontSize: 'clamp(15px,1.5vw,19px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 520 }}>
+                FocusOS adapts to your real attention span — not a generic 25-minute timer.
+              </p>
+            </div>
+          </FlowSection>
+
+          {/* Section 2 — Quiz */}
+          <FlowSection aria-label="Quiz" style={{ background: '#b5f23a', justifyContent: 'center', alignItems: 'flex-end' }}>
+            <div style={{ maxWidth: 760, padding: '0 clamp(20px,5vw,56px)', textAlign: 'right' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(0,0,0,0.45)', marginBottom: 24, textTransform: 'uppercase' }}>
+                02 — QUIZ
+              </div>
+              <h2 style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: 'clamp(52px,8vw,112px)',
+                fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em',
+                color: '#0a0a0b', marginBottom: 28,
+              }}>
+                TEST YOURSELF.<br />REMEMBER MORE.
+              </h2>
+              <p style={{ fontSize: 'clamp(15px,1.5vw,19px)', color: 'rgba(0,0,0,0.55)', lineHeight: 1.75, maxWidth: 520, marginLeft: 'auto' }}>
+                AI generates active recall questions from your own notes. Backed by 242 studies.
+              </p>
+            </div>
+          </FlowSection>
+
+          {/* Section 3 — Goals */}
+          <FlowSection aria-label="Goals" style={{ background: '#111', justifyContent: 'center', alignItems: 'flex-start' }}>
+            <div style={{ maxWidth: 760, padding: '0 clamp(20px,5vw,56px)' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', marginBottom: 24, textTransform: 'uppercase' }}>
+                03 — GOALS
+              </div>
+              <h2 style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: 'clamp(52px,8vw,112px)',
+                fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em',
+                color: '#f0f0f2', marginBottom: 28,
+              }}>
+                SET THE TARGET.<br />
+                <span style={{ color: '#b5f23a' }}>HIT IT.</span>
+              </h2>
+              <p style={{ fontSize: 'clamp(15px,1.5vw,19px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 520 }}>
+                Backwards study planner from your test date. Implementation intentions increase follow-through 3x.
+              </p>
+            </div>
+          </FlowSection>
+
+          {/* Section 4 — Start */}
+          <FlowSection aria-label="Start" style={{ background: '#000', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+            <div style={{ maxWidth: 640, padding: '0 clamp(20px,5vw,56px)' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', marginBottom: 24, textTransform: 'uppercase' }}>
+                04 — START
+              </div>
+              <h2 style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: 'clamp(52px,8vw,112px)',
+                fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em',
+                color: '#f0f0f2', marginBottom: 36,
+              }}>
+                READY TO<br />
+                <span style={{ color: '#b5f23a' }}>ACTUALLY FOCUS?</span>
+              </h2>
+              <RippleButton
+                className="l-btn-primary"
+                style={{ fontSize: 16, padding: '15px 36px' }}
+                onClick={() => navigate(ctaTarget)}
+              >
+                {user ? 'Back to app' : 'Start for free'}
+                <span style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(0,0,0,0.2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>→</span>
+              </RippleButton>
+            </div>
+          </FlowSection>
+
+        </FlowArt>
+      </div>
 
       {/* ════ CTA ════════════════════════════════════════════════ */}
       <section style={{

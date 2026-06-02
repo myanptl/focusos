@@ -109,16 +109,16 @@ export default function Review() {
 
   function buildShareText() {
     const lines = [
-      '📊 My FocusOS Weekly Review',
+      'My FocusOS Weekly Review',
       '',
-      `⏱ ${thisWeekMins} minutes focused`,
-      `🔥 ${streak} day streak`,
-      `🧠 ${quizzes.filter(q => {
+      `Focus: ${thisWeekMins} minutes`,
+      `Streak: ${streak} days`,
+      `Quizzes: ${quizzes.filter(q => {
         const d = new Date(); const sun = new Date(d); sun.setDate(d.getDate() - d.getDay()); sun.setHours(0,0,0,0)
         return q.quiz_date >= dateStr(sun)
-      }).length} quizzes completed`,
+      }).length} completed`,
     ]
-    if (topSubject) lines.push(`📈 Top subject: ${topSubject}`)
+    if (topSubject) lines.push(`Top subject: ${topSubject}`)
     lines.push('', 'Trained with FocusOS — focusos.live')
     return lines.join('\n')
   }
