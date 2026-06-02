@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='20' fill='%23b5f23a'>⟳</text></svg>" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FocusOS</title>
     <meta name="description" content="FocusOS adapts to your real attention span — not a generic 25-minute timer." />
@@ -15,7 +15,8 @@
     <meta name="twitter:title" content="FocusOS" />
     <meta name="twitter:description" content="Study smarter. Focus longer." />
     <meta name="theme-color" content="#0a0a0b" />
-    <link rel="manifest" href="/manifest.json" />
+    <!-- manifest disabled: triggers vite v8 import-analysis bug -->
+    <!-- <link rel="manifest" href="/manifest.json" /> -->
     <script>
       (function() {
         var c = localStorage.getItem('focusos_accent');

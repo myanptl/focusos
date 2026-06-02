@@ -41,6 +41,10 @@ h1, h2, h3 { text-wrap: balance; }
 .page-fade { }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes waveBar {
+  from { height: 3px; opacity: 0.35; }
+  to   { height: 24px; opacity: 0.9; }
+}
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }

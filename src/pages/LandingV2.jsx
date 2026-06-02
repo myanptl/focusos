@@ -20,7 +20,9 @@ function ParticleCanvas() {
   const ref = useRef(null)
   useEffect(() => {
     const canvas = ref.current
+    if (!canvas) return
     const ctx = canvas.getContext('2d')
+    if (!ctx) return
     let raf, particles = [], mouseX = -9999, mouseY = -9999
 
     function resize() {
@@ -310,15 +312,91 @@ function BrowserMockup() {
   )
 }
 
+/* ─── Story scroll visuals ───────────────────────────────────── */
+const WAVE_H = [30, 58, 88, 62, 100, 44, 78, 94, 50, 72, 38, 82, 55, 96, 34]
+
+function TimerVisual() {
+  const [playing, setPlaying] = useState(false)
+  const r = 88, cx = 110, cy = 110
+  const circ = 2 * Math.PI * r
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, minWidth: 300 }}>
+      <div style={{ position: 'relative', width: 220, height: 220 }}>
+        <svg width="220" height="220" viewBox="0 0 220 220">
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10" />
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke="#b5f23a" strokeWidth="10"
+            strokeDasharray={`${circ * 0.72} ${circ * 0.28}`}
+            strokeLinecap="round"
+            transform={`rotate(-90 ${cx} ${cy})`}
+            style={{ filter: 'drop-shadow(0 0 12px rgba(181,242,58,0.45))' }}
+          />
+        </svg>
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ fontSize: 44, fontWeight: 800, color: '#f0f0f2', fontFamily: "'JetBrains Mono', monospace", lineHeight: 1 }}>23:47</div>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 6, letterSpacing: '0.12em', textTransform: 'uppercase' }}>remaining</div>
+          <div style={{ fontSize: 10, color: 'rgba(181,242,58,0.55)', marginTop: 4 }}>Session 7 of 8</div>
+        </div>
+      </div>
+      <div style={{ width: 280, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: '14px 18px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>Brown Noise</span>
+          <button onClick={() => setPlaying(p => !p)} style={{ width: 30, height: 30, borderRadius: '50%', background: '#b5f23a', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ fontSize: 11, color: '#0a0a0b', lineHeight: 1 }}>{playing ? '⏸' : '▶'}</span>
+          </button>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 3, height: 28 }}>
+          {WAVE_H.map((h, i) => (
+            <div key={i} style={{
+              flex: 1, background: '#b5f23a', borderRadius: 2, minHeight: 3,
+              height: playing ? undefined : `${(h / 100) * 22 + 3}px`,
+              animation: playing ? `waveBar ${0.45 + (i % 6) * 0.08}s ease-in-out ${(i % 5) * 0.06}s infinite alternate` : 'none',
+            }} />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function QuizVisual() {
+  const [active, setActive] = useState(0)
+  useEffect(() => {
+    const id = setInterval(() => setActive(a => (a + 1) % 4), 1600)
+    return () => clearInterval(id)
+  }, [])
+  const modes = ['Easy', 'Medium', 'Hard', 'Custom']
+  return (
+    <div style={{ minWidth: 300, maxWidth: 380, width: '100%' }}>
+      <div style={{ background: '#0a0a0b', borderRadius: 16, padding: '24px 28px', marginBottom: 14, boxShadow: '0 24px 64px rgba(0,0,0,0.35)' }}>
+        <div style={{ fontSize: 10, color: 'rgba(181,242,58,0.75)', fontWeight: 700, letterSpacing: '0.12em', marginBottom: 14, textTransform: 'uppercase' }}>Biology · Flashcard</div>
+        <div style={{ fontSize: 15, color: '#f0f0f2', lineHeight: 1.6, marginBottom: 20 }}>What triggers the release of insulin from the pancreas?</div>
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', lineHeight: 1.65, borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 16 }}>
+          Rising blood glucose levels signal beta cells in the islets of Langerhans to secrete insulin.
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {modes.map((mode, i) => (
+          <div key={mode} style={{
+            flex: 1, textAlign: 'center', padding: '10px 4px', borderRadius: 10,
+            background: i === active ? 'rgba(0,0,0,0.18)' : 'rgba(0,0,0,0.08)',
+            fontSize: 11, fontWeight: 700,
+            color: i === active ? '#0a0a0b' : 'rgba(0,0,0,0.38)',
+            border: i === active ? '2px solid rgba(0,0,0,0.28)' : '2px solid transparent',
+            transform: i === active ? 'scale(1.06)' : 'scale(1)',
+            transition: 'all 0.35s cubic-bezier(0.34,1.56,0.64,1)',
+          }}>{mode}</div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /* ─── LandingV2 ─────────────────────────────────────────────── */
 export default function LandingV2() {
   const { user, loading } = useAuth()
   const navigate = useNavigate()
-  const [mounted, setMounted] = useState(false)
   const reduced = useReducedMotion()
   const isMobile = useIsMobile()
-
-  useEffect(() => { const t = setTimeout(() => setMounted(true), 30); return () => clearTimeout(t) }, [])
 
   const ctaTarget = user ? '/timer' : '/signup'
 
@@ -332,8 +410,6 @@ export default function LandingV2() {
     <div style={{
       background: '#0a0a0b', color: '#f0f0f2',
       fontFamily: "'Outfit', sans-serif",
-      opacity: mounted ? 1 : 0,
-      transition: 'opacity 0.5s ease',
       overflowX: 'hidden',
       position: 'relative',
     }}>
@@ -565,56 +641,97 @@ export default function LandingV2() {
         </ContainerScroll>
       </section>
 
-      {/* ════ STORY SCROLL ══════════════════════════════════════ */}
+      {/* ════ STORY SCROLL ════════════════════════════════════════ */}
       <div id="v2-story" style={{ position: 'relative', zIndex: 1 }}>
         <FlowArt>
 
-          {/* Section 1 — Adaptive Timer */}
-          <FlowSection aria-label="Adaptive Timer" style={{ background: '#0a0a0a', justifyContent: 'center', alignItems: 'flex-start' }}>
-            <div style={{ maxWidth: 760, padding: '0 clamp(20px,5vw,56px)' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', marginBottom: 24, textTransform: 'uppercase' }}>
-                01 — ADAPTIVE TIMER
-              </div>
-              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(52px,8vw,112px)', fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em', color: '#f0f0f2', marginBottom: 28 }}>
-                YOUR BRAIN.<br /><span style={{ color: '#b5f23a' }}>YOUR PACE.</span>
-              </h2>
-              <p style={{ fontSize: 'clamp(15px,1.5vw,19px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 560 }}>
+          {/* Section 1 – Adaptive Timer */}
+          <FlowSection aria-label="Adaptive Timer" style={{ background: '#0a0a0a', padding: 'clamp(48px,7vw,96px) clamp(32px,5vw,80px)' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', textTransform: 'uppercase' }}>
+              01 — ADAPTIVE TIMER
+            </div>
+            <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(72px,10vw,148px)', fontWeight: 400, lineHeight: 0.88, letterSpacing: '0.01em', color: '#f0f0f2' }}>
+              YOUR BRAIN.<br /><span style={{ color: '#b5f23a' }}>YOUR PACE.</span>
+            </h2>
+            <div style={{ display: 'flex', gap: 'clamp(32px,5vw,72px)', alignItems: 'flex-end' }}>
+              <p style={{ flex: '1 1 38%', fontSize: 'clamp(14px,1.3vw,17px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 420 }}>
                 Generic apps assume 25 minutes. FocusOS starts at YOUR real attention span and grows it every session. Based on attention research by Ariga &amp; Lleras, <em>Cognition</em>, 2011.
               </p>
+              <div style={{ flex: '1 1 62%', display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
+                <TimerVisual />
+              </div>
             </div>
           </FlowSection>
 
-          {/* Section 2 — AI Quiz */}
-          <FlowSection aria-label="AI Quiz" style={{ background: '#b5f23a', justifyContent: 'center', alignItems: 'flex-end' }}>
-            <div style={{ maxWidth: 760, padding: '0 clamp(20px,5vw,56px)', textAlign: 'right' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(0,0,0,0.4)', marginBottom: 24, textTransform: 'uppercase' }}>
-                02 — AI QUIZ
+          {/* Section 2 – AI Quiz */}
+          <FlowSection aria-label="AI Quiz" style={{ background: '#b5f23a', padding: 'clamp(48px,7vw,96px) clamp(32px,5vw,80px)' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(0,0,0,0.4)', textTransform: 'uppercase' }}>
+              02 — AI QUIZ
+            </div>
+            <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(72px,10vw,148px)', fontWeight: 400, lineHeight: 0.88, letterSpacing: '0.01em', color: '#0a0a0b', textAlign: 'right' }}>
+              PASTE NOTES.<br />GET SMARTER.
+            </h2>
+            <div style={{ display: 'flex', gap: 'clamp(32px,5vw,72px)', alignItems: 'flex-end' }}>
+              <div style={{ flex: '1 1 62%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-end' }}>
+                <QuizVisual />
               </div>
-              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(52px,8vw,112px)', fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em', color: '#0a0a0b', marginBottom: 28 }}>
-                PASTE NOTES.<br />GET SMARTER.
-              </h2>
-              <p style={{ fontSize: 'clamp(15px,1.5vw,19px)', color: 'rgba(0,0,0,0.55)', lineHeight: 1.75, maxWidth: 560, marginLeft: 'auto' }}>
+              <p style={{ flex: '1 1 38%', fontSize: 'clamp(14px,1.3vw,17px)', color: 'rgba(0,0,0,0.55)', lineHeight: 1.75, maxWidth: 420, textAlign: 'right', marginLeft: 'auto' }}>
                 Claude AI turns your notes into active recall questions instantly. Practice testing is rated the #1 study technique — Dunlosky et al., 2013. Confirmed by 242 studies and 169,179 participants.
               </p>
             </div>
           </FlowSection>
 
-          {/* Section 3 — Goals & Streaks */}
-          <FlowSection aria-label="Goals and Streaks" style={{ background: '#111', justifyContent: 'center', alignItems: 'flex-start' }}>
-            <div style={{ maxWidth: 760, padding: '0 clamp(20px,5vw,56px)' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', marginBottom: 24, textTransform: 'uppercase' }}>
-                03 — GOALS &amp; STREAKS
-              </div>
-              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(52px,8vw,112px)', fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em', color: '#f0f0f2', marginBottom: 28 }}>
-                SET THE DATE.<br /><span style={{ color: '#b5f23a' }}>BUILD THE HABIT.</span>
-              </h2>
-              <p style={{ fontSize: 'clamp(15px,1.5vw,19px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 560 }}>
+          {/* Section 3 – Goals & Streaks */}
+          <FlowSection aria-label="Goals and Streaks" style={{ background: '#111', padding: 'clamp(48px,7vw,96px) clamp(32px,5vw,80px)' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', textTransform: 'uppercase' }}>
+              03 — GOALS &amp; STREAKS
+            </div>
+            <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(72px,10vw,148px)', fontWeight: 400, lineHeight: 0.88, letterSpacing: '0.01em', color: '#f0f0f2' }}>
+              SET THE DATE.<br /><span style={{ color: '#b5f23a' }}>BUILD THE HABIT.</span>
+            </h2>
+            <div style={{ display: 'flex', gap: 'clamp(32px,5vw,72px)', alignItems: 'flex-end' }}>
+              <p style={{ flex: '1 1 38%', fontSize: 'clamp(14px,1.3vw,17px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 420 }}>
                 Enter your SAT, ACT, or AP test date and get a backwards study plan. Daily streaks and XP keep you consistent. Implementation intentions increase follow-through 3x — Gollwitzer, 1999.
               </p>
+              <div style={{ flex: '1 1 62%', display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
+                <div style={{ minWidth: 300, maxWidth: 400, width: '100%' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>June 2026</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(181,242,58,0.08)', border: '1px solid rgba(181,242,58,0.18)', borderRadius: 20, padding: '5px 14px' }}>
+                      <span style={{ fontSize: 15 }}>🔥</span>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: '#b5f23a', fontFamily: "'JetBrains Mono', monospace" }}>18</span>
+                      <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>day streak</span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginBottom: 20 }}>
+                    {['M','T','W','T','F','S','S'].map((d, i) => (
+                      <div key={i} style={{ textAlign: 'center', fontSize: 9, color: 'rgba(255,255,255,0.2)', marginBottom: 4 }}>{d}</div>
+                    ))}
+                    {Array.from({ length: 28 }, (_, i) => {
+                      const done = i < 18, today = i === 17
+                      return (
+                        <div key={i} style={{
+                          height: 32, borderRadius: 7,
+                          background: today ? '#b5f23a' : done ? 'rgba(181,242,58,0.22)' : 'rgba(255,255,255,0.04)',
+                          border: today ? 'none' : done ? '1px solid rgba(181,242,58,0.35)' : '1px solid rgba(255,255,255,0.06)',
+                        }} />
+                      )
+                    })}
+                  </div>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    {[{ label: 'XP earned', val: '2,840' }, { label: 'Goals hit', val: '6/7' }, { label: 'Best streak', val: '24d' }].map(({ label, val }) => (
+                      <div key={label} style={{ flex: 1, padding: '12px 8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, textAlign: 'center' }}>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: '#f0f0f2', fontFamily: "'JetBrains Mono', monospace", lineHeight: 1 }}>{val}</div>
+                        <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', marginTop: 5 }}>{label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </FlowSection>
 
-          {/* Section 4 — Free to Start */}
+          {/* Section 4 – Free to Start */}
           <FlowSection aria-label="Free to Start" style={{ background: '#000', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
             <div style={{ maxWidth: 640, padding: '0 clamp(20px,5vw,56px)' }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', marginBottom: 24, textTransform: 'uppercase' }}>
