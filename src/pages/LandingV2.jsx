@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion, useInView } from 'framer-motion'
+import { Flame } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { ContainerScroll } from '../components/ui/container-scroll-animation'
@@ -310,6 +311,142 @@ function BrowserMockup() {
   )
 }
 
+/* ─── Story Section Visuals ─────────────────────────────────── */
+const _CIRC = +(2 * Math.PI * 52).toFixed(2)
+
+function StoryTimerVisual() {
+  const [elapsed, setElapsed] = useState(0)
+  const TOTAL = 25 * 60
+  useEffect(() => {
+    const id = setInterval(() => setElapsed(e => (e + 1) % TOTAL), 1000)
+    return () => clearInterval(id)
+  }, [])
+  const rem = TOTAL - elapsed
+  const t = `${String(Math.floor(rem / 60)).padStart(2, '0')}:${String(rem % 60).padStart(2, '0')}`
+  const offset = +((elapsed / TOTAL) * _CIRC).toFixed(2)
+  return (
+    <div style={{ position: 'relative', width: 176, height: 176, flexShrink: 0 }}>
+      <motion.div
+        animate={{ opacity: [0.2, 0.5, 0.2], scale: [1, 1.08, 1] }}
+        transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ position: 'absolute', inset: -20, borderRadius: '50%', background: 'radial-gradient(circle, rgba(181,242,58,0.22) 0%, transparent 65%)', pointerEvents: 'none' }}
+      />
+      <svg width="176" height="176" viewBox="0 0 120 120" style={{ position: 'absolute', inset: 0 }}>
+        <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="6" />
+        <motion.circle
+          cx="60" cy="60" r="52" fill="none" stroke="#b5f23a" strokeWidth="6"
+          strokeLinecap="round" strokeDasharray={_CIRC}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 0.95, ease: 'linear' }}
+          transform="rotate(-90 60 60)"
+          style={{ filter: 'drop-shadow(0 0 7px rgba(181,242,58,0.65))' }}
+        />
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 26, fontWeight: 700, color: '#f0f0f2', letterSpacing: '-0.03em' }}>{t}</div>
+        <div style={{ fontSize: 8, color: '#b5f23a', fontWeight: 700, letterSpacing: '0.14em', marginTop: 3 }}>FOCUS</div>
+      </div>
+    </div>
+  )
+}
+
+function StoryQuizVisual() {
+  const [active, setActive] = useState(0)
+  const opts = ['Spaced repetition', 'Re-reading notes', 'Highlighting text', 'Summarizing chapters']
+  useEffect(() => {
+    const id = setInterval(() => setActive(a => (a + 1) % 4), 1500)
+    return () => clearInterval(id)
+  }, [])
+  return (
+    <div style={{ background: '#0a0a0b', borderRadius: 14, padding: '18px 20px', width: 252, flexShrink: 0, border: '1px solid rgba(255,255,255,0.06)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>
+      <div style={{ fontSize: 8, fontWeight: 700, color: 'rgba(181,242,58,0.6)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>Active Recall</div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: '#f0f0f2', marginBottom: 12, lineHeight: 1.45 }}>Which technique improves retention by 80%?</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {opts.map((text, i) => (
+          <motion.div key={i}
+            animate={{
+              background: i === active ? '#b5f23a' : 'rgba(255,255,255,0.04)',
+              color: i === active ? '#0a0a0b' : 'rgba(255,255,255,0.45)',
+            }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 7, fontSize: 11, fontWeight: i === active ? 700 : 400, border: '1px solid rgba(255,255,255,0.06)' }}
+          >
+            <span style={{ width: 16, height: 16, borderRadius: '50%', background: i === active ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 800, flexShrink: 0 }}>
+              {String.fromCharCode(65 + i)}
+            </span>
+            {text}
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function StoryStreakVisual() {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: false, margin: '-10% 0px' })
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    if (!inView) { setCount(0); return }
+    let n = 0
+    const id = setInterval(() => { n++; setCount(n); if (n >= 7) clearInterval(id) }, 160)
+    return () => clearInterval(id)
+  }, [inView])
+  const COLS = 7, ROWS = 5, CELLS = COLS * ROWS
+  const getColor = (i) => {
+    if (i < CELLS - 18) return 'rgba(255,255,255,0.05)'
+    if (i < CELLS - 7) return `rgba(181,242,58,${Math.min(0.15 + (i - (CELLS - 18)) * 0.04, 0.65)})`
+    return '#b5f23a'
+  }
+  return (
+    <div ref={ref} style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <motion.div animate={{ scale: [1, 1.14, 1], opacity: [0.85, 1, 0.85] }} transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}>
+          <Flame size={30} color="#f97316" fill="#f97316" />
+        </motion.div>
+        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 44, fontWeight: 700, color: '#f0f0f2', lineHeight: 1 }}>{count}</span>
+        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', fontWeight: 500, alignSelf: 'flex-end', paddingBottom: 6 }}>day streak</span>
+      </div>
+      <motion.div
+        variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.025 } } }}
+        initial="hidden"
+        animate={inView ? 'visible' : 'hidden'}
+        style={{ display: 'grid', gridTemplateColumns: `repeat(${COLS}, 14px)`, gap: 3 }}
+      >
+        {Array.from({ length: CELLS }, (_, i) => (
+          <motion.div key={i}
+            variants={{ hidden: { opacity: 0, scale: 0.4 }, visible: { opacity: 1, scale: 1 } }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            style={{ width: 14, height: 14, borderRadius: 3, background: getColor(i) }}
+          />
+        ))}
+      </motion.div>
+    </div>
+  )
+}
+
+function StoryFeaturePills() {
+  const pills = ['5 free AI quizzes/day', 'Adaptive focus timer', 'Goals & streaks tracker']
+  const container = { hidden: {}, visible: { transition: { staggerChildren: 0.2 } } }
+  const item = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } } }
+  return (
+    <motion.div variants={container} initial="hidden" whileInView="visible" viewport={{ once: false }}
+      style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 28, alignItems: 'center' }}>
+      {pills.map((text, i) => (
+        <motion.div key={text} variants={item}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'rgba(181,242,58,0.07)', border: '1px solid rgba(181,242,58,0.18)', borderRadius: 50, padding: '10px 18px', fontSize: 14, fontWeight: 500, color: '#f0f0f2' }}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <motion.path d="M3 8l3.5 3.5L13 5" stroke="#b5f23a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+              initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={{ once: false }}
+              transition={{ duration: 0.45, delay: i * 0.2 + 0.25, ease: 'easeOut' }} />
+          </svg>
+          {text}
+        </motion.div>
+      ))}
+    </motion.div>
+  )
+}
+
 /* ─── LandingV2 ─────────────────────────────────────────────── */
 export default function LandingV2() {
   const { user, loading } = useAuth()
@@ -570,88 +707,72 @@ export default function LandingV2() {
         <FlowArt>
 
           {/* Section 1 — Adaptive Timer */}
-          <FlowSection aria-label="Adaptive Timer" style={{ background: '#0a0a0a', justifyContent: 'center', alignItems: 'flex-start' }}>
-            <div style={{ maxWidth: 760, padding: '0 clamp(20px,5vw,56px)' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', marginBottom: 24, textTransform: 'uppercase' }}>
-                01 — ADAPTIVE TIMER
+          <FlowSection aria-label="Adaptive Timer" style={{ background: '#0a0a0a', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(36px,6vw,80px)', flexWrap: 'wrap', width: '100%' }}>
+              <div style={{ flex: '1 1 300px' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', marginBottom: 24, textTransform: 'uppercase' }}>
+                  01 — ADAPTIVE TIMER
+                </div>
+                <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(48px,7vw,100px)', fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em', color: '#f0f0f2', marginBottom: 24 }}>
+                  YOUR BRAIN.<br /><span style={{ color: '#b5f23a' }}>YOUR PACE.</span>
+                </h2>
+                <p style={{ fontSize: 'clamp(14px,1.4vw,18px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 480 }}>
+                  Generic apps assume 25 minutes. FocusOS starts at YOUR real attention span and grows it every session. Based on attention research by Ariga &amp; Lleras, <em>Cognition</em>, 2011.
+                </p>
               </div>
-              <h2 style={{
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: 'clamp(52px,8vw,112px)',
-                fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em',
-                color: '#f0f0f2', marginBottom: 28,
-              }}>
-                YOUR BRAIN.<br />
-                <span style={{ color: '#b5f23a' }}>YOUR PACE.</span>
-              </h2>
-              <p style={{ fontSize: 'clamp(15px,1.5vw,19px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 560 }}>
-                Generic apps assume 25 minutes. FocusOS starts at YOUR real attention span and grows it every session. Based on attention research by Ariga &amp; Lleras, <em>Cognition</em>, 2011.
-              </p>
+              <StoryTimerVisual />
             </div>
           </FlowSection>
 
           {/* Section 2 — AI Quiz */}
-          <FlowSection aria-label="AI Quiz" style={{ background: '#b5f23a', justifyContent: 'center', alignItems: 'flex-end' }}>
-            <div style={{ maxWidth: 760, padding: '0 clamp(20px,5vw,56px)', textAlign: 'right' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(0,0,0,0.45)', marginBottom: 24, textTransform: 'uppercase' }}>
-                02 — AI QUIZ
+          <FlowSection aria-label="AI Quiz" style={{ background: '#b5f23a', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(36px,6vw,80px)', flexWrap: 'wrap', width: '100%' }}>
+              <StoryQuizVisual />
+              <div style={{ flex: '1 1 300px', textAlign: 'right' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(0,0,0,0.4)', marginBottom: 24, textTransform: 'uppercase' }}>
+                  02 — AI QUIZ
+                </div>
+                <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(48px,7vw,100px)', fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em', color: '#0a0a0b', marginBottom: 24 }}>
+                  PASTE NOTES.<br />GET SMARTER.
+                </h2>
+                <p style={{ fontSize: 'clamp(14px,1.4vw,18px)', color: 'rgba(0,0,0,0.55)', lineHeight: 1.75, maxWidth: 480, marginLeft: 'auto' }}>
+                  Claude AI turns your notes into active recall questions instantly. Practice testing is rated the #1 study technique — Dunlosky et al., 2013. Confirmed by 242 studies and 169,179 participants.
+                </p>
               </div>
-              <h2 style={{
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: 'clamp(52px,8vw,112px)',
-                fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em',
-                color: '#0a0a0b', marginBottom: 28,
-              }}>
-                PASTE NOTES.<br />GET SMARTER.
-              </h2>
-              <p style={{ fontSize: 'clamp(15px,1.5vw,19px)', color: 'rgba(0,0,0,0.55)', lineHeight: 1.75, maxWidth: 560, marginLeft: 'auto' }}>
-                Claude AI turns your notes into active recall questions instantly. Practice testing is rated the #1 study technique — Dunlosky et al., 2013. Confirmed by 242 studies and 169,179 participants.
-              </p>
             </div>
           </FlowSection>
 
           {/* Section 3 — Goals & Streaks */}
-          <FlowSection aria-label="Goals and Streaks" style={{ background: '#111', justifyContent: 'center', alignItems: 'flex-start' }}>
-            <div style={{ maxWidth: 760, padding: '0 clamp(20px,5vw,56px)' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', marginBottom: 24, textTransform: 'uppercase' }}>
-                03 — GOALS &amp; STREAKS
+          <FlowSection aria-label="Goals and Streaks" style={{ background: '#111', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(36px,6vw,80px)', flexWrap: 'wrap', width: '100%' }}>
+              <div style={{ flex: '1 1 300px' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', marginBottom: 24, textTransform: 'uppercase' }}>
+                  03 — GOALS &amp; STREAKS
+                </div>
+                <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(48px,7vw,100px)', fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em', color: '#f0f0f2', marginBottom: 24 }}>
+                  SET THE DATE.<br /><span style={{ color: '#b5f23a' }}>BUILD THE HABIT.</span>
+                </h2>
+                <p style={{ fontSize: 'clamp(14px,1.4vw,18px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 480 }}>
+                  Enter your SAT, ACT, or AP test date and get a backwards study plan. Daily streaks and XP keep you consistent. Implementation intentions increase follow-through 3x — Gollwitzer, 1999.
+                </p>
               </div>
-              <h2 style={{
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: 'clamp(52px,8vw,112px)',
-                fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em',
-                color: '#f0f0f2', marginBottom: 28,
-              }}>
-                SET THE DATE.<br />
-                <span style={{ color: '#b5f23a' }}>BUILD THE HABIT.</span>
-              </h2>
-              <p style={{ fontSize: 'clamp(15px,1.5vw,19px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 560 }}>
-                Enter your SAT, ACT, or AP test date and get a backwards study plan. Daily streaks and XP keep you consistent. Implementation intentions increase follow-through 3x — Gollwitzer, 1999.
-              </p>
+              <StoryStreakVisual />
             </div>
           </FlowSection>
 
           {/* Section 4 — Free to Start */}
           <FlowSection aria-label="Free to Start" style={{ background: '#000', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-            <div style={{ maxWidth: 640, padding: '0 clamp(20px,5vw,56px)' }}>
+            <div style={{ maxWidth: 560, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', marginBottom: 24, textTransform: 'uppercase' }}>
                 04 — FREE TO START
               </div>
-              <h2 style={{
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: 'clamp(52px,8vw,112px)',
-                fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em',
-                color: '#f0f0f2', marginBottom: 20,
-              }}>
-                READY TO<br />
-                <span style={{ color: '#b5f23a' }}>ACTUALLY FOCUS?</span>
+              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(48px,7vw,100px)', fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em', color: '#f0f0f2', marginBottom: 16 }}>
+                READY TO<br /><span style={{ color: '#b5f23a' }}>ACTUALLY FOCUS?</span>
               </h2>
-              <p style={{ fontSize: 'clamp(14px,1.3vw,17px)', color: 'rgba(255,255,255,0.38)', lineHeight: 1.7, marginBottom: 36 }}>
-                5 free AI quizzes per day. Adaptive timer. Goals tracker. No credit card.
-              </p>
+              <StoryFeaturePills />
               <RippleButton
                 className="l-btn-primary"
-                style={{ fontSize: 16, padding: '15px 36px' }}
+                style={{ fontSize: 16, padding: '15px 36px', marginTop: 36 }}
                 onClick={() => navigate(ctaTarget)}
               >
                 {user ? 'Back to app' : 'Start for free'}
