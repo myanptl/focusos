@@ -102,28 +102,32 @@ export async function checkIPRateLimit(req, res) {
     process.env.VITE_SUPABASE_ANON_KEY
   )
 
-  const { data: limitData } = await supabase
-    .from('api_rate_limits')
-    .select('request_count, window_start')
-    .eq('user_id', `ip:${ip}`)
-    .eq('endpoint', 'ip-global')
-    .maybeSingle()
+  try {
+    const { data: limitData } = await supabase
+      .from('api_rate_limits')
+      .select('request_count, window_start')
+      .eq('user_id', `ip:${ip}`)
+      .eq('endpoint', 'ip-global')
+      .maybeSingle()
 
-  const inWindow = limitData && limitData.window_start > windowStart
+    const inWindow = limitData && limitData.window_start > windowStart
 
-  if (inWindow && limitData.request_count >= IP_RATE_LIMIT) {
-    res.status(429).json({ error: 'Too many requests from this IP. Try again later.' })
-    return false
+    if (inWindow && limitData.request_count >= IP_RATE_LIMIT) {
+      res.status(429).json({ error: 'Too many requests from this IP. Try again later.' })
+      return false
+    }
+
+    await supabase
+      .from('api_rate_limits')
+      .upsert({
+        user_id: `ip:${ip}`,
+        endpoint: 'ip-global',
+        request_count: inWindow ? limitData.request_count + 1 : 1,
+        window_start: inWindow ? limitData.window_start : new Date().toISOString(),
+      }, { onConflict: 'user_id,endpoint' })
+  } catch {
+    // Rate-limit DB error — allow the request through rather than blocking all traffic
   }
-
-  await supabase
-    .from('api_rate_limits')
-    .upsert({
-      user_id: `ip:${ip}`,
-      endpoint: 'ip-global',
-      request_count: inWindow ? limitData.request_count + 1 : 1,
-      window_start: inWindow ? limitData.window_start : new Date().toISOString(),
-    }, { onConflict: 'user_id,endpoint' })
 
   return true
 }
@@ -243,27 +247,31 @@ export async function checkRateLimit(supabase, userId, endpoint) {
   const maxRequests = USER_RATE_LIMITS[endpoint] ?? 20
   const windowStart = new Date(Date.now() - 60 * 60 * 1000).toISOString()
 
-  const { data: limitData } = await supabase
-    .from('api_rate_limits')
-    .select('request_count, window_start')
-    .eq('user_id', userId)
-    .eq('endpoint', endpoint)
-    .maybeSingle()
+  try {
+    const { data: limitData } = await supabase
+      .from('api_rate_limits')
+      .select('request_count, window_start')
+      .eq('user_id', userId)
+      .eq('endpoint', endpoint)
+      .maybeSingle()
 
-  const inWindow = limitData && limitData.window_start > windowStart
+    const inWindow = limitData && limitData.window_start > windowStart
 
-  if (inWindow && limitData.request_count >= maxRequests) {
-    return false
+    if (inWindow && limitData.request_count >= maxRequests) {
+      return false
+    }
+
+    await supabase
+      .from('api_rate_limits')
+      .upsert({
+        user_id: userId,
+        endpoint,
+        request_count: inWindow ? limitData.request_count + 1 : 1,
+        window_start: inWindow ? limitData.window_start : new Date().toISOString(),
+      }, { onConflict: 'user_id,endpoint' })
+  } catch {
+    // Rate-limit DB error — allow the request through rather than blocking all traffic
   }
-
-  await supabase
-    .from('api_rate_limits')
-    .upsert({
-      user_id: userId,
-      endpoint,
-      request_count: inWindow ? limitData.request_count + 1 : 1,
-      window_start: inWindow ? limitData.window_start : new Date().toISOString(),
-    }, { onConflict: 'user_id,endpoint' })
 
   return true
 }

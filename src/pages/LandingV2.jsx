@@ -642,119 +642,125 @@ export default function LandingV2() {
       </section>
 
       {/* ════ STORY SCROLL ════════════════════════════════════════ */}
+      {/* On mobile, skip FlowArt (GSAP ScrollTrigger pin) to prevent height/overflow issues */}
       <div id="v2-story" style={{ position: 'relative', zIndex: 1 }}>
-        <FlowArt>
+        {(() => {
+          const storyContent = (
+            <>
+              {/* Section 1 – Adaptive Timer: text left, timer right */}
+              <FlowSection aria-label="Adaptive Timer" style={{ background: '#0d0d0f', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'stretch', justifyContent: 'flex-start', padding: 0, gap: 0 }}>
+                <div style={{ flex: '1 1 50%', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(20px,3vh,36px)', padding: isMobile ? '48px 20px 24px' : 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', textTransform: 'uppercase' }}>
+                    01 — ADAPTIVE TIMER
+                  </div>
+                  <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: isMobile ? 'clamp(48px,12vw,72px)' : 'clamp(56px,7vw,112px)', fontWeight: 400, lineHeight: 0.88, letterSpacing: '0.01em', color: '#f0f0f2' }}>
+                    YOUR BRAIN.<br /><span style={{ color: '#b5f23a' }}>YOUR PACE.</span>
+                  </h2>
+                  <p style={{ fontSize: 'clamp(14px,1.2vw,17px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 400 }}>
+                    Generic apps assume 25 minutes. FocusOS starts at YOUR real attention span and grows it every session. Based on attention research by Ariga &amp; Lleras, <em>Cognition</em>, 2011.
+                  </p>
+                </div>
+                <div style={{ flex: '1 1 50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '0 20px 48px' : 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
+                  <TimerVisual />
+                </div>
+              </FlowSection>
 
-          {/* Section 1 – Adaptive Timer: text left, timer right */}
-          <FlowSection aria-label="Adaptive Timer" style={{ background: '#0d0d0f', flexDirection: 'row', alignItems: 'stretch', justifyContent: 'flex-start', padding: 0, gap: 0 }}>
-            <div style={{ flex: '1 1 50%', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(20px,3vh,36px)', padding: 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', textTransform: 'uppercase' }}>
-                01 — ADAPTIVE TIMER
-              </div>
-              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(56px,7vw,112px)', fontWeight: 400, lineHeight: 0.88, letterSpacing: '0.01em', color: '#f0f0f2' }}>
-                YOUR BRAIN.<br /><span style={{ color: '#b5f23a' }}>YOUR PACE.</span>
-              </h2>
-              <p style={{ fontSize: 'clamp(14px,1.2vw,17px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 400 }}>
-                Generic apps assume 25 minutes. FocusOS starts at YOUR real attention span and grows it every session. Based on attention research by Ariga &amp; Lleras, <em>Cognition</em>, 2011.
-              </p>
-            </div>
-            <div style={{ flex: '1 1 50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
-              <TimerVisual />
-            </div>
-          </FlowSection>
+              {/* Section 2 – AI Quiz: quiz left, text right */}
+              <FlowSection aria-label="AI Quiz" style={{ background: '#0b1a09', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'stretch', justifyContent: 'flex-start', padding: 0, gap: 0 }}>
+                <div style={{ flex: '1 1 50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '48px 20px 24px' : 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
+                  <QuizVisual />
+                </div>
+                <div style={{ flex: '1 1 50%', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(20px,3vh,36px)', padding: isMobile ? '0 20px 48px' : 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', textTransform: 'uppercase' }}>
+                    02 — AI QUIZ
+                  </div>
+                  <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: isMobile ? 'clamp(48px,12vw,72px)' : 'clamp(56px,7vw,112px)', fontWeight: 400, lineHeight: 0.88, letterSpacing: '0.01em', color: '#f0f0f2' }}>
+                    PASTE NOTES.<br /><span style={{ color: '#b5f23a' }}>GET SMARTER.</span>
+                  </h2>
+                  <p style={{ fontSize: 'clamp(14px,1.2vw,17px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 400 }}>
+                    Claude AI turns your notes into active recall questions instantly. Practice testing is rated the #1 study technique — Dunlosky et al., 2013. Confirmed by 242 studies and 169,179 participants.
+                  </p>
+                </div>
+              </FlowSection>
 
-          {/* Section 2 – AI Quiz: quiz left, text right */}
-          <FlowSection aria-label="AI Quiz" style={{ background: '#0b1a09', flexDirection: 'row', alignItems: 'stretch', justifyContent: 'flex-start', padding: 0, gap: 0 }}>
-            <div style={{ flex: '1 1 50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
-              <QuizVisual />
-            </div>
-            <div style={{ flex: '1 1 50%', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(20px,3vh,36px)', padding: 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', textTransform: 'uppercase' }}>
-                02 — AI QUIZ
-              </div>
-              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(56px,7vw,112px)', fontWeight: 400, lineHeight: 0.88, letterSpacing: '0.01em', color: '#f0f0f2' }}>
-                PASTE NOTES.<br /><span style={{ color: '#b5f23a' }}>GET SMARTER.</span>
-              </h2>
-              <p style={{ fontSize: 'clamp(14px,1.2vw,17px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 400 }}>
-                Claude AI turns your notes into active recall questions instantly. Practice testing is rated the #1 study technique — Dunlosky et al., 2013. Confirmed by 242 studies and 169,179 participants.
-              </p>
-            </div>
-          </FlowSection>
-
-          {/* Section 3 – Goals & Streaks: text left, heatmap right */}
-          <FlowSection aria-label="Goals and Streaks" style={{ background: '#0f0e19', flexDirection: 'row', alignItems: 'stretch', justifyContent: 'flex-start', padding: 0, gap: 0 }}>
-            <div style={{ flex: '1 1 50%', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(20px,3vh,36px)', padding: 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', textTransform: 'uppercase' }}>
-                03 — GOALS &amp; STREAKS
-              </div>
-              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(56px,7vw,112px)', fontWeight: 400, lineHeight: 0.88, letterSpacing: '0.01em', color: '#f0f0f2' }}>
-                SET THE DATE.<br /><span style={{ color: '#b5f23a' }}>BUILD THE HABIT.</span>
-              </h2>
-              <p style={{ fontSize: 'clamp(14px,1.2vw,17px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 400 }}>
-                Enter your SAT, ACT, or AP test date and get a backwards study plan. Daily streaks and XP keep you consistent. Implementation intentions increase follow-through 3x — Gollwitzer, 1999.
-              </p>
-            </div>
-            <div style={{ flex: '1 1 50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
-              <div style={{ width: '100%', maxWidth: 380 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>June 2026</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(181,242,58,0.08)', border: '1px solid rgba(181,242,58,0.18)', borderRadius: 20, padding: '5px 14px' }}>
-                    <span style={{ fontSize: 15 }}>🔥</span>
-                    <span style={{ fontSize: 15, fontWeight: 800, color: '#b5f23a', fontFamily: "'JetBrains Mono', monospace" }}>18</span>
-                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>day streak</span>
+              {/* Section 3 – Goals & Streaks: text left, heatmap right */}
+              <FlowSection aria-label="Goals and Streaks" style={{ background: '#0f0e19', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'stretch', justifyContent: 'flex-start', padding: 0, gap: 0 }}>
+                <div style={{ flex: '1 1 50%', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(20px,3vh,36px)', padding: isMobile ? '48px 20px 24px' : 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', textTransform: 'uppercase' }}>
+                    03 — GOALS &amp; STREAKS
+                  </div>
+                  <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: isMobile ? 'clamp(48px,12vw,72px)' : 'clamp(56px,7vw,112px)', fontWeight: 400, lineHeight: 0.88, letterSpacing: '0.01em', color: '#f0f0f2' }}>
+                    SET THE DATE.<br /><span style={{ color: '#b5f23a' }}>BUILD THE HABIT.</span>
+                  </h2>
+                  <p style={{ fontSize: 'clamp(14px,1.2vw,17px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 400 }}>
+                    Enter your SAT, ACT, or AP test date and get a backwards study plan. Daily streaks and XP keep you consistent. Implementation intentions increase follow-through 3x — Gollwitzer, 1999.
+                  </p>
+                </div>
+                <div style={{ flex: '1 1 50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '0 20px 48px' : 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
+                  <div style={{ width: '100%', maxWidth: 380 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>June 2026</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(181,242,58,0.08)', border: '1px solid rgba(181,242,58,0.18)', borderRadius: 20, padding: '5px 14px' }}>
+                        <span style={{ fontSize: 15 }}>🔥</span>
+                        <span style={{ fontSize: 15, fontWeight: 800, color: '#b5f23a', fontFamily: "'JetBrains Mono', monospace" }}>18</span>
+                        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>day streak</span>
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginBottom: 20 }}>
+                      {['M','T','W','T','F','S','S'].map((d, i) => (
+                        <div key={i} style={{ textAlign: 'center', fontSize: 9, color: 'rgba(255,255,255,0.2)', paddingBottom: 4 }}>{d}</div>
+                      ))}
+                      {Array.from({ length: 28 }, (_, i) => {
+                        const done = i < 18, today = i === 17
+                        return (
+                          <div key={i} style={{
+                            height: 34, borderRadius: 7,
+                            background: today ? '#b5f23a' : done ? 'rgba(181,242,58,0.22)' : 'rgba(255,255,255,0.04)',
+                            border: today ? 'none' : done ? '1px solid rgba(181,242,58,0.35)' : '1px solid rgba(255,255,255,0.06)',
+                          }} />
+                        )
+                      })}
+                    </div>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      {[{ label: 'XP earned', val: '2,840' }, { label: 'Goals hit', val: '6/7' }, { label: 'Best streak', val: '24d' }].map(({ label, val }) => (
+                        <div key={label} style={{ flex: 1, padding: '14px 8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, textAlign: 'center' }}>
+                          <div style={{ fontSize: 19, fontWeight: 800, color: '#f0f0f2', fontFamily: "'JetBrains Mono', monospace", lineHeight: 1 }}>{val}</div>
+                          <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', marginTop: 5 }}>{label}</div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginBottom: 20 }}>
-                  {['M','T','W','T','F','S','S'].map((d, i) => (
-                    <div key={i} style={{ textAlign: 'center', fontSize: 9, color: 'rgba(255,255,255,0.2)', paddingBottom: 4 }}>{d}</div>
-                  ))}
-                  {Array.from({ length: 28 }, (_, i) => {
-                    const done = i < 18, today = i === 17
-                    return (
-                      <div key={i} style={{
-                        height: 34, borderRadius: 7,
-                        background: today ? '#b5f23a' : done ? 'rgba(181,242,58,0.22)' : 'rgba(255,255,255,0.04)',
-                        border: today ? 'none' : done ? '1px solid rgba(181,242,58,0.35)' : '1px solid rgba(255,255,255,0.06)',
-                      }} />
-                    )
-                  })}
-                </div>
-                <div style={{ display: 'flex', gap: 10 }}>
-                  {[{ label: 'XP earned', val: '2,840' }, { label: 'Goals hit', val: '6/7' }, { label: 'Best streak', val: '24d' }].map(({ label, val }) => (
-                    <div key={label} style={{ flex: 1, padding: '14px 8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, textAlign: 'center' }}>
-                      <div style={{ fontSize: 19, fontWeight: 800, color: '#f0f0f2', fontFamily: "'JetBrains Mono', monospace", lineHeight: 1 }}>{val}</div>
-                      <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', marginTop: 5 }}>{label}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </FlowSection>
+              </FlowSection>
 
-          {/* Section 4 – CTA: fully centered */}
-          <FlowSection aria-label="Free to Start" style={{ background: '#060608', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: 'clamp(48px,7vw,96px) clamp(20px,5vw,56px)' }}>
-            <div style={{ maxWidth: 640, padding: '0 clamp(20px,5vw,56px)' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', marginBottom: 24, textTransform: 'uppercase' }}>
-                04 — FREE TO START
-              </div>
-              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(52px,8vw,112px)', fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em', color: '#f0f0f2', marginBottom: 20 }}>
-                READY TO<br /><span style={{ color: '#b5f23a' }}>ACTUALLY FOCUS?</span>
-              </h2>
-              <p style={{ fontSize: 'clamp(14px,1.3vw,17px)', color: 'rgba(255,255,255,0.38)', lineHeight: 1.7, marginBottom: 36 }}>
-                5 free AI quizzes per day. Adaptive timer. Goals tracker. No credit card.
-              </p>
-              <RippleButton
-                className="l-btn-primary"
-                style={{ fontSize: 16, padding: '15px 36px' }}
-                onClick={() => navigate(ctaTarget)}
-              >
-                {user ? 'Back to app' : 'Start for free'}
-                <span style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(0,0,0,0.2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>→</span>
-              </RippleButton>
-            </div>
-          </FlowSection>
-
-        </FlowArt>
+              {/* Section 4 – CTA: fully centered */}
+              <FlowSection aria-label="Free to Start" style={{ background: '#060608', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: 'clamp(48px,7vw,96px) clamp(20px,5vw,56px)' }}>
+                <div style={{ maxWidth: 640, padding: '0 clamp(20px,5vw,56px)', width: '100%' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', marginBottom: 24, textTransform: 'uppercase' }}>
+                    04 — FREE TO START
+                  </div>
+                  <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: isMobile ? 'clamp(48px,12vw,72px)' : 'clamp(52px,8vw,112px)', fontWeight: 400, lineHeight: 0.92, letterSpacing: '0.01em', color: '#f0f0f2', marginBottom: 20 }}>
+                    READY TO<br /><span style={{ color: '#b5f23a' }}>ACTUALLY FOCUS?</span>
+                  </h2>
+                  <p style={{ fontSize: 'clamp(14px,1.3vw,17px)', color: 'rgba(255,255,255,0.38)', lineHeight: 1.7, marginBottom: 36 }}>
+                    5 free AI quizzes per day. Adaptive timer. Goals tracker. No credit card.
+                  </p>
+                  <RippleButton
+                    className="l-btn-primary"
+                    style={{ fontSize: 16, padding: '15px 36px', width: isMobile ? '100%' : 'auto' }}
+                    onClick={() => navigate(ctaTarget)}
+                  >
+                    {user ? 'Back to app' : 'Start for free'}
+                    <span style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(0,0,0,0.2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>→</span>
+                  </RippleButton>
+                </div>
+              </FlowSection>
+            </>
+          )
+          return isMobile
+            ? <main style={{ width: '100%', overflowX: 'hidden' }}>{storyContent}</main>
+            : <FlowArt>{storyContent}</FlowArt>
+        })()}
         <div aria-hidden style={{
           position: 'absolute', bottom: 0, width: '100%', height: 120,
           background: 'linear-gradient(to bottom, transparent, #0a0a0a)',
@@ -806,7 +812,7 @@ export default function LandingV2() {
             </p>
             <RippleButton
               className="l-btn-primary"
-              style={{ fontSize: 16, padding: '15px 36px', margin: '0 auto' }}
+              style={{ fontSize: 16, padding: '15px 36px', margin: '0 auto', width: isMobile ? '100%' : 'auto' }}
               onClick={() => navigate(ctaTarget)}
             >
               {user ? 'Back to app' : 'Create your free account'}

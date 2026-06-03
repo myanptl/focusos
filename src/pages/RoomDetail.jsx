@@ -251,6 +251,8 @@ export default function RoomDetail() {
   }
 
   function startPresence() {
+    // Clear any existing interval before starting a new one to prevent leaks on re-init
+    if (presenceRef.current) clearInterval(presenceRef.current)
     presenceRef.current = setInterval(async () => {
       await supabase.from('room_members')
         .update({ last_seen: new Date().toISOString() })

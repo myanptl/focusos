@@ -118,15 +118,19 @@ export function TimerProvider({ children }) {
   }
 
   function setFocusMinsCtx(n) {
-    _setFocusMins(n)
-    localStorage.setItem('focusos_focus_mins', JSON.stringify(n))
-    if (phaseRef.current === 'focus' && !running) setTimeLeft(n * 60)
+    const safe = Math.max(1, Math.min(180, Math.floor(Number(n))))
+    if (!isFinite(safe)) return
+    _setFocusMins(safe)
+    localStorage.setItem('focusos_focus_mins', JSON.stringify(safe))
+    if (phaseRef.current === 'focus' && !running) setTimeLeft(safe * 60)
   }
 
   function setBreakMinsCtx(n) {
-    _setBreakMins(n)
-    localStorage.setItem('focusos_break_mins', JSON.stringify(n))
-    if (phaseRef.current === 'break' && !running) setTimeLeft(n * 60)
+    const safe = Math.max(1, Math.min(60, Math.floor(Number(n))))
+    if (!isFinite(safe)) return
+    _setBreakMins(safe)
+    localStorage.setItem('focusos_break_mins', JSON.stringify(safe))
+    if (phaseRef.current === 'break' && !running) setTimeLeft(safe * 60)
   }
 
   function setPomodoroMode(val) {

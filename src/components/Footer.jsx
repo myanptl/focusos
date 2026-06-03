@@ -1,5 +1,24 @@
 import { Link } from 'react-router-dom'
 
+const footerLinkStyle = {
+  color: 'var(--muted)',
+  textDecoration: 'none',
+  transition: 'color 0.15s',
+}
+
+function FooterLink({ to, children }) {
+  return (
+    <Link
+      to={to}
+      style={footerLinkStyle}
+      onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)' }}
+      onMouseLeave={e => { e.currentTarget.style.color = 'var(--muted)' }}
+    >
+      {children}
+    </Link>
+  )
+}
+
 export default function Footer() {
   return (
     <footer style={{
@@ -17,11 +36,11 @@ export default function Footer() {
     }}>
       <span>© 2026 FocusOS. All rights reserved.</span>
       <span style={{ color: 'var(--border)' }}>·</span>
-      <Link to="/privacy" style={{ color: 'var(--muted)', textDecoration: 'none' }}>Privacy Policy</Link>
+      <FooterLink to="/privacy">Privacy Policy</FooterLink>
       <span style={{ color: 'var(--border)' }}>·</span>
-      <Link to="/terms" style={{ color: 'var(--muted)', textDecoration: 'none' }}>Terms of Service</Link>
+      <FooterLink to="/terms">Terms of Service</FooterLink>
       <span style={{ color: 'var(--border)' }}>·</span>
-      <Link to="/support" style={{ color: 'var(--muted)', textDecoration: 'none' }}>Support</Link>
+      <FooterLink to="/support">Support</FooterLink>
     </footer>
   )
 }

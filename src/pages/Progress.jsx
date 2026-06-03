@@ -26,8 +26,7 @@ const gc = (extra = {}) => ({
 /* section heading that matches LandingV2 */
 function SectionLabel({ children, color = 'var(--accent)' }) {
   return (
-    <div style={{
-      fontFamily: "'Bebas Neue', sans-serif",
+    <div className="bebas" style={{
       fontSize: 18, letterSpacing: '0.1em',
       color, marginBottom: 14, lineHeight: 1,
     }}>
@@ -71,10 +70,10 @@ function FocusHeatmap({ hourlyMins }) {
 
   function heatColor(mins) {
     if (mins === 0)   return 'rgba(255,255,255,0.04)'
-    if (mins <= 30)   return 'rgba(181,242,58,0.2)'
-    if (mins <= 60)   return 'rgba(181,242,58,0.4)'
-    if (mins <= 120)  return 'rgba(181,242,58,0.6)'
-    return '#b5f23a'
+    if (mins <= 30)   return 'rgba(var(--accent-rgb),0.2)'
+    if (mins <= 60)   return 'rgba(var(--accent-rgb),0.4)'
+    if (mins <= 120)  return 'rgba(var(--accent-rgb),0.6)'
+    return 'var(--accent)'
   }
 
   function hourLabel(h) {
@@ -313,26 +312,10 @@ export default function Progress() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, flexWrap: 'wrap', gap: 12 }}>
         <h1 className="page-title">Progress</h1>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button onClick={() => navigate('/planner')} style={{
-            background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            color: 'var(--text)', padding: '8px 16px', borderRadius: 10,
-            fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'border-color 0.15s',
-          }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(181,242,58,0.3)'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
-          >
+          <button className="btn btn-ghost btn-sm" onClick={() => navigate('/planner')}>
             <Calendar size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />Study Planner
           </button>
-          <button onClick={() => navigate('/review')} style={{
-            background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            color: 'var(--text)', padding: '8px 16px', borderRadius: 10,
-            fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'border-color 0.15s',
-          }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(181,242,58,0.3)'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
-          >
+          <button className="btn btn-ghost btn-sm" onClick={() => navigate('/review')}>
             <BarChart2 size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />Weekly Review
           </button>
         </div>

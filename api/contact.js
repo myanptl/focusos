@@ -32,21 +32,26 @@ export default async function handler(req, res) {
 
   const resend = new Resend(process.env.RESEND_API_KEY)
 
-  const { error: sendError } = await resend.emails.send({
-    from: 'FocusOS Support <support@focusos.live>',
-    to:   'myan.ptl@gmail.com',
-    replyTo: email,
-    subject: `[FocusOS Support] Message from ${name}`,
-    headers: {
-      'List-Unsubscribe': '<mailto:support@focusos.live>',
-      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-    },
-    text: `From: ${name} <${email}>\n\n${message}\n\n---\nSent via FocusOS contact form`,
-    html: `<p><strong>From:</strong> ${name} &lt;<a href="mailto:${email}">${email}</a>&gt;</p><hr/><p>${message.replace(/\n/g, '<br/>')}</p>`,
-  })
+  try {
+    const { error: sendError } = await resend.emails.send({
+      from: 'FocusOS Support <support@focusos.live>',
+      to:   'myan.ptl@gmail.com',
+      replyTo: email,
+      subject: `[FocusOS Support] Message from ${name}`,
+      headers: {
+        'List-Unsubscribe': '<mailto:support@focusos.live>',
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+      },
+      text: `From: ${name} <${email}>\n\n${message}\n\n---\nSent via FocusOS contact form`,
+      html: `<p><strong>From:</strong> ${name} &lt;<a href="mailto:${email}">${email}</a>&gt;</p><hr/><p>${message.replace(/\n/g, '<br/>')}</p>`,
+    })
 
-  if (sendError) {
-    console.error('Resend error:', sendError)
+    if (sendError) {
+      console.error('Resend error:', sendError)
+      return res.status(500).json({ error: 'Failed to send message. Please try again.' })
+    }
+  } catch (err) {
+    console.error('Resend threw:', err)
     return res.status(500).json({ error: 'Failed to send message. Please try again.' })
   }
 

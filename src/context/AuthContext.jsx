@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext(null)
@@ -72,12 +72,12 @@ export function AuthProvider({ children }) {
     }
   }
 
-  async function refreshProfile() {
+  const refreshProfile = useCallback(async () => {
     if (!user) return
     await fetchProfile(user.id)
-  }
+  }, [user])
 
-  async function signUp(email, password, name) {
+  const signUp = useCallback(async function signUp(email, password, name) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -102,21 +102,21 @@ export function AuthProvider({ children }) {
       }, { onConflict: 'user_id' })
     }
     return data
-  }
+  }, [])
 
-  async function signIn(email, password) {
+  const signIn = useCallback(async function signIn(email, password) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
     return data
-  }
+  }, [])
 
-  async function signOut() {
+  const signOut = useCallback(async function signOut() {
     await supabase.auth.signOut()
     setUser(null)
     setProfile(null)
-  }
+  }, [])
 
-  async function updateProfile(updates) {
+  const updateProfile = useCallback(async function updateProfile(updates) {
     if (!user) return
     const { error } = await supabase
       .from('profiles')
@@ -124,10 +124,15 @@ export function AuthProvider({ children }) {
       .eq('user_id', user.id)
     if (!error) setProfile(prev => ({ ...prev, ...updates }))
     return error
-  }
+  }, [user])
+
+  const value = useMemo(
+    () => ({ user, profile, loading, signUp, signIn, signOut, updateProfile, refreshProfile }),
+    [user, profile, loading, signUp, signIn, signOut, updateProfile, refreshProfile]
+  )
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signUp, signIn, signOut, updateProfile, refreshProfile }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )

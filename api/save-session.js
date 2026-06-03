@@ -22,14 +22,15 @@ export default async function handler(req, res) {
   }
 
   const { duration_minutes, session_date } = body || {}
-  if (!duration_minutes || duration_minutes < 1) {
+  // Guard against NaN: typeof check + explicit isNaN, then range check
+  if (typeof duration_minutes !== 'number' || isNaN(duration_minutes) || duration_minutes < 1) {
     return res.status(400).json({ error: 'duration_minutes (≥1) required' })
   }
 
   const safeDuration = Math.min(Math.floor(duration_minutes), 300)
 
   try {
-    await supabase.from('focus_sessions').insert({
+    const { error: insertErr } = await supabase.from('focus_sessions').insert({
       user_id: user.id,
       duration_minutes: safeDuration,
       completed: false,
@@ -37,6 +38,7 @@ export default async function handler(req, res) {
       session_date: session_date || new Date().toISOString().split('T')[0],
       completed_at: new Date().toISOString(),
     })
+    if (insertErr) return res.status(500).json({ error: insertErr.message })
     return res.status(200).json({ ok: true })
   } catch (err) {
     return res.status(500).json({ error: err.message })

@@ -37,7 +37,7 @@ function FlameDecor() {
       </path>
       {/* Inner flame */}
       <path d="M60 42 C66 54 75 58 74 72 C73 86 68 92 60 115 C52 92 47 86 46 72 C45 58 54 54 60 42Z"
-        fill="#b5f23a" opacity="0.55">
+        fill="var(--accent)" opacity="0.55">
         <animate attributeName="d"
           values="M60 42 C66 54 75 58 74 72 C73 86 68 92 60 115 C52 92 47 86 46 72 C45 58 54 54 60 42Z;
                   M60 46 C65 56 73 60 72 74 C71 88 66 93 60 115 C54 93 49 88 48 74 C47 60 55 56 60 46Z;
@@ -50,7 +50,7 @@ function FlameDecor() {
 
 function HeatmapCell({ minutes }) {
   const intensity = !minutes ? 0 : minutes < 20 ? 1 : minutes < 45 ? 2 : minutes < 90 ? 3 : 4
-  const colors = ['rgba(255,255,255,0.04)', 'rgba(181,242,58,0.2)', 'rgba(181,242,58,0.45)', 'rgba(181,242,58,0.7)', '#b5f23a']
+  const colors = ['rgba(255,255,255,0.04)', 'rgba(181,242,58,0.2)', 'rgba(181,242,58,0.45)', 'rgba(181,242,58,0.7)', 'var(--accent)']
   return (
     <div title={minutes ? `${minutes} min` : 'No sessions'} style={{
       width: 32, height: 32, borderRadius: 6,
@@ -166,9 +166,9 @@ export default function Streak() {
           textShadow: streak > 0 ? '0 0 60px rgba(181,242,58,0.5), 0 0 120px rgba(181,242,58,0.2)' : 'none',
         }}>{streak > 0 ? displayStreak : 0}</div>
         <div style={{
-          fontSize: 20, color: '#9494a0', fontWeight: 700,
+          fontSize: 14, color: 'var(--muted)', fontWeight: 700,
           letterSpacing: '0.04em', position: 'relative', zIndex: 1,
-          textTransform: 'uppercase', fontSize: 14,
+          textTransform: 'uppercase',
         }}>day streak <Flame size={16} style={{ display: 'inline', verticalAlign: 'middle' }} /></div>
         {streak === 0 && <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8 }}>Complete a focus session to start your streak!</div>}
       </div>
@@ -186,8 +186,8 @@ export default function Streak() {
         </div>
         <div style={{
           display: 'inline-block', marginTop: 10,
-          background: '#18181c', borderRadius: 6, padding: '8px 12px',
-          fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#9494a0',
+          background: 'var(--card2)', borderRadius: 6, padding: '8px 12px',
+          fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'var(--muted)',
         }}>XP = streak × 25 + total minutes × 2</div>
       </div>
 
@@ -205,7 +205,7 @@ export default function Streak() {
         ))}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, fontSize: 11, color: 'var(--muted)' }}>
           <span>Less</span>
-          {['rgba(255,255,255,0.04)','rgba(181,242,58,0.2)','rgba(181,242,58,0.45)','rgba(181,242,58,0.7)','#b5f23a'].map((c,i) => (
+          {['rgba(255,255,255,0.04)','rgba(181,242,58,0.2)','rgba(181,242,58,0.45)','rgba(181,242,58,0.7)','var(--accent)'].map((c,i) => (
             <div key={i} style={{ width: 14, height: 14, borderRadius: 3, background: c }} />
           ))}
           <span>More</span>

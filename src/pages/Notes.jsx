@@ -11,8 +11,8 @@ import {
 
 const SUBJECTS = ['Science', 'History', 'English', 'Math', 'Other']
 const SUBJECT_COLORS = {
-  Science: '#4ade80', History: '#fb923c', English: '#60d3f8',
-  Math: '#a78bfa', Other: '#9494a0',
+  Science: '#4ade80', History: '#fb923c', English: 'var(--cyan)',
+  Math: 'var(--purple)', Other: 'var(--muted)',
 }
 const SUBJECT_ICONS = {
   Science: FlaskConical, History: Scroll, English: BookOpen,
@@ -249,18 +249,8 @@ export default function Notes() {
           </div>
 
           {/* New Note */}
-          <button onClick={handleNewNote} style={{
-            width: '100%', padding: '10px 16px', borderRadius: 10,
-            background: 'transparent',
-            border: '1px solid rgba(181,242,58,0.35)',
-            color: 'var(--accent)', fontSize: 13, fontWeight: 700,
-            cursor: 'pointer', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', gap: 6,
-            fontFamily: "'Outfit', sans-serif", letterSpacing: '0.02em',
-            transition: 'all 0.15s',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(181,242,58,0.08)'; e.currentTarget.style.borderColor = 'rgba(181,242,58,0.6)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(181,242,58,0.35)' }}
+          <button className="btn btn-ghost btn-full" onClick={handleNewNote}
+            style={{ border: '1px solid rgba(181,242,58,0.35)', color: 'var(--accent)' }}
           >
             <Plus size={14} />New Note
           </button>
@@ -292,7 +282,7 @@ export default function Notes() {
             </div>
           ) : filtered.map(note => {
             const isActive  = selectedNote?.id === note.id
-            const subColor  = SUBJECT_COLORS[note.subject] || '#9494a0'
+            const subColor  = SUBJECT_COLORS[note.subject] || 'var(--muted)'
             const SubIcon   = SUBJECT_ICONS[note.subject] || Pencil
             return (
               <div
@@ -546,7 +536,7 @@ export default function Notes() {
               {previewMode ? (
                 <div
                   dangerouslySetInnerHTML={{ __html: renderMarkdown(selectedNote.content) }}
-                  style={{ flex: 1, minHeight: 360, fontSize: 15, lineHeight: 1.82, color: '#f0f0f2' }}
+                  style={{ flex: 1, minHeight: 360, fontSize: 15, lineHeight: 1.82, color: 'var(--text)' }}
                 />
               ) : (
                 <textarea
@@ -638,20 +628,10 @@ export default function Notes() {
               {wordCount} word{wordCount !== 1 ? 's' : ''}
             </span>
             <button
+              className="btn btn-accent btn-sm"
               onClick={handleSummarize}
               disabled={summaryLoading || !selectedNote.content?.trim()}
-              style={{
-                background: summaryLoading || !selectedNote.content?.trim()
-                  ? 'rgba(181,242,58,0.28)'
-                  : 'var(--accent)',
-                border: 'none', borderRadius: 8, padding: '7px 16px',
-                color: '#0a0a0b', fontSize: 12, fontWeight: 800,
-                cursor: summaryLoading || !selectedNote.content?.trim() ? 'not-allowed' : 'pointer',
-                display: 'flex', alignItems: 'center', gap: 6,
-                fontFamily: "'Outfit', sans-serif", transition: 'opacity 0.15s',
-              }}
-              onMouseEnter={e => { if (!summaryLoading && selectedNote.content?.trim()) e.currentTarget.style.opacity = '0.85' }}
-              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+              style={{ fontSize: 12 }}
             >
               {summaryLoading
                 ? <><span className="spinner" style={{ width: 11, height: 11 }} />Summarizing…</>
@@ -680,16 +660,7 @@ export default function Notes() {
           <div style={{ fontSize: 13, color: 'var(--muted)' }}>
             or create a new one to start writing
           </div>
-          <button onClick={handleNewNote} style={{
-            marginTop: 6, background: 'var(--accent)', border: 'none',
-            borderRadius: 10, padding: '10px 24px',
-            color: '#0a0a0b', fontSize: 13, fontWeight: 800, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: 6,
-            fontFamily: "'Outfit', sans-serif", transition: 'opacity 0.15s',
-          }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-          >
+          <button className="btn btn-accent" onClick={handleNewNote} style={{ marginTop: 6 }}>
             <Plus size={14} />New Note
           </button>
         </div>

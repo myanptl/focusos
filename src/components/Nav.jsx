@@ -291,7 +291,7 @@ export default function Nav() {
         background: 'rgba(10,10,11,0.96)', backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(255,255,255,0.06)',
-        display: 'flex', height: 56, overflowX: 'auto',
+        display: 'flex', height: 'calc(56px + env(safe-area-inset-bottom, 0px))', overflowX: 'auto',
         scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}>

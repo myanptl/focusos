@@ -213,7 +213,7 @@ export default function Settings() {
                 style={{
                   width: '100%', height: '4px', borderRadius: '2px',
                   appearance: 'none', WebkitAppearance: 'none', outline: 'none', cursor: 'pointer',
-                  background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${focusPct}%, #222226 ${focusPct}%, #222226 100%)`,
+                  background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${focusPct}%, var(--card2) ${focusPct}%, var(--card2) 100%)`,
                 }} />
             </div>
             <div>
@@ -226,7 +226,7 @@ export default function Settings() {
                 style={{
                   width: '100%', height: '4px', borderRadius: '2px',
                   appearance: 'none', WebkitAppearance: 'none', outline: 'none', cursor: 'pointer',
-                  background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${breakPct}%, #222226 ${breakPct}%, #222226 100%)`,
+                  background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${breakPct}%, var(--card2) ${breakPct}%, var(--card2) 100%)`,
                 }} />
             </div>
           </div>
@@ -279,10 +279,10 @@ export default function Settings() {
                     outline: aiModelPref === opt.key ? '1.5px solid var(--accent)' : '1.5px solid var(--border)',
                   }}
                 >
-                  <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', color: '#ffffff' }}>{opt.Icon ? <opt.Icon size={22} /> : null}</span>
+                  <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', color: 'var(--text)' }}>{opt.Icon ? <opt.Icon size={22} /> : null}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2, color: aiModelPref === opt.key ? 'var(--accent)' : '#f0f0f2' }}>{opt.title}</div>
-                    <div style={{ fontSize: 11, color: '#9494a0', lineHeight: 1.4 }}>{opt.desc}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2, color: aiModelPref === opt.key ? 'var(--accent)' : 'var(--text)' }}>{opt.title}</div>
+                    <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.4 }}>{opt.desc}</div>
                   </div>
                   {opt.badge && (
                     <span style={{ fontSize: 10, fontWeight: 600, background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', borderRadius: 20, padding: '2px 8px', color: 'var(--muted)', flexShrink: 0 }}>
@@ -339,8 +339,8 @@ export default function Settings() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>Install a model</div>
                       <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.55, marginBottom: 6 }}>Open your terminal and run:</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: '#0d0d0f', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 7, overflow: 'hidden' }}>
-                        <code style={{ flex: 1, padding: '8px 12px', fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: '#b5f23a', display: 'block' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: 'var(--bg)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 7, overflow: 'hidden' }}>
+                        <code style={{ flex: 1, padding: '8px 12px', fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: 'var(--accent)', display: 'block' }}>
                           ollama pull llama3.2
                         </code>
                         <button
@@ -365,8 +365,8 @@ export default function Settings() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>Start Ollama</div>
                       <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.55, marginBottom: 6 }}>Run this in terminal to start the server:</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: '#0d0d0f', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 7, overflow: 'hidden' }}>
-                        <code style={{ flex: 1, padding: '8px 12px', fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: '#b5f23a', display: 'block' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: 'var(--bg)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 7, overflow: 'hidden' }}>
+                        <code style={{ flex: 1, padding: '8px 12px', fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: 'var(--accent)', display: 'block' }}>
                           ollama serve
                         </code>
                         <button
@@ -404,7 +404,7 @@ export default function Settings() {
             <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
               {ollamaChecking || ollamaStatus === null
                 ? <span className="spinner" style={{ width: 14, height: 14 }} />
-                : <span style={{ width: 12, height: 12, borderRadius: '50%', background: ollamaStatus === 'running' ? '#4ade80' : '#f25a5a', display: 'inline-block' }} />}
+                : <span style={{ width: 12, height: 12, borderRadius: '50%', background: ollamaStatus === 'running' ? '#4ade80' : 'var(--red)', display: 'inline-block' }} />}
             </span>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 12, fontWeight: 600 }}>
@@ -461,13 +461,7 @@ export default function Settings() {
           <div style={{ marginBottom: 16 }}>
             <button
               onClick={() => { setShowDeleteModal(true); setDeleteText(''); setDeleteError('') }}
-              style={{
-                width: '100%', padding: '10px 16px', borderRadius: 8, cursor: 'pointer',
-                border: '1px solid rgba(248,113,113,0.35)', background: 'rgba(248,113,113,0.07)',
-                color: '#f87171', fontSize: 14, fontWeight: 600, transition: 'all 0.15s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.14)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.07)' }}
+              className="btn btn-danger btn-full"
             >
               Delete Account &amp; All Data
             </button>
@@ -497,7 +491,7 @@ export default function Settings() {
         <div className="modal-backdrop" onClick={() => !deleteLoading && setShowDeleteModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f87171' }}>Delete Account</h2>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--red)' }}>Delete Account</h2>
               <button onClick={() => setShowDeleteModal(false)} disabled={deleteLoading}
                 style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', display: 'flex' }}><X size={20} /></button>
             </div>
@@ -513,15 +507,15 @@ export default function Settings() {
                 style={{ width: '100%', boxSizing: 'border-box' }}
               />
             </div>
-            {deleteError && <div style={{ color: '#f87171', fontSize: 13, marginBottom: 12 }}>{deleteError}</div>}
+            {deleteError && <div style={{ color: 'var(--red)', fontSize: 13, marginBottom: 12 }}>{deleteError}</div>}
             <button
               onClick={handleDeleteAccount}
               disabled={deleteLoading}
+              className="btn btn-danger btn-full"
               style={{
-                width: '100%', padding: '11px 16px', borderRadius: 8, cursor: deleteLoading ? 'not-allowed' : 'pointer',
-                border: 'none', background: deleteText === 'DELETE' ? '#f87171' : 'rgba(248,113,113,0.3)',
-                color: deleteText === 'DELETE' ? '#0a0a0b' : '#f87171', fontSize: 14, fontWeight: 700,
-                transition: 'all 0.15s', opacity: deleteLoading ? 0.7 : 1,
+                background: deleteText === 'DELETE' ? 'var(--red)' : 'rgba(242,90,90,0.3)',
+                color: deleteText === 'DELETE' ? '#0a0a0b' : 'var(--red)',
+                opacity: deleteLoading ? 0.7 : 1,
               }}
             >
               {deleteLoading ? 'Deleting…' : 'Delete Account & All Data'}

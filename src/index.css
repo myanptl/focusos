@@ -301,6 +301,18 @@ footer a:hover { text-decoration: underline; }
 
 @media (max-width: 768px) {
   .goal-modal { width: 95vw !important; padding: 20px !important; padding-bottom: 28px !important; max-height: 85vh !important; }
+
+  /* Tap targets: buttons need ≥44px min-height (Apple HIG / WCAG 2.5.5) */
+  .btn, .btn-accent { min-height: 44px; }
+
+  /* Modal: near full-width on mobile */
+  .modal { width: 92vw !important; max-width: 92vw !important; padding: 20px !important; }
+
+  /* Stat cards: release fixed widths on mobile */
+  .stat-card { width: 100% !important; min-width: unset !important; }
+
+  /* Pills: allow wrapping instead of overflowing */
+  .pill { white-space: normal; }
 }
 
 /* Nav sits above particle canvas */
@@ -391,7 +403,7 @@ nav, header { position: relative; z-index: 10; }
   }
   .timer-grid { grid-template-columns: 1fr; }
   .quiz-grid  { grid-template-columns: 1fr !important; }
-  .app-main   { padding-bottom: 72px !important; padding-left: 14px !important; padding-right: 14px !important; }
+  .app-main   { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important; padding-left: 14px !important; padding-right: 14px !important; }
   .btn        { min-height: 44px; }
 
   /* Notes full-width on mobile — fix margin bleed to match reduced padding */

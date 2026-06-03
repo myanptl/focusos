@@ -33,6 +33,7 @@ function AppParticles({ reduced }) {
     function onMouseMove(e) { mouseX = e.clientX; mouseY = e.clientY }
 
     function tick() {
+      if (document.hidden) { raf = requestAnimationFrame(tick); return }
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
       for (let i = 0; i < particles.length; i++) {

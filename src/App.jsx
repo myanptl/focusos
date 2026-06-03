@@ -1,5 +1,5 @@
+import React, { Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom'
-import { useEffect } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { TimerProvider } from './context/TimerContext'
 import { ToastProvider } from './components/Toast'
@@ -10,26 +10,27 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Nav from './components/Nav'
 import Footer from './components/Footer'
 import AppBackground from './components/AppBackground'
-import Landing from './pages/LandingV2'
-import Login from './pages/auth/Login'
-import Signup from './pages/auth/Signup'
-import ResetPassword from './pages/ResetPassword'
-import Onboarding from './pages/Onboarding'
-import Timer from './pages/Timer'
-import Quiz from './pages/Quiz'
-import Goals from './pages/Goals'
-import Streak from './pages/Streak'
-import Progress from './pages/Progress'
-import Review from './pages/Review'
-import Planner from './pages/Planner'
-import Notes from './pages/Notes'
-import Rooms from './pages/Rooms'
-import RoomDetail from './pages/RoomDetail'
-import Settings from './pages/Settings'
-import Privacy from './pages/Privacy'
-import Terms from './pages/Terms'
-import Support from './pages/Support'
-import NotFound from './pages/NotFound'
+
+const Landing       = React.lazy(() => import('./pages/LandingV2'))
+const Login         = React.lazy(() => import('./pages/auth/Login'))
+const Signup        = React.lazy(() => import('./pages/auth/Signup'))
+const ResetPassword = React.lazy(() => import('./pages/ResetPassword'))
+const Onboarding    = React.lazy(() => import('./pages/Onboarding'))
+const Timer         = React.lazy(() => import('./pages/Timer'))
+const Quiz          = React.lazy(() => import('./pages/Quiz'))
+const Goals         = React.lazy(() => import('./pages/Goals'))
+const Streak        = React.lazy(() => import('./pages/Streak'))
+const Progress      = React.lazy(() => import('./pages/Progress'))
+const Review        = React.lazy(() => import('./pages/Review'))
+const Planner       = React.lazy(() => import('./pages/Planner'))
+const Notes         = React.lazy(() => import('./pages/Notes'))
+const Rooms         = React.lazy(() => import('./pages/Rooms'))
+const RoomDetail    = React.lazy(() => import('./pages/RoomDetail'))
+const Settings      = React.lazy(() => import('./pages/Settings'))
+const Privacy       = React.lazy(() => import('./pages/Privacy'))
+const Terms         = React.lazy(() => import('./pages/Terms'))
+const Support       = React.lazy(() => import('./pages/Support'))
+const NotFound      = React.lazy(() => import('./pages/NotFound'))
 
 function ProtectedRoute({ children }) {
   const { user, profile, loading } = useAuth()
@@ -118,6 +119,7 @@ function AppRoutes() {
     <>
       {showNav && <Nav />}
       {showNav && <AppBackground />}
+    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span className="spinner" style={{ width: 32, height: 32 }} /></div>}>
     <AnimatePresence mode="wait" initial={false}>
     <Routes location={location} key={location.pathname}>
       <Route path="/"           element={user ? <Navigate to="/timer" replace /> : <Landing />} />
@@ -147,6 +149,7 @@ function AppRoutes() {
       <Route path="*" element={<NotFound />} />
     </Routes>
     </AnimatePresence>
+    </Suspense>
     </>
   )
 }

@@ -51,6 +51,7 @@ export default async function handler(req, res) {
   if (!apiKey) return res.status(500).json({ error: 'API key not configured on server.' })
 
   let transcript = ''
+  let transcriptFetchError = null
 
   if (manualTranscript?.trim()) {
     transcript = manualTranscript.trim()
@@ -58,13 +59,19 @@ export default async function handler(req, res) {
     try {
       const segments = await YoutubeTranscript.fetchTranscript(videoId)
       transcript = segments.map(s => s.text).join(' ')
-    } catch (_) {}
+    } catch (err) {
+      transcriptFetchError = err?.message || 'Unknown error'
+    }
   }
 
   if (!transcript || transcript.length < 50) {
+    const detail = transcriptFetchError
+      ? `Auto-fetch failed: ${transcriptFetchError}`
+      : 'No captions found on this video.'
     return res.status(400).json({
       code: 'NO_TRANSCRIPT',
       error: "This video's captions couldn't be fetched automatically. This happens with some videos. Paste the transcript manually using the steps below:",
+      detail,
     })
   }
 

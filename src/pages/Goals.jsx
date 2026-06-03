@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
-import { X, Calendar, Pencil } from 'lucide-react'
+import { X, Calendar, Pencil, Plus } from 'lucide-react'
 
-const TEST_COLORS = { SAT: '#a855f7', ACT: '#f2c75a', AP: '#b5f23a' }
+const TEST_COLORS = { SAT: 'var(--purple)', ACT: 'var(--amber)', AP: 'var(--accent)' }
 
 function daysUntil(dateStr) {
   if (!dateStr) return null
@@ -97,8 +97,9 @@ export default function Goals() {
       <div className="page-fade" style={{ background: 'transparent' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h1 className="page-title">Score Goals</h1>
-        <button className="btn btn-accent" onClick={openModal}
-          style={{ borderRadius: 10, padding: '10px 20px' }}>+ Add Goal</button>
+        <button className="btn btn-accent" onClick={openModal}>
+          <Plus size={14} />Add Goal
+        </button>
       </div>
 
       {loading && <div style={{ textAlign: 'center', padding: 48, color: 'var(--muted)' }}>Loading goals...</div>}
@@ -244,7 +245,7 @@ export default function Goals() {
             transition={{ type: 'spring', stiffness: 420, damping: 38 }}
             className="goal-modal"
             style={{
-              background: '#111113',
+              background: 'var(--card)',
               border: '1px solid rgba(255,255,255,0.07)',
               borderRadius: '16px',
               padding: '32px',
@@ -258,10 +259,10 @@ export default function Goals() {
               style={{
                 position: 'absolute', top: 16, right: 16,
                 background: 'none', border: 'none',
-                color: '#9494a0', fontSize: 20,
-                cursor: 'pointer', lineHeight: 1,
+                color: 'var(--muted)',
+                cursor: 'pointer', display: 'flex',
               }}
-            >×</button>
+            ><X size={20} /></button>
 
             <h2 style={{ fontSize: 20, fontWeight: 700, color: 'white', marginBottom: 24 }}>Add Score Goal</h2>
 
