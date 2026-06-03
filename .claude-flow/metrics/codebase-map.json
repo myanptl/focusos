@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-06-02T00:52:41.257Z",
+  "projectRoot": "C:\\Users\\myan_\\Claude Project\\focusos",
+  "structure": {
+    "hasPackageJson": true,
+    "hasTsConfig": false,
+    "hasClaudeConfig": true,
+    "hasClaudeFlow": true
+  },
+  "scannedAt": 1780361561257
+}
