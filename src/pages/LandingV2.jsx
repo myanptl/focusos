@@ -367,7 +367,7 @@ function QuizVisual() {
   const modes = ['Easy', 'Medium', 'Hard', 'Custom']
   return (
     <div style={{ minWidth: 300, maxWidth: 380, width: '100%' }}>
-      <div style={{ background: '#0a0a0b', borderRadius: 16, padding: '24px 28px', marginBottom: 14, boxShadow: '0 24px 64px rgba(0,0,0,0.35)' }}>
+      <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 16, padding: '24px 28px', marginBottom: 14, border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}>
         <div style={{ fontSize: 10, color: 'rgba(181,242,58,0.75)', fontWeight: 700, letterSpacing: '0.12em', marginBottom: 14, textTransform: 'uppercase' }}>Biology · Flashcard</div>
         <div style={{ fontSize: 15, color: '#f0f0f2', lineHeight: 1.6, marginBottom: 20 }}>What triggers the release of insulin from the pancreas?</div>
         <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', lineHeight: 1.65, borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 16 }}>
@@ -378,10 +378,10 @@ function QuizVisual() {
         {modes.map((mode, i) => (
           <div key={mode} style={{
             flex: 1, textAlign: 'center', padding: '10px 4px', borderRadius: 10,
-            background: i === active ? 'rgba(0,0,0,0.18)' : 'rgba(0,0,0,0.08)',
+            background: i === active ? 'rgba(181,242,58,0.12)' : 'rgba(255,255,255,0.04)',
             fontSize: 11, fontWeight: 700,
-            color: i === active ? '#0a0a0b' : 'rgba(0,0,0,0.38)',
-            border: i === active ? '2px solid rgba(0,0,0,0.28)' : '2px solid transparent',
+            color: i === active ? '#b5f23a' : 'rgba(255,255,255,0.3)',
+            border: i === active ? '2px solid rgba(181,242,58,0.28)' : '2px solid transparent',
             transform: i === active ? 'scale(1.06)' : 'scale(1)',
             transition: 'all 0.35s cubic-bezier(0.34,1.56,0.64,1)',
           }}>{mode}</div>
@@ -646,7 +646,7 @@ export default function LandingV2() {
         <FlowArt>
 
           {/* Section 1 – Adaptive Timer: text left, timer right */}
-          <FlowSection aria-label="Adaptive Timer" style={{ background: '#0a0a0a', flexDirection: 'row', alignItems: 'stretch', justifyContent: 'flex-start', padding: 0, gap: 0 }}>
+          <FlowSection aria-label="Adaptive Timer" style={{ background: '#0d0d0f', flexDirection: 'row', alignItems: 'stretch', justifyContent: 'flex-start', padding: 0, gap: 0 }}>
             <div style={{ flex: '1 1 50%', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(20px,3vh,36px)', padding: 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', textTransform: 'uppercase' }}>
                 01 — ADAPTIVE TIMER
@@ -658,31 +658,31 @@ export default function LandingV2() {
                 Generic apps assume 25 minutes. FocusOS starts at YOUR real attention span and grows it every session. Based on attention research by Ariga &amp; Lleras, <em>Cognition</em>, 2011.
               </p>
             </div>
-            <div style={{ flex: '1 1 50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)', background: 'rgba(255,255,255,0.018)' }}>
+            <div style={{ flex: '1 1 50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
               <TimerVisual />
             </div>
           </FlowSection>
 
           {/* Section 2 – AI Quiz: quiz left, text right */}
-          <FlowSection aria-label="AI Quiz" style={{ background: '#b5f23a', flexDirection: 'row', alignItems: 'stretch', justifyContent: 'flex-start', padding: 0, gap: 0 }}>
-            <div style={{ flex: '1 1 50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)', background: 'rgba(0,0,0,0.06)' }}>
+          <FlowSection aria-label="AI Quiz" style={{ background: '#0b1a09', flexDirection: 'row', alignItems: 'stretch', justifyContent: 'flex-start', padding: 0, gap: 0 }}>
+            <div style={{ flex: '1 1 50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
               <QuizVisual />
             </div>
             <div style={{ flex: '1 1 50%', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(20px,3vh,36px)', padding: 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(0,0,0,0.4)', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', textTransform: 'uppercase' }}>
                 02 — AI QUIZ
               </div>
-              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(56px,7vw,112px)', fontWeight: 400, lineHeight: 0.88, letterSpacing: '0.01em', color: '#0a0a0b' }}>
-                PASTE NOTES.<br />GET SMARTER.
+              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(56px,7vw,112px)', fontWeight: 400, lineHeight: 0.88, letterSpacing: '0.01em', color: '#f0f0f2' }}>
+                PASTE NOTES.<br /><span style={{ color: '#b5f23a' }}>GET SMARTER.</span>
               </h2>
-              <p style={{ fontSize: 'clamp(14px,1.2vw,17px)', color: 'rgba(0,0,0,0.55)', lineHeight: 1.75, maxWidth: 400 }}>
+              <p style={{ fontSize: 'clamp(14px,1.2vw,17px)', color: 'rgba(255,255,255,0.44)', lineHeight: 1.75, maxWidth: 400 }}>
                 Claude AI turns your notes into active recall questions instantly. Practice testing is rated the #1 study technique — Dunlosky et al., 2013. Confirmed by 242 studies and 169,179 participants.
               </p>
             </div>
           </FlowSection>
 
           {/* Section 3 – Goals & Streaks: text left, heatmap right */}
-          <FlowSection aria-label="Goals and Streaks" style={{ background: '#111', flexDirection: 'row', alignItems: 'stretch', justifyContent: 'flex-start', padding: 0, gap: 0 }}>
+          <FlowSection aria-label="Goals and Streaks" style={{ background: '#0f0e19', flexDirection: 'row', alignItems: 'stretch', justifyContent: 'flex-start', padding: 0, gap: 0 }}>
             <div style={{ flex: '1 1 50%', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(20px,3vh,36px)', padding: 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', textTransform: 'uppercase' }}>
                 03 — GOALS &amp; STREAKS
@@ -694,7 +694,7 @@ export default function LandingV2() {
                 Enter your SAT, ACT, or AP test date and get a backwards study plan. Daily streaks and XP keep you consistent. Implementation intentions increase follow-through 3x — Gollwitzer, 1999.
               </p>
             </div>
-            <div style={{ flex: '1 1 50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)', background: 'rgba(255,255,255,0.018)' }}>
+            <div style={{ flex: '1 1 50%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(48px,7vw,96px) clamp(32px,4vw,64px)' }}>
               <div style={{ width: '100%', maxWidth: 380 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>June 2026</div>
@@ -732,7 +732,7 @@ export default function LandingV2() {
           </FlowSection>
 
           {/* Section 4 – CTA: fully centered */}
-          <FlowSection aria-label="Free to Start" style={{ background: '#000', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: 'clamp(48px,7vw,96px) clamp(20px,5vw,56px)' }}>
+          <FlowSection aria-label="Free to Start" style={{ background: '#060608', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: 'clamp(48px,7vw,96px) clamp(20px,5vw,56px)' }}>
             <div style={{ maxWidth: 640, padding: '0 clamp(20px,5vw,56px)' }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: 'rgba(181,242,58,0.6)', marginBottom: 24, textTransform: 'uppercase' }}>
                 04 — FREE TO START
