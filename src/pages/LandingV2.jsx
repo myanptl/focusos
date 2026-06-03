@@ -756,8 +756,8 @@ export default function LandingV2() {
 
         </FlowArt>
         <div aria-hidden style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0, height: 220,
-          background: 'linear-gradient(to bottom, transparent, #0a0a0b)',
+          position: 'absolute', bottom: 0, width: '100%', height: 120,
+          background: 'linear-gradient(to bottom, transparent, #0a0a0a)',
           pointerEvents: 'none', zIndex: 20,
         }} />
       </div>
