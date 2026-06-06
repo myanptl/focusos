@@ -28,6 +28,23 @@ const DEFAULT_ROOMS = [
   { name: 'General Focus', description: 'Open to everyone', room_code: 'FOCUS1' },
 ]
 
+// Cryptographically secure 6-char [A-Z0-9] room code. Replaces
+// Math.random().toString(36).substr(2,6).toUpperCase() which was both
+// non-uniform and predictable (audit #15).
+function generateRoomCode() {
+  const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' // 36 chars
+  const out = []
+  // Rejection sampling avoids modulo bias from 256 % 36 != 0.
+  const buf = new Uint8Array(16)
+  while (out.length < 6) {
+    crypto.getRandomValues(buf)
+    for (let i = 0; i < buf.length && out.length < 6; i++) {
+      if (buf[i] < 252) out.push(ALPHABET[buf[i] % 36]) // 252 = floor(256/36)*36
+    }
+  }
+  return out.join('')
+}
+
 function getRoomGradient(name = '') {
   if (name === 'SAT Prep Squad') return 'linear-gradient(135deg, rgba(181,242,58,0.22) 0%, rgba(10,10,11,0) 80%)'
   if (name === 'AP Gauntlet')    return 'linear-gradient(135deg, rgba(96,211,248,0.20) 0%, rgba(10,10,11,0) 80%)'
@@ -131,7 +148,7 @@ export default function Rooms() {
     if (!roomName.trim()) return
     setCreating(true)
     setCreateError('')
-    const code = Math.random().toString(36).substr(2, 6).toUpperCase()
+    const code = generateRoomCode()
 
     const { data, error } = await supabase
       .from('study_rooms')

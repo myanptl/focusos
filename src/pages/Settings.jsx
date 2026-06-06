@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
-import { Check, X, Sparkles, Bot, BarChart2 } from 'lucide-react'
+import { Check, X, Bot, BarChart2 } from 'lucide-react'
 
 const CITATIONS = [
   { ref: 'Pew Research Center, April 2025 (N=1,391 U.S. teens)', note: 'Teen social media and attention study' },
@@ -253,13 +253,6 @@ export default function Settings() {
                   title: 'Auto (recommended)',
                   desc: 'Uses Claude for best quality (5/day free), switches to Llama when limit reached',
                   badge: null,
-                },
-                {
-                  key: 'claude',
-                  Icon: Sparkles,
-                  title: 'Claude Always',
-                  desc: 'Always use Claude Sonnet for highest accuracy',
-                  badge: '5 free per day',
                 },
                 {
                   key: 'ollama',

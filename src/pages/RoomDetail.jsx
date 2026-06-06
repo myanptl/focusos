@@ -419,6 +419,15 @@ export default function RoomDetail() {
   async function handleSendMessage() {
     const msg = chatInput.trim()
     if (!msg || sendingMsg) return
+    // Bound chat message length (audit #17). 2000 chars matches the server-side
+    // limit you should also enforce via a Postgres CHECK constraint:
+    //   ALTER TABLE room_messages ADD CONSTRAINT room_messages_message_len
+    //   CHECK (char_length(message) <= 2000);
+    const MAX_MESSAGE_LENGTH = 2000
+    if (msg.length > MAX_MESSAGE_LENGTH) {
+      toast(`Message too long (${msg.length}/${MAX_MESSAGE_LENGTH} characters). Please shorten it.`, 'error')
+      return
+    }
     setSendingMsg(true)
     setChatInput('')
     const msgDisplayName = profile?.name || user?.email?.split('@')[0] || 'User'
@@ -719,7 +728,7 @@ export default function RoomDetail() {
             <input
               placeholder="Send a message..."
               value={chatInput}
-              onChange={e => setChatInput(e.target.value.slice(0, 100))}
+              onChange={e => setChatInput(e.target.value.slice(0, 2000))}
               onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
               style={{ flex: 1, fontSize: 13, padding: '7px 10px' }}
             />
