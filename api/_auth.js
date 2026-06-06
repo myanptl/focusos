@@ -41,6 +41,39 @@ export function sanitizeInput(str) {
 }
 
 // ─────────────────────────────────────────────────────────
+// OWASP LLM01: Prompt Injection (indirect, from third-party content)
+// Sanitizer for content fetched from untrusted sources (YouTube transcripts,
+// pasted-by-user transcript text, etc.) before it is interpolated into a
+// Claude prompt. Strips role-style tags Claude or other models could
+// interpret as control structures, and neutralises the closing form of our
+// own delimiter tag so injected content cannot escape the wrapper.
+//
+// Always pair with `wrapUntrustedContent()` below so the model is told the
+// delimited region is data, not instructions.
+// ─────────────────────────────────────────────────────────
+export function sanitizeUntrustedContent(str) {
+  if (typeof str !== 'string') return ''
+  return str
+    .replace(/\0/g, '')
+    // Role / system tags many LLMs (including Claude) recognise.
+    .replace(/<\/?\s*(system|assistant|user|human|inst|sys)\b[^>]*>/gi, '')
+    // Our own delimiter — strip both open and close so content can't escape it.
+    .replace(/<\/?\s*untrusted_[a-z_]+\s*>/gi, '')
+    // Llama / Mistral chat-template tokens (covers what sanitizeInput already does
+    // plus a few common variants).
+    .replace(/\[\/?(INST|SYS)\]/gi, '')
+    .replace(/<\|[^|>]{1,40}\|>/g, '')   // ChatML-style <|im_start|>, <|endoftext|>, etc.
+    .replace(/<\/?s>/gi, '')
+    .replace(/\s{10,}/g, ' ')
+    .trim()
+}
+
+export function wrapUntrustedContent(tag, content) {
+  const safe = sanitizeUntrustedContent(content)
+  return `<${tag}>\n${safe}\n</${tag}>`
+}
+
+// ─────────────────────────────────────────────────────────
 // OWASP A03: Injection / A08: Data Integrity
 // Validate that required fields are present, types match,
 // and string lengths are within safe bounds before any
@@ -160,37 +193,55 @@ export async function verifyAuth(req, res) {
 
 // ─────────────────────────────────────────────────────────
 // Freemium AI model selection
-// Reads the user's profile to decide Claude vs Ollama.
-// Free users: 10 Claude calls/day then auto-switch to Ollama.
-// Preference 'ollama' always uses Ollama regardless of count.
+// Decides Claude vs Ollama for this request. For 'auto' users this also
+// atomically reserves one of the day's Claude slots via the
+// claim_claude_call() Postgres RPC, so parallel requests cannot all pass the
+// gate when generationsToday is below the cap (TOCTOU fix for audit #3).
+//
+// Trade-off: the slot is claimed BEFORE the Claude call, so a Claude failure
+// still costs one slot for the day. Acceptable for a 5/day quota.
 // ─────────────────────────────────────────────────────────
 export async function getModelConfig(supabase, userId) {
   const today = new Date().toISOString().split('T')[0]
   const { data: profile } = await supabase
     .from('profiles')
-    .select('ai_model_preference, claude_generations_today, claude_generations_reset_date')
+    .select('ai_model_preference, claude_generations_today')
     .eq('user_id', userId)
     .maybeSingle()
 
   const modelPref = profile?.ai_model_preference || 'auto'
-  const isReset = !profile?.claude_generations_reset_date || profile.claude_generations_reset_date !== today
-  const generationsToday = isReset ? 0 : (profile?.claude_generations_today || 0)
-  const useOllama =
-    modelPref === 'ollama' ? true :
-    modelPref === 'claude' ? false :
-    generationsToday >= 5
+  const currentCount = profile?.claude_generations_today || 0
 
-  return { useOllama, generationsToday, modelPref, today }
+  // Explicit overrides never touch the counter.
+  if (modelPref === 'ollama') return { useOllama: true,  generationsToday: currentCount, modelPref, today }
+  if (modelPref === 'claude') return { useOllama: false, generationsToday: currentCount, modelPref, today }
+
+  // 'auto' — atomically claim a Claude slot for the day.
+  const { data, error } = await supabase.rpc('claim_claude_call', {
+    p_user_id: userId,
+    p_limit:   5,
+  })
+
+  if (error) {
+    // RPC unavailable -> fail-open to Claude, matching the existing rate-limit catch behavior.
+    return { useOllama: false, generationsToday: currentCount, modelPref, today }
+  }
+
+  const row     = Array.isArray(data) ? data[0] : data
+  const claimed = !!row?.claimed
+  return {
+    useOllama:        !claimed,
+    generationsToday: row?.count_after ?? currentCount,
+    modelPref,
+    today,
+  }
 }
 
-export async function incrementClaudeCount(supabase, userId, generationsToday, today) {
-  await supabase
-    .from('profiles')
-    .update({
-      claude_generations_today: generationsToday + 1,
-      claude_generations_reset_date: today,
-    })
-    .eq('user_id', userId)
+// No-op. The counter is now incremented atomically inside getModelConfig() via
+// the claim_claude_call() RPC, so the post-call increment is no longer needed.
+// Kept as an exported no-op so the four api/*.js call sites do not need edits.
+export async function incrementClaudeCount() {
+  // intentionally empty
 }
 
 async function _callClaude(prompt, apiKey, maxTokens) {

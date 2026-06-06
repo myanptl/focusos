@@ -190,18 +190,7 @@ Return ONLY valid JSON:
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
-  const url = new URL(req.url)
-  console.log('[generate-quiz] Request received:', req.method, url.pathname)
-
-  // Diagnostic endpoint — verifies the secret is present without using it
-  if (req.method === 'GET' && url.searchParams.get('action') === 'test-key') {
-    const key = Deno.env.get('ANTHROPIC_API_KEY') ?? ''
-    return respond({
-      key_present: key.length > 0,
-      key_length: key.length,
-      key_prefix: key.length > 20 ? key.slice(0, 20) + '...' : '(too short)',
-    })
-  }
+  console.log('[generate-quiz] Request received:', req.method)
 
   try {
     const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
@@ -254,17 +243,27 @@ Deno.serve(async (req: Request) => {
       window_start: inWindow ? limitData!.window_start : new Date().toISOString(),
     }, { onConflict: 'user_id,endpoint' })
 
-    // Daily generation tracking
-    const today = new Date().toISOString().split('T')[0]
+    // Daily generation tracking — read pref + atomically claim a slot via RPC.
+    // Atomic claim closes the TOCTOU race that allowed parallel requests to all
+    // pass the gate (audit #3). The slot is reserved before the Claude call.
     const { data: profile } = await svcClient
       .from('profiles')
-      .select('ai_model_preference, claude_generations_today, claude_generations_reset_date')
+      .select('ai_model_preference')
       .eq('user_id', user.id)
       .maybeSingle() as { data: Record<string, unknown> | null }
     const modelPref = (profile?.ai_model_preference as string) || 'auto'
-    const isReset = !profile?.claude_generations_reset_date || profile.claude_generations_reset_date !== today
-    const generationsToday = isReset ? 0 : ((profile?.claude_generations_today as number) || 0)
-    const dailyLimitReached = modelPref === 'auto' && generationsToday >= 5
+
+    let generationsToday = 0
+    let dailyLimitReached = false
+    if (modelPref === 'auto') {
+      const { data: claimData } = await svcClient.rpc('claim_claude_call', {
+        p_user_id: user.id,
+        p_limit:   5,
+      }) as { data: Array<{ claimed: boolean; count_after: number }> | { claimed: boolean; count_after: number } | null }
+      const claim = Array.isArray(claimData) ? claimData[0] : claimData
+      generationsToday = claim?.count_after ?? 0
+      dailyLimitReached = !(claim?.claimed)
+    }
 
     const body = await req.json() as Record<string, unknown>
     const {
@@ -293,12 +292,8 @@ Deno.serve(async (req: Request) => {
       question?: string; userAnswer?: string; correctAnswer?: string
     }
 
-    async function incrementCount() {
-      await svcClient.from('profiles').update({
-        claude_generations_today: generationsToday + 1,
-        claude_generations_reset_date: today,
-      }).eq('user_id', user.id)
-    }
+    // The daily counter is incremented atomically by claim_claude_call() above,
+    // so no per-mode increment helper is needed any more.
 
     // ── Grade mode ──────────────────────────────────────────
     if (mode === 'grade') {
@@ -318,7 +313,6 @@ Deno.serve(async (req: Request) => {
       const raw = await callClaude(buildPlannerPrompt(testType, subject!, testDate!, hoursPerWeek!, weakAreas!, currentLevel!), apiKey, 4000)
       const match = raw.match(/\{[\s\S]*\}/)
       if (!match) return respond({ error: 'No plan generated. Please try again.' }, 502)
-      await incrementCount()
       return respond({ plan: JSON.parse(match[0]), model_used: 'claude', ollama_fallback: false })
     }
 
@@ -330,7 +324,6 @@ Deno.serve(async (req: Request) => {
       if (!match) return respond({ error: 'No questions generated. Try again.' }, 502)
       const parsed = JSON.parse(match[0])
       if (!parsed.questions?.length) return respond({ error: 'No questions generated.' }, 502)
-      await incrementCount()
       return respond({ questions: parsed.questions, model_used: 'claude', ollama_fallback: false, daily_limit_reached: dailyLimitReached })
     }
 
@@ -344,7 +337,6 @@ Deno.serve(async (req: Request) => {
     if (!jsonMatch) return respond({ error: 'No valid JSON returned. Try rephrasing your notes.' }, 502)
     const parsed = JSON.parse(jsonMatch[0])
     if (!parsed.questions?.length) return respond({ error: 'No questions generated. Try more detailed notes.' }, 502)
-    await incrementCount()
     return respond({ questions: parsed.questions, model_used: 'claude', ollama_fallback: false, daily_limit_reached: dailyLimitReached })
 
   } catch (err: unknown) {

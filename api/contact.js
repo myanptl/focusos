@@ -7,6 +7,19 @@ const CONTACT_SCHEMA = {
   message: { required: true,  type: 'string', maxLength: 2000 },
 }
 
+// HTML-escape any user-supplied value before it goes into the email template.
+// Prevents an attacker from injecting clickable phishing links or fake "From"
+// rows into the email the developer reads (audit #6).
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[c]))
+}
+
 export default async function handler(req, res) {
   setSecurityHeaders(res)
 
@@ -43,7 +56,7 @@ export default async function handler(req, res) {
         'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
       },
       text: `From: ${name} <${email}>\n\n${message}\n\n---\nSent via FocusOS contact form`,
-      html: `<p><strong>From:</strong> ${name} &lt;<a href="mailto:${email}">${email}</a>&gt;</p><hr/><p>${message.replace(/\n/g, '<br/>')}</p>`,
+      html: `<p><strong>From:</strong> ${escapeHtml(name)} &lt;<a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a>&gt;</p><hr/><p>${escapeHtml(message).replace(/\n/g, '<br/>')}</p>`,
     })
 
     if (sendError) {
