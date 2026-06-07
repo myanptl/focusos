@@ -22,12 +22,6 @@ function isOnline(last_seen) {
   return Date.now() - new Date(last_seen).getTime() < 2 * 60 * 1000
 }
 
-const DEFAULT_ROOMS = [
-  { name: 'SAT Prep Squad', description: 'SAT/ACT focused study sessions', room_code: 'SATPQ1' },
-  { name: 'AP Gauntlet', description: 'AP exam preparation', room_code: 'APGNT1' },
-  { name: 'General Focus', description: 'Open to everyone', room_code: 'FOCUS1' },
-]
-
 // Cryptographically secure 6-char [A-Z0-9] room code. Replaces
 // Math.random().toString(36).substr(2,6).toUpperCase() which was both
 // non-uniform and predictable (audit #15).
@@ -76,47 +70,11 @@ export default function Rooms() {
   const [hoveredRoom, setHoveredRoom] = useState(null)
 
   useEffect(() => {
-    seedAndLoad()
+    loadRooms()
   }, [])
 
-  async function seedAndLoad() {
-    setLoading(true)
-    await supabase.from('study_rooms').delete().eq('name', 'Late Night Grind')
-    try {
-      const { data: existing, error: checkErr } = await supabase
-        .from('study_rooms')
-        .select('name')
-        .eq('is_public', true)
-
-      if (checkErr) {
-        if (checkErr.code === '42P01') {
-          setTableError(true)
-          setLoading(false)
-          return
-        }
-        throw checkErr
-      }
-
-      const existingNames = new Set((existing || []).map(r => r.name))
-      const toInsert = DEFAULT_ROOMS.filter(r => !existingNames.has(r.name)).map(r => ({
-        ...r,
-        created_by: 'system',
-        is_public: true,
-        max_members: 20,
-      }))
-
-      if (toInsert.length > 0) {
-        await supabase.from('study_rooms').insert(toInsert)
-      }
-
-      await loadRooms()
-    } catch (err) {
-      toast('Failed to load rooms.', 'error')
-      setLoading(false)
-    }
-  }
-
   async function loadRooms() {
+    setLoading(true)
     let query = supabase
       .from('study_rooms')
       .select('*, room_members(user_id, display_name, is_focusing, last_seen)')
