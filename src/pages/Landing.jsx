@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
+import LogoIcon from '../components/LogoIcon'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -328,7 +329,7 @@ function BrowserMockup() {
             padding: '0 14px', height: 40, display: 'flex', alignItems: 'center', gap: 8,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginRight: 8 }}>
-              <span style={{ fontSize: 12, color: '#b5f23a', display: 'inline-block', animation: 'spin 8s linear infinite' }}>⟳</span>
+              <LogoIcon size={12} />
               <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '3px', color: 'white' }}>FOCUSOS</span>
             </div>
             {['Timer','Quiz','Goals','Streak'].map((t, i) => (
@@ -683,11 +684,7 @@ export default function Landing() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{
-                  fontSize: 24, color: '#b5f23a',
-                  display: 'inline-block', lineHeight: 1, fontWeight: 300,
-                  animation: 'spin 8s linear infinite', transformOrigin: 'center',
-                }}>⟳</span>
+                <LogoIcon size={24} />
                 <span style={{ fontSize: 14, fontWeight: 800, letterSpacing: '4px', color: 'white' }}>FOCUSOS</span>
               </div>
               <button

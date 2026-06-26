@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import LogoIcon from '../components/LogoIcon'
 import { useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
@@ -784,7 +785,7 @@ export default function QuizV2() {
             </motion.div>
           ) : loading ? (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ ...glass(), padding: 48, textAlign: 'center' }}>
-              <div style={{ fontSize: 56, color: LIME, animation: 'spin-slow 3s linear infinite', display: 'inline-block', lineHeight: 1, marginBottom: 16 }}>⟳</div>
+              <LogoIcon size={56} style={{ marginBottom: 16 }} />
               <p style={{ color: 'var(--muted)', fontSize: 14 }}>Generating your questions...</p>
             </motion.div>
           ) : (

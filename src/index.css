@@ -41,12 +41,15 @@ h1, h2, h3 { text-wrap: balance; }
 .page-fade { }
 
 @keyframes spin { to { transform: rotate(360deg); } }
-@keyframes focusSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes focusSpin3d { from { transform: rotateX(22deg) rotateZ(0deg); } to { transform: rotateX(22deg) rotateZ(360deg); } }
 .focus-logo-arrow {
+  transform-box: fill-box;
   transform-origin: center center;
-  animation: focusSpin 2.5s linear infinite;
+  transform-style: preserve-3d;
+  animation: focusSpin3d 4s linear infinite;
   will-change: transform;
 }
+.focus-logo-arrow-wrap { perspective: 200px; display: inline-flex; }
 @keyframes waveBar {
   from { height: 3px; opacity: 0.35; }
   to   { height: 24px; opacity: 0.9; }

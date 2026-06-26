@@ -8,6 +8,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Nav from './components/Nav'
+import LogoIcon from './components/LogoIcon'
 import Footer from './components/Footer'
 import AppBackground from './components/AppBackground'
 
@@ -68,12 +69,7 @@ function LegalShell({ children }) {
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <div style={{ borderBottom: '1px solid var(--border)', padding: '0 24px', height: 60, display: 'flex', alignItems: 'center' }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <span style={{
-            fontSize: 24, color: 'var(--accent)',
-            display: 'inline-block',
-            animation: 'spin 8s linear infinite',
-            lineHeight: 1, fontWeight: 300,
-          }}>⟳</span>
+          <LogoIcon size={24} />
           <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: '4px', color: 'white' }}>FOCUSOS</span>
         </Link>
       </div>

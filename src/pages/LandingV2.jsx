@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
+import LogoIcon from '../components/LogoIcon'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -182,7 +183,7 @@ function BrowserMockup() {
         padding: '0 14px', height: 34, display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginRight: 8 }}>
-          <span style={{ fontSize: 10, color: '#b5f23a', animation: 'spin 8s linear infinite' }}>⟳</span>
+          <LogoIcon size={10} />
           <span style={{ fontSize: 7, fontWeight: 800, letterSpacing: '3px', color: 'white' }}>FOCUSOS</span>
         </div>
         {['Timer', 'Quiz', 'Goals', 'Streak'].map((t, i) => (
@@ -460,7 +461,7 @@ export default function LandingV2() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 22, color: '#b5f23a', lineHeight: 1, fontWeight: 300, animation: 'spin 8s linear infinite' }}>⟳</span>
+              <LogoIcon size={22} />
               <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: '4px', color: 'white' }}>FOCUSOS</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -832,7 +833,7 @@ export default function LandingV2() {
         fontSize: 12.5, color: 'var(--muted)', letterSpacing: '0.01em',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 16, color: '#b5f23a', animation: 'spin 8s linear infinite', display: 'inline-block' }}>⟳</span>
+          <LogoIcon size={16} />
           <span>© 2026 FocusOS</span>
         </div>
         <div style={{ display: 'flex', gap: 20 }}>
