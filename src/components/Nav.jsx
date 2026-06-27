@@ -29,6 +29,13 @@ export default function Nav() {
     return () => window.removeEventListener('resize', check)
   }, [])
 
+  useEffect(() => {
+    if (!dropdownOpen) return
+    function onKeyDown(e) { if (e.key === 'Escape') setDropdownOpen(false) }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [dropdownOpen])
+
   async function handleSignOut() {
     await signOut()
     navigate('/login')
@@ -86,19 +93,27 @@ export default function Nav() {
             {tabs.map(t => {
               const isActive = location.pathname === t.to || location.pathname.startsWith(t.to + '/')
               return (
-                <NavLink key={t.to} to={t.to} style={{
-                  position: 'relative',
-                  padding: '5px 12px', borderRadius: 40, fontSize: 13, fontWeight: 500,
-                  textDecoration: 'none', whiteSpace: 'nowrap',
-                  transition: 'color 0.18s cubic-bezier(0.22,1,0.36,1), background 0.18s cubic-bezier(0.22,1,0.36,1)',
-                  color: isActive ? 'var(--accent)' : 'var(--muted)',
-                  background: isActive ? 'rgba(181,242,58,0.1)' : 'transparent',
-                  border: isActive ? '1px solid rgba(181,242,58,0.22)' : '1px solid transparent',
-                  display: 'inline-flex', alignItems: 'center', gap: 5, letterSpacing: '0.005em',
-                }}
-                  onMouseEnter={e => { if (!isActive) { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}}
-                  onMouseLeave={e => { if (!isActive) { e.currentTarget.style.color = 'var(--muted)'; e.currentTarget.style.background = 'transparent' }}}
+                <NavLink key={t.to} to={t.to}
+                  className={isActive ? 'nav-tab nav-tab-active' : 'nav-tab'}
+                  style={{
+                    position: 'relative',
+                    padding: '6px 13px', borderRadius: 40, fontSize: 13, fontWeight: isActive ? 600 : 500,
+                    textDecoration: 'none', whiteSpace: 'nowrap', zIndex: 1,
+                    color: isActive ? 'var(--accent)' : 'var(--muted)',
+                    display: 'inline-flex', alignItems: 'center', gap: 5, letterSpacing: '0.005em',
+                  }}
                 >
+                  {isActive && (
+                    <motion.span
+                      layoutId="navActivePill"
+                      transition={{ type: 'spring', stiffness: 480, damping: 38 }}
+                      style={{
+                        position: 'absolute', inset: 0, borderRadius: 40, zIndex: -1,
+                        background: 'rgba(181,242,58,0.10)',
+                        border: '1px solid rgba(181,242,58,0.22)',
+                      }}
+                    />
+                  )}
                   {t.label}
                 </NavLink>
               )
@@ -115,11 +130,14 @@ export default function Nav() {
               onClick={() => setMobileOpen(true)}
               whileTap={{ scale: 0.88 }}
               transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              aria-label="Open navigation menu"
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-nav-menu"
               style={{
                 background: 'rgba(255,255,255,0.05)',
                 border: '1px solid rgba(255,255,255,0.09)',
                 color: 'var(--text)', cursor: 'pointer',
-                borderRadius: 8, width: 34, height: 34,
+                borderRadius: 8, width: 40, height: 40,
                 display: 'flex', flexDirection: 'column',
                 alignItems: 'center', justifyContent: 'center', gap: 5,
               }}
@@ -152,7 +170,7 @@ export default function Nav() {
               whileHover={{ scale: 1.06 }}
               transition={{ type: 'spring', stiffness: 500, damping: 35 }}
               style={{
-                width: 34, height: 34, borderRadius: '50%',
+                width: 40, height: 40, borderRadius: '50%',
                 background: 'rgba(181,242,58,0.18)', border: '1.5px solid var(--accent)',
                 color: 'var(--accent)', fontWeight: 700, fontSize: 12,
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -210,6 +228,7 @@ export default function Nav() {
     {mobileOpen && (
       <motion.div
         key="mobile-menu"
+        id="mobile-nav-menu"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}

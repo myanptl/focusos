@@ -44,9 +44,12 @@ export default function Goals() {
 
   async function loadGoals() {
     if (!user) return
-    const { data } = await supabase.from('score_goals').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
-    setGoals(data || [])
-    setLoading(false)
+    try {
+      const { data } = await supabase.from('score_goals').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
+      setGoals(data || [])
+    } finally {
+      setLoading(false)
+    }
   }
 
   function openModal() {

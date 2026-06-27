@@ -19,14 +19,16 @@ function AppParticles({ reduced }) {
     }
 
     function initParticles() {
-      const count = Math.max(45, Math.floor((canvas.width * canvas.height) / 12000))
+      // Calmer field: fewer, fainter, slower — a quiet starfield behind
+      // a focus app, not a busy network graph.
+      const count = Math.min(28, Math.max(18, Math.floor((canvas.width * canvas.height) / 26000)))
       particles = Array.from({ length: count }, () => ({
         x:  Math.random() * canvas.width,
         y:  Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.30,
-        vy: (Math.random() - 0.5) * 0.30,
-        r:  Math.random() * 1.6 + 0.5,
-        a:  Math.random() * 0.38 + 0.12,
+        vx: (Math.random() - 0.5) * 0.18,
+        vy: (Math.random() - 0.5) * 0.18,
+        r:  Math.random() * 1.3 + 0.4,
+        a:  Math.random() * 0.22 + 0.05,
       }))
     }
 
@@ -36,33 +38,18 @@ function AppParticles({ reduced }) {
       if (document.hidden) { raf = requestAnimationFrame(tick); return }
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i]
-        for (let j = i + 1; j < particles.length; j++) {
-          const q = particles[j]
-          const dx = p.x - q.x, dy = p.y - q.y
-          const d  = Math.sqrt(dx * dx + dy * dy)
-          if (d < 130) {
-            ctx.beginPath()
-            ctx.strokeStyle = `rgba(181,242,58,${(1 - d / 130) * 0.10})`
-            ctx.lineWidth = 0.55
-            ctx.moveTo(p.x, p.y)
-            ctx.lineTo(q.x, q.y)
-            ctx.stroke()
-          }
-        }
-      }
-
+      // No connecting-line web — just gently drifting motes with a soft
+      // cursor draw. Calmer, and cheaper (drops the O(n²) line pass).
       for (const p of particles) {
         const cx = mouseX - p.x, cy = mouseY - p.y
         const cd = Math.sqrt(cx * cx + cy * cy)
-        if (cd < 200 && cd > 0) {
-          const force = ((200 - cd) / 200) * 0.012
+        if (cd < 180 && cd > 0) {
+          const force = ((180 - cd) / 180) * 0.006
           p.vx += (cx / cd) * force
           p.vy += (cy / cd) * force
         }
         const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy)
-        if (spd > 0.85) { p.vx = (p.vx / spd) * 0.85; p.vy = (p.vy / spd) * 0.85 }
+        if (spd > 0.5) { p.vx = (p.vx / spd) * 0.5; p.vy = (p.vy / spd) * 0.5 }
 
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
@@ -105,12 +92,10 @@ export default function AppBackground() {
 
   return (
     <>
-      {/* Gradient mesh base */}
+      {/* Static gradient base — a faint lime-warmed wash, no perpetual motion */}
       <div style={{
         position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
-        background: 'linear-gradient(135deg, #0a0a0b 0%, #0c1005 50%, #0a0a0b 100%)',
-        backgroundSize: '400% 400%',
-        animation: reduced ? 'none' : 'appMeshShift 20s ease-in-out infinite',
+        background: 'linear-gradient(155deg, #09090a 0%, #0b0e06 52%, #09090a 100%)',
       }} />
 
       {/* Primary lime spotlight — top center (endlesstools.io style) */}

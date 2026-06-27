@@ -30,16 +30,24 @@ export function ToastProvider({ children }) {
           const c = colors[t.type] || colors.success
           return (
             <div key={t.id} style={{
-              background: c.bg, border: `1px solid ${c.border}`,
-              borderRadius: 10, padding: '12px 16px',
-              display: 'flex', alignItems: 'center', gap: 10,
-              fontSize: 14, color: 'var(--text)',
-              minWidth: 260, maxWidth: 360,
-              backdropFilter: 'blur(8px)',
-              animation: t.leaving ? 'slideOutRight 0.35s ease forwards' : 'slideInRight 0.3s ease',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+              background: 'rgba(20,20,23,0.82)',
+              border: '1px solid var(--border)',
+              borderLeft: `2px solid ${c.icon}`,
+              borderRadius: 'var(--radius-md)', padding: '12px 16px',
+              display: 'flex', alignItems: 'center', gap: 11,
+              fontSize: 14, color: 'var(--text)', letterSpacing: '-0.005em',
+              minWidth: 260, maxWidth: 'min(360px, calc(100vw - 48px))',
+              backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+              animation: t.leaving ? 'slideOutRight 0.35s ease forwards' : 'slideInRight 0.3s var(--ease-out)',
+              boxShadow: 'var(--shadow-lg)',
             }}>
-              {(() => { const Icon = icons[t.type] || Check; return <Icon size={16} color={c.icon} strokeWidth={2.5} /> })()}
+              <span style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: 24, height: 24, borderRadius: 7, flexShrink: 0,
+                background: c.bg, border: `1px solid ${c.border}`,
+              }}>
+                {(() => { const Icon = icons[t.type] || Check; return <Icon size={14} color={c.icon} strokeWidth={2.5} /> })()}
+              </span>
               <span>{t.message}</span>
             </div>
           )

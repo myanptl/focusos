@@ -597,7 +597,8 @@ export default function Timer() {
 
     const sessionId = sd?.id
 
-    const { data: existing } = await supabase.from('daily_focus_log').select('*')
+    const { data: existing } = await supabase.from('daily_focus_log')
+      .select('id, total_minutes, sessions_completed, sessions_count')
       .eq('user_id', user.id).eq('log_date', today).single()
 
     if (existing) {
@@ -774,7 +775,7 @@ export default function Timer() {
   function addTask() {
     const text = taskInput.trim()
     if (!text || tasks.length >= 3) return
-    setTasks(prev => [...prev, { text, done: false }])
+    setTasks(prev => [...prev, { id: Date.now() + Math.random(), text, done: false }])
     setTaskInput('')
   }
 
@@ -1196,7 +1197,7 @@ export default function Timer() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {SPOTIFY_PLAYLISTS.map(name => (
-                    <button key={name} onClick={() => window.open(`https://open.spotify.com/search/${encodeURIComponent(name)}`, '_blank')}
+                    <button key={name} onClick={() => window.open(`https://open.spotify.com/search/${encodeURIComponent(name)}`, '_blank', 'noopener,noreferrer')}
                       style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                         padding: '7px 10px', borderRadius: 8, cursor: 'pointer',
@@ -1277,7 +1278,7 @@ export default function Timer() {
             {tasks.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
                 {tasks.map((t, i) => (
-                  <div key={i} style={{
+                  <div key={t.id} style={{
                     display: 'flex', alignItems: 'center', gap: 8,
                     padding: '7px 10px', borderRadius: 8,
                     background: t.done ? 'rgba(181,242,58,0.06)' : 'var(--card2)',
@@ -1433,7 +1434,7 @@ export default function Timer() {
                 </label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {tasks.map((t, i) => (
-                    <label key={i} style={{
+                    <label key={t.id} style={{
                       display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
                       padding: '9px 12px', borderRadius: 8,
                       background: t.done ? 'rgba(181,242,58,0.07)' : 'var(--card2)',

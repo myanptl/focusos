@@ -63,7 +63,13 @@ export default function Settings() {
 
   useEffect(() => { loadStats(); checkOllama() }, [user])
   useEffect(() => {
-    if (profile?.ai_model_preference) setAiModelPref(profile.ai_model_preference)
+    if (!profile) return
+    setName(profile.name || profile.username || '')
+    setFocusMins(profile.focus_duration ?? profile.baseline_attention_span ?? 25)
+    setBreakMins(profile.break_duration ?? 5)
+    setAutoBreak(profile.auto_start_break ?? false)
+    setSound(profile.sound_enabled ?? true)
+    if (profile.ai_model_preference) setAiModelPref(profile.ai_model_preference)
   }, [profile])
 
   async function checkOllama() {

@@ -17,11 +17,6 @@ function getInitial(name = '') {
   return (name.trim()[0] || '?').toUpperCase()
 }
 
-function isOnline(last_seen) {
-  if (!last_seen) return false
-  return Date.now() - new Date(last_seen).getTime() < 2 * 60 * 1000
-}
-
 function focusingDuration(focus_start_time) {
   if (!focus_start_time) return 0
   return Math.floor((Date.now() - new Date(focus_start_time).getTime()) / 60000)
@@ -108,9 +103,9 @@ export default function RoomDetail() {
   const tickRef = useRef(0)
   const presenceRef = useRef(null)
   const channelRef = useRef(null)
-  const msgChannelRef = useRef(null)
   const messagesEndRef = useRef(null)
   const timerRunningRef = useRef(false)
+  const [onlineUserIds, setOnlineUserIds] = useState(new Set())
 
   useEffect(() => { timerRunningRef.current = timerRunning }, [timerRunning])
 
@@ -142,16 +137,21 @@ export default function RoomDetail() {
 
     const now = new Date().toISOString()
 
-    const [roomRes, membersRes, msgsRes] = await Promise.all([
-      supabase.from('study_rooms').select('*').eq('id', roomId).single(),
-      supabase.from('room_members').select('*').eq('room_id', roomId),
+    const [roomRes, membersRes, msgsRes, meRes] = await Promise.all([
+      supabase.from('study_rooms')
+        .select('id, name, room_code, created_by')
+        .eq('id', roomId).single(),
+      supabase.from('room_members')
+        .select('id, user_id, display_name, is_focusing, focus_start_time, current_task, last_seen')
+        .eq('room_id', roomId),
       supabase.from('room_messages')
-        .select('*').eq('room_id', roomId)
+        .select('id, user_id, display_name, message, created_at')
+        .eq('room_id', roomId)
         .order('created_at', { ascending: true }).limit(20),
       supabase.from('room_members').upsert(
         { room_id: roomId, user_id: user.id, display_name: displayName, last_seen: now, is_focusing: false },
         { onConflict: 'room_id,user_id', ignoreDuplicates: false }
-      ),
+      ).select('id, user_id, display_name, is_focusing, focus_start_time, current_task, last_seen').single(),
     ])
 
     if (roomRes.error) {
@@ -166,10 +166,16 @@ export default function RoomDetail() {
     } catch {}
 
     setRoom(roomRes.data)
-    if (membersRes.data) setMembers(membersRes.data)
+    // The query and upsert run concurrently — if the query completes before the upsert
+    // commits, the current user's row won't appear in membersRes. Merge it from meRes.
+    let initialMembers = membersRes.data || []
+    if (meRes.data && !initialMembers.find(m => m.user_id === user.id)) {
+      initialMembers = [...initialMembers, meRes.data]
+    }
+    setMembers(initialMembers)
     if (msgsRes.data) setMessages(msgsRes.data)
 
-    const me = membersRes.data?.find(m => m.user_id === user.id)
+    const me = initialMembers.find(m => m.user_id === user.id)
     if (me?.current_task) {
       setCurrentTask(me.current_task)
       setTaskInput(me.current_task)
@@ -177,8 +183,6 @@ export default function RoomDetail() {
 
     setLoading(false)
     subscribeRealtime()
-    subscribeMessages()
-    startPresence()
   }
 
   function subscribeRealtime() {
@@ -196,7 +200,7 @@ export default function RoomDetail() {
     }, payload => {
       if (payload.eventType === 'INSERT') {
         setMembers(prev => {
-          if (prev.find(m => m.id === payload.new.id)) return prev
+          if (prev.find(m => m.id === payload.new.id || m.user_id === payload.new.user_id)) return prev
           return [...prev, payload.new]
         })
       } else if (payload.eventType === 'UPDATE') {
@@ -230,16 +234,7 @@ export default function RoomDetail() {
       }
     })
 
-    channel.subscribe()
-  }
-
-  function subscribeMessages() {
-    if (msgChannelRef.current) {
-      supabase.removeChannel(msgChannelRef.current)
-    }
-    const ch = supabase.channel('room-messages-' + roomId)
-    msgChannelRef.current = ch
-    ch.on('postgres_changes', {
+    channel.on('postgres_changes', {
       event: 'INSERT',
       schema: 'public',
       table: 'room_messages',
@@ -247,18 +242,25 @@ export default function RoomDetail() {
     }, payload => {
       setMessages(prev => [...prev, payload.new].slice(-20))
     })
-    ch.subscribe()
-  }
 
-  function startPresence() {
-    // Clear any existing interval before starting a new one to prevent leaks on re-init
-    if (presenceRef.current) clearInterval(presenceRef.current)
-    presenceRef.current = setInterval(async () => {
-      await supabase.from('room_members')
-        .update({ last_seen: new Date().toISOString() })
-        .eq('room_id', roomId)
-        .eq('user_id', user.id)
-    }, 30000)
+    channel.on('presence', { event: 'sync' }, () => {
+      const state = channel.presenceState()
+      setOnlineUserIds(new Set(Object.values(state).flat().map(p => p.user_id)))
+    })
+
+    channel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await channel.track({ user_id: user.id, display_name: displayName })
+        // 5-min last_seen refresh so stale-member cleanup has a valid timestamp
+        if (presenceRef.current) clearInterval(presenceRef.current)
+        presenceRef.current = setInterval(async () => {
+          await supabase.from('room_members')
+            .update({ last_seen: new Date().toISOString() })
+            .eq('room_id', roomId)
+            .eq('user_id', user.id)
+        }, 5 * 60 * 1000)
+      }
+    })
   }
 
   function cleanup() {
@@ -267,10 +269,6 @@ export default function RoomDetail() {
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current)
       channelRef.current = null
-    }
-    if (msgChannelRef.current) {
-      supabase.removeChannel(msgChannelRef.current)
-      msgChannelRef.current = null
     }
     if (user) {
       supabase.from('room_members')
@@ -282,19 +280,19 @@ export default function RoomDetail() {
   }
 
   async function cleanStaleMembers() {
-    const twoMinsAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString()
+    const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString()
     await supabase
       .from('room_members')
       .delete()
       .eq('room_id', roomId)
-      .lt('last_seen', twoMinsAgo)
+      .lt('last_seen', tenMinsAgo)
   }
 
   useEffect(() => {
+    if (!room || !user) return
+    if (room.created_by !== user.id) return
     cleanStaleMembers()
-    const id = setInterval(cleanStaleMembers, 60000)
-    return () => clearInterval(id)
-  }, [roomId])
+  }, [room?.id, user?.id])
 
   useEffect(() => {
     const handler = () => {
@@ -617,7 +615,7 @@ export default function RoomDetail() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {sortedMembers.map(m => {
               const isMe = m.user_id === user.id
-              const online = isOnline(m.last_seen)
+              const online = onlineUserIds.has(m.user_id)
               const color = avatarColor(m.user_id || m.display_name)
               const dur = m.is_focusing ? focusingDuration(m.focus_start_time) : 0
 

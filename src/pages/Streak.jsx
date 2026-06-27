@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import gsap from 'gsap'
-import Confetti from 'react-confetti'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { Target, Flame, Zap, Clock, Star, Brain, GraduationCap, Gem } from 'lucide-react'
@@ -11,7 +10,7 @@ const BADGES = [
   { id: 'unstoppable',   label: 'Unstoppable',    Icon: Zap,           desc: '7-day streak',                  check: (p)          => (p?.streak_count ?? 0) >= 7 },
   { id: 'hour_hero',     label: 'Hour Hero',      Icon: Clock,         desc: '60+ minutes in a single day',   check: (_, log)     => log.some(d => d.total_minutes >= 60) },
   { id: 'five_sessions', label: 'Five Sessions',  Icon: Star,          desc: 'Complete 5 total sessions',     check: (p)          => (p?.total_sessions ?? 0) >= 5 },
-  { id: 'deep_worker',   label: 'Deep Worker',    Icon: Brain,         desc: 'Complete a 35+ min session',   check: (_, __, s)   => s.some(x => x.duration_minutes >= 35) },
+  { id: 'deep_worker',   label: 'Deep Worker',    Icon: Brain,         desc: 'Complete a 35+ min session',   check: (_, __, s)   => s.length > 0 },
   { id: 'goal_setter',   label: 'Goal Setter',    Icon: GraduationCap, desc: 'Add your first score goal',    check: (_p, _l, _s, g) => g.length >= 1 },
   { id: 'diamond_mind',  label: 'Diamond Mind',   Icon: Gem,           desc: '10-day streak',                check: (p)          => (p?.streak_count ?? 0) >= 10 },
 ]
@@ -67,7 +66,6 @@ export default function Streak() {
   const [goals, setGoals] = useState([])
 
   const [displayStreak, setDisplayStreak] = useState(0)
-  const [showConfetti, setShowConfetti] = useState(false)
   const streakAnimated = useRef(false)
   const badgeRefs = useRef({})
   const badgesAnimated = useRef(false)
@@ -76,15 +74,20 @@ export default function Streak() {
 
   async function loadData() {
     if (!user) return
-    const fiveWeeksAgo = new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-    const [logRes, sessRes, goalRes] = await Promise.all([
-      supabase.from('daily_focus_log').select('*').eq('user_id', user.id).gte('log_date', fiveWeeksAgo),
-      supabase.from('focus_sessions').select('duration_minutes').eq('user_id', user.id),
-      supabase.from('score_goals').select('id').eq('user_id', user.id),
-    ])
-    setLog(logRes.data || [])
-    setSessions(sessRes.data || [])
-    setGoals(goalRes.data || [])
+    try {
+      const fiveWeeksAgo = new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      const [logRes, sessRes, goalRes] = await Promise.all([
+        supabase.from('daily_focus_log').select('*').eq('user_id', user.id).gte('log_date', fiveWeeksAgo),
+        supabase.from('focus_sessions').select('id').eq('user_id', user.id)
+          .gte('duration_minutes', 35).limit(1),
+        supabase.from('score_goals').select('id').eq('user_id', user.id),
+      ])
+      setLog(logRes.data || [])
+      setSessions(sessRes.data || [])
+      setGoals(goalRes.data || [])
+    } catch {
+      // data stays at defaults; loading cleared below
+    }
   }
 
   const streak = profile?.streak_count ?? 0
@@ -126,8 +129,6 @@ export default function Streak() {
   useEffect(() => {
     if (badgesAnimated.current || unlockedBadges.length === 0) return
     badgesAnimated.current = true
-    setShowConfetti(true)
-    setTimeout(() => setShowConfetti(false), 2800)
     unlockedBadges.forEach((badge, i) => {
       const el = badgeRefs.current[badge.id]
       if (!el) return
@@ -140,13 +141,6 @@ export default function Streak() {
 
   return (
     <div className="page-fade" style={{ maxWidth: 720, margin: '0 auto', width: '100%' }}>
-      {showConfetti && (
-        <Confetti
-          recycle={false} numberOfPieces={90} gravity={0.35}
-          colors={['#b5f23a','#f2c75a','#60d3f8','#ffffff']}
-          style={{ position: 'fixed', top: 0, left: 0, zIndex: 9998, pointerEvents: 'none' }}
-        />
-      )}
       <div style={{ textAlign: 'center', marginBottom: 32, position: 'relative' }}>
         {streak > 0 && (
           <div style={{

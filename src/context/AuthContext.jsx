@@ -28,7 +28,7 @@ export function AuthProvider({ children }) {
     try {
       const { data } = await supabase
         .from('profiles')
-        .select('*')
+        .select('user_id, name, username, streak_count, total_focus_minutes, total_sessions, focus_duration, baseline_attention_span, break_duration, auto_start_break, sound_enabled, ai_model_preference, accent_color, onboarding_complete, claude_generations_today, claude_generations_reset_date, last_focus_date, focus_blocks_streak')
         .eq('user_id', userId)
         .maybeSingle()
 

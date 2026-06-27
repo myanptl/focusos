@@ -77,8 +77,9 @@ export default function Rooms() {
     setLoading(true)
     let query = supabase
       .from('study_rooms')
-      .select('*, room_members(user_id, display_name, is_focusing, last_seen)')
+      .select('id, name, description, room_code, created_by, is_public, room_members(user_id, display_name, is_focusing, last_seen)')
       .order('created_at')
+      .limit(100)
 
     if (user?.id) {
       query = query.or(`is_public.eq.true,created_by.eq.${user.id}`)

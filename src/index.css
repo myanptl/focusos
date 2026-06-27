@@ -1,19 +1,59 @@
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
+  /* ── Brand accent ─────────────────────────────── */
   --lime: #b5f23a;
   --accent: #b5f23a;
   --accent-rgb: 181, 242, 58;
-  --bg: #0a0a0b;
-  --card: #111113;
-  --card2: #18181c;
-  --border: rgba(255, 255, 255, 0.07);
-  --text: #f0f0f2;
-  --muted: #9494a0;
+  --accent-soft: rgba(181, 242, 58, 0.10);
+  --accent-line: rgba(181, 242, 58, 0.22);
+  --accent-glow: rgba(181, 242, 58, 0.35);
+
+  /* ── Neutral surface ramp (deliberately stepped) ─ */
+  --bg: #09090a;          /* base canvas        */
+  --bg-raised: #0f0f11;   /* raised sections    */
+  --card: #121214;        /* primary card       */
+  --card2: #1a1a1e;       /* nested / inputs    */
+  --surface-3: #222226;   /* highest fill, tracks */
+
+  /* ── Lines ────────────────────────────────────── */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --hairline: rgba(255, 255, 255, 0.05);
+
+  /* ── Text ─────────────────────────────────────── */
+  --text: #f4f4f5;
+  --muted: #9a9aa6;
+  --faint: #6a6a76;
+
+  /* ── Semantic ─────────────────────────────────── */
   --red: #f25a5a;
   --amber: #f2c75a;
   --cyan: #60d3f8;
   --purple: #a855f7;
+
+  /* ── Typography ───────────────────────────────── */
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'Outfit', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* ── Spacing scale ────────────────────────────── */
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+  --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+
+  /* ── Radius scale ─────────────────────────────── */
+  --radius-sm: 8px; --radius-md: 10px; --radius-lg: 14px;
+  --radius-xl: 18px; --radius-full: 999px;
+
+  /* ── Elevation ────────────────────────────────── */
+  --inset-hi: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 18px rgba(0, 0, 0, 0.30);
+  --shadow-lg: 0 14px 40px rgba(0, 0, 0, 0.42);
+  --shadow-xl: 0 24px 70px rgba(0, 0, 0, 0.55);
+  --ring: 0 0 0 3px rgba(181, 242, 58, 0.15);
+
+  /* ── Easing ───────────────────────────────────── */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -28,12 +68,23 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  letter-spacing: -0.005em;
 }
 
-h1, h2, h3 { text-wrap: balance; }
+h1, h2, h3 { text-wrap: balance; letter-spacing: -0.015em; }
+
+/* Keyboard focus ring — visible for a11y, hidden for mouse users */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+:focus:not(:focus-visible) { outline: none; }
 
 #root { min-height: 100vh; display: flex; flex-direction: column; }
 
@@ -103,25 +154,25 @@ h1, h2, h3 { text-wrap: balance; }
 .research-callout strong { color: var(--accent); }
 
 .card  {
-  background: rgba(17,17,19,0.70);
-  background-image: linear-gradient(160deg, rgba(255,255,255,0.028) 0%, transparent 55%);
+  background: rgba(18,18,20,0.72);
+  background-image: linear-gradient(160deg, rgba(255,255,255,0.030) 0%, transparent 52%);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255,255,255,0.09);
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 6px 28px rgba(0,0,0,0.22), 0 0 0 0 rgba(181,242,58,0);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  box-shadow: var(--inset-hi), var(--shadow-md);
   position: relative;
   z-index: 1;
 }
 .card2 {
-  background: rgba(24,24,28,0.62);
-  background-image: linear-gradient(160deg, rgba(255,255,255,0.018) 0%, transparent 55%);
+  background: rgba(26,26,30,0.64);
+  background-image: linear-gradient(160deg, rgba(255,255,255,0.020) 0%, transparent 52%);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.09);
-  border-radius: 16px;
-  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
   position: relative;
   z-index: 1;
 }
@@ -141,16 +192,15 @@ h1, h2, h3 { text-wrap: balance; }
 }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-accent {
-  background: linear-gradient(105deg, #b0ef30, #c2f840 30%, #b5f23a 50%, #a8de28 70%, #c2f840);
-  background-size: 200% auto;
-  animation: btnGradientFlow 4s linear infinite;
+  background: linear-gradient(180deg, #c2f844 0%, #b5f23a 55%, #a6e02c 100%);
   color: #0a0a0b;
   font-weight: 700;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.32), 0 1px 2px rgba(0,0,0,0.3);
 }
 .btn-accent:hover:not(:disabled) {
-  transform: translateY(-1px) scale(1.015);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.25) inset, 0 4px 16px rgba(181,242,58,0.16);
-  background: linear-gradient(135deg, #d6ff4a 0%, #c2f844 45%, #aadf32 100%);
+  transform: translateY(-1px);
+  background: linear-gradient(180deg, #d2ff58 0%, #c2f844 55%, #aadf32 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 6px 20px rgba(181,242,58,0.28);
 }
 .btn-ghost {
   background: rgba(255,255,255,0.05);
@@ -170,17 +220,21 @@ h1, h2, h3 { text-wrap: balance; }
 
 input, textarea, select {
   background: var(--card2); border: 1px solid var(--border);
-  border-radius: 8px; color: var(--text);
-  font-family: 'Outfit', sans-serif; font-size: 14px;
+  border-radius: var(--radius-sm); color: var(--text);
+  font-family: var(--font-body); font-size: 14px;
   padding: 10px 14px; outline: none;
-  transition: border-color 0.15s; width: 100%;
+  transition: border-color 0.15s ease, box-shadow 0.2s var(--ease-out); width: 100%;
   resize: none;
+}
+input:hover:not(:focus), textarea:hover:not(:focus), select:hover:not(:focus) {
+  border-color: var(--border-strong);
 }
 input:focus, textarea:focus, select:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(181,242,58,0.13), 0 0 14px rgba(181,242,58,0.07);
-  transition: border-color 0.15s, box-shadow 0.2s var(--ease-out);
+  box-shadow: var(--ring), 0 0 14px rgba(181,242,58,0.06);
 }
+/* Inputs already show their own lime ring — suppress the global focus outline */
+input:focus-visible, textarea:focus-visible, select:focus-visible { outline: none; }
 input::placeholder, textarea::placeholder { color: var(--muted); }
 select option { background: var(--card2); }
 
@@ -243,10 +297,9 @@ input[type="range"]::-moz-range-thumb {
 .progress-bar { height: 6px; background: var(--card2); border-radius: 3px; overflow: hidden; }
 .progress-bar-fill {
   height: 100%; border-radius: 3px;
-  background: linear-gradient(90deg, #99d428, #b5f23a 40%, #c9ff3c 60%, #b5f23a);
-  background-size: 200% auto;
-  animation: btnGradientFlow 3s linear infinite;
-  transition: width 0.4s ease;
+  background: linear-gradient(90deg, #9ed42a 0%, #b5f23a 60%, #c9ff3c 100%);
+  box-shadow: 0 0 10px rgba(181,242,58,0.25);
+  transition: width 0.4s var(--ease-out);
 }
 
 .pill {
@@ -301,7 +354,7 @@ input[type="range"]::-moz-range-thumb {
 .text-cyan    { color: var(--cyan); }
 .text-purple  { color: var(--purple); }
 
-.label { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
+.label { font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
 
 footer a:hover { text-decoration: underline; }
 
@@ -326,6 +379,19 @@ footer a:hover { text-decoration: underline; }
 
 /* Nav sits above particle canvas */
 nav, header { position: relative; z-index: 10; }
+
+/* Desktop nav tabs — hover is CSS-driven so it always clears cleanly
+   (no inline-style residue), and is suppressed on the active tab so the
+   sliding lime pill is the ONLY highlight. */
+.nav-tab {
+  background: transparent;
+  transition: color 0.2s var(--ease-out), background 0.2s var(--ease-out);
+  min-height: 44px;
+}
+.nav-tab:not(.nav-tab-active):hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.04);
+}
 
 /* Premium stat card used on Timer + Progress */
 .stat-card {
@@ -448,6 +514,12 @@ nav, header { position: relative; z-index: 10; }
   .planner-form-grid, .planner-final-grid { grid-template-columns: 1fr !important; }
 }
 
+/* Bottom tab bar is rendered when innerWidth < 768 — match clearance rules to that breakpoint */
+@media (max-width: 767px) {
+  .app-main { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important; }
+  .app-shell-footer { display: none; }
+}
+
 /* Button hover scale — applies to all variants; specifics above handle color */
 .btn:hover:not(:disabled) { transform: scale(1.02); }
 
@@ -481,6 +553,12 @@ nav, header { position: relative; z-index: 10; }
 .card:nth-child(6), .stat-card:nth-child(6), .card2:nth-child(6) { animation-delay: 325ms; }
 .card:nth-child(n+7), .stat-card:nth-child(n+7), .card2:nth-child(n+7) { animation-delay: 390ms; }
 
+/* Framer-motion owns animation inside modals — suppress cardReveal so the two don't fight */
+.modal-backdrop .card, .modal-backdrop .card2, .modal-backdrop .stat-card,
+.modal .card, .modal .card2, .modal .stat-card {
+  animation: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .card, .stat-card, .card2 { animation: none; }
 }
@@ -507,22 +585,20 @@ nav, header { position: relative; z-index: 10; }
   50%       { transform: translateY(-12px) rotate(-2deg); opacity: 0.065; }
 }
 .l-btn-primary {
-  background: linear-gradient(105deg, #b0ef30, #c2f840 28%, #b5f23a 50%, #a8de28 72%, #c2f840);
-  background-size: 200% auto;
-  animation: btnGradientFlow 4s linear infinite;
+  background: linear-gradient(180deg, #c2f844 0%, #b5f23a 55%, #a6e02c 100%);
   color: #0a0a0b;
-  border: none; border-radius: 10px;
+  border: none; border-radius: var(--radius-md);
   padding: 14px 32px; font-size: 15px; font-weight: 700;
-  cursor: pointer; font-family: 'Outfit', sans-serif;
-  transition: transform 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out);
+  cursor: pointer; font-family: var(--font-body);
+  transition: transform 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out), background 0.18s ease;
   display: inline-flex; align-items: center; gap: 10px;
   white-space: nowrap;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset, 0 2px 8px rgba(181,242,58,0.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 2px 10px rgba(181,242,58,0.14);
 }
 .l-btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset, 0 8px 28px rgba(181,242,58,0.24);
-  animation-duration: 1.4s;
+  background: linear-gradient(180deg, #d2ff58 0%, #c2f844 55%, #aadf32 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 10px 30px rgba(181,242,58,0.26);
 }
 .l-btn-primary:active {
   transform: translateY(0px) scale(0.98);
@@ -703,33 +779,22 @@ nav, header { position: relative; z-index: 10; }
   will-change: transform;
 }
 
-/* Hover lift + lime glow — only on real pointer devices */
+/* Generic cards get a QUIET hover — just a brighter edge + depth.
+   Lime glow is reserved for explicitly interactive (.card-hover) and
+   featured (.card-featured) surfaces, so the accent stays meaningful. */
 @media (hover: hover) {
   .card:hover {
-    transform: translateY(-3px);
-    box-shadow:
-      0 1px 0 rgba(255,255,255,0.08) inset,
-      0 20px 52px rgba(0,0,0,0.44),
-      0 0 0 1px rgba(181,242,58,0.12),
-      0 0 28px rgba(181,242,58,0.06);
-    border-color: rgba(181,242,58,0.18);
+    box-shadow: var(--inset-hi), var(--shadow-lg);
+    border-color: var(--border-strong);
   }
   .card2:hover {
-    transform: translateY(-2px);
-    box-shadow:
-      0 16px 44px rgba(0,0,0,0.38),
-      0 0 0 1px rgba(181,242,58,0.1),
-      0 0 20px rgba(181,242,58,0.04);
-    border-color: rgba(181,242,58,0.14);
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-strong);
   }
   .stat-card:hover {
     transform: translateY(-2px) !important;
-    box-shadow:
-      0 1px 0 rgba(255,255,255,0.06) inset,
-      0 14px 36px rgba(0,0,0,0.38),
-      0 0 0 1px rgba(181,242,58,0.1),
-      0 0 18px rgba(181,242,58,0.05) !important;
-    border-color: rgba(181,242,58,0.16);
+    box-shadow: var(--inset-hi), var(--shadow-md) !important;
+    border-color: var(--border-strong);
   }
 }
 
@@ -777,5 +842,36 @@ nav, header { position: relative; z-index: 10; }
 }
 .animate-spotlight {
   animation: spotlight 2s ease forwards;
+}
+
+/* ── Auth screens atmosphere ─────────────────────────────
+   Login/Signup render outside the app shell, so they don't get
+   AppBackground. This gives them matching depth with zero JS:
+   a single soft top glow + faint grain. */
+.auth-screen {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--bg);
+}
+.auth-screen::before {
+  content: '';
+  position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 95% 55% at 50% -12%, rgba(181,242,58,0.11) 0%, rgba(181,242,58,0.02) 45%, transparent 72%),
+    radial-gradient(ellipse 55% 45% at 50% 112%, rgba(96,211,248,0.045) 0%, transparent 60%);
+}
+.auth-screen::after {
+  content: '';
+  position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='512' height='512' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* Auth wordmark — tighten the lock-up under the logo */
+.auth-wordmark {
+  font-family: var(--font-body);
+  font-size: 26px; font-weight: 800; letter-spacing: 0.34em;
+  color: var(--text); margin-bottom: 8px; padding-left: 0.34em;
 }
 

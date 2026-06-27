@@ -84,20 +84,8 @@ function LegalShell({ children }) {
 function AppRoutes() {
   const { user, profile, loading } = useAuth()
   const location = useLocation()
-
-  if (loading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <span className="spinner" style={{ width: 32, height: 32 }} />
-    </div>
-  )
-
-  const noNavPaths = ['/', '/login', '/signup', '/onboarding', '/reset-password']
-  const noNavPrefixes = ['/privacy', '/terms', '/support']
-  const showNav = user && profile?.onboarding_complete &&
-    !noNavPaths.includes(location.pathname) &&
-    !noNavPrefixes.some(p => location.pathname.startsWith(p))
-
   const navigate = useNavigate()
+
   useEffect(() => {
     const TAB_ROUTES = ['/timer', '/quiz', '/notes', '/goals', '/streak', '/progress', '/rooms', '/settings']
     function handleTabShortcut(e) {
@@ -110,6 +98,18 @@ function AppRoutes() {
     window.addEventListener('keydown', handleTabShortcut)
     return () => window.removeEventListener('keydown', handleTabShortcut)
   }, [navigate])
+
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <span className="spinner" style={{ width: 32, height: 32 }} />
+    </div>
+  )
+
+  const noNavPaths = ['/', '/login', '/signup', '/onboarding', '/reset-password']
+  const noNavPrefixes = ['/privacy', '/terms', '/support']
+  const showNav = user && profile?.onboarding_complete &&
+    !noNavPaths.includes(location.pathname) &&
+    !noNavPrefixes.some(p => location.pathname.startsWith(p))
 
   return (
     <>

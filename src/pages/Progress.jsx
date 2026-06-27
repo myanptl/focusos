@@ -208,54 +208,62 @@ export default function Progress() {
 
   async function loadData() {
     if (!user) return
-    const today  = new Date()
-    const sunday = new Date(today)
-    sunday.setDate(today.getDate() - today.getDay())
-    sunday.setHours(0, 0, 0, 0)
-    const sunStr = buildDateStr(sunday)
+    try {
+      const today  = new Date()
+      const sunday = new Date(today)
+      sunday.setDate(today.getDate() - today.getDay())
+      sunday.setHours(0, 0, 0, 0)
+      const sunStr = buildDateStr(sunday)
 
-    const [logRes, goalRes, sessRes, recentSessRes, quizRes, heatmapRes] = await Promise.all([
-      supabase.from('daily_focus_log').select('*').eq('user_id', user.id).gte('log_date', sunStr),
-      supabase.from('score_goals').select('id').eq('user_id', user.id),
-      supabase.from('focus_sessions').select('duration_minutes, session_date').eq('user_id', user.id).order('session_date', { ascending: false }).limit(50),
-      supabase.from('focus_sessions')
-        .select('id, duration_minutes, session_date, completed_at, completed, notes')
-        .eq('user_id', user.id).eq('completed', true)
-        .order('completed_at', { ascending: false }).limit(10),
-      supabase.from('quiz_results').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(10),
-      supabase.from('focus_sessions')
-        .select('completed_at, duration_minutes').eq('user_id', user.id)
-        .eq('completed', true).not('completed_at', 'is', null),
-    ])
+      const [logRes, goalRes, sessRes, recentSessRes, quizRes, heatmapRes] = await Promise.all([
+        supabase.from('daily_focus_log').select('*').eq('user_id', user.id).gte('log_date', sunStr),
+        supabase.from('score_goals').select('id').eq('user_id', user.id),
+        supabase.from('focus_sessions').select('duration_minutes, session_date').eq('user_id', user.id).order('session_date', { ascending: false }).limit(50),
+        supabase.from('focus_sessions')
+          .select('id, duration_minutes, session_date, completed_at, completed, notes')
+          .eq('user_id', user.id).eq('completed', true)
+          .order('completed_at', { ascending: false }).limit(10),
+        supabase.from('quiz_results')
+          .select('id, subject, score_percentage, weak_topics, quiz_date, mode, questions_correct, questions_total, focus_score, time_taken_seconds, timed, created_at')
+          .eq('user_id', user.id).order('created_at', { ascending: false }).limit(10),
+        supabase.from('focus_sessions')
+          .select('completed_at, duration_minutes').eq('user_id', user.id)
+          .eq('completed', true).not('completed_at', 'is', null)
+          .gte('completed_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())
+          .limit(500),
+      ])
 
-    const logMap = {}
-    ;(logRes.data || []).forEach(d => {
-      const dow = new Date(d.log_date + 'T12:00:00').getDay()
-      logMap[dow] = d.total_minutes
-    })
-    setWeekData(Array.from({ length: 7 }, (_, i) => ({ mins: logMap[i] || 0 })))
+      const logMap = {}
+      ;(logRes.data || []).forEach(d => {
+        const dow = new Date(d.log_date + 'T12:00:00').getDay()
+        logMap[dow] = d.total_minutes
+      })
+      setWeekData(Array.from({ length: 7 }, (_, i) => ({ mins: logMap[i] || 0 })))
 
-    const hourMap = Array(24).fill(0)
-    ;(heatmapRes.data || []).forEach(s => {
-      const h = new Date(s.completed_at).getHours()
-      hourMap[h] += s.duration_minutes || 0
-    })
-    setHourlyMins(hourMap)
+      const hourMap = Array(24).fill(0)
+      ;(heatmapRes.data || []).forEach(s => {
+        const h = new Date(s.completed_at).getHours()
+        hourMap[h] += s.duration_minutes || 0
+      })
+      setHourlyMins(hourMap)
 
-    setGoalsCount(goalRes.data?.length || 0)
-    setSessions(sessRes.data || [])
-    setRecentSessions(recentSessRes.data || [])
+      setGoalsCount(goalRes.data?.length || 0)
+      setSessions(sessRes.data || [])
+      setRecentSessions(recentSessRes.data || [])
 
-    const quizzes = quizRes.data || []
-    setQuizHistory(quizzes)
-    const topicCounts = {}
-    quizzes.forEach(q => {
-      ;(q.weak_topics || []).forEach(t => { topicCounts[t] = (topicCounts[t] || 0) + 1 })
-    })
-    setAllWeakTopics(
-      Object.entries(topicCounts).sort(([, a], [, b]) => b - a)
-        .slice(0, 6).map(([topic, count]) => ({ topic, count }))
-    )
+      const quizzes = quizRes.data || []
+      setQuizHistory(quizzes)
+      const topicCounts = {}
+      quizzes.forEach(q => {
+        ;(q.weak_topics || []).forEach(t => { topicCounts[t] = (topicCounts[t] || 0) + 1 })
+      })
+      setAllWeakTopics(
+        Object.entries(topicCounts).sort(([, a], [, b]) => b - a)
+          .slice(0, 6).map(([topic, count]) => ({ topic, count }))
+      )
+    } catch {
+      // data stays at defaults on network error
+    }
   }
 
   const streak        = profile?.streak_count ?? 0

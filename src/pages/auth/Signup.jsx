@@ -72,7 +72,7 @@ export default function Signup() {
   }
 
   if (success) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+    <div className="auth-screen" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div style={{ textAlign: 'center', maxWidth: 400 }}>
         <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}><Mail size={56} color="var(--accent)" /></div>
         <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 10 }}>Check your email</h2>
@@ -88,23 +88,21 @@ export default function Signup() {
   )
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+    <div className="auth-screen" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div style={{ width: '100%', maxWidth: 400 }}>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <LogoIcon size={64} style={{ marginBottom: 12 }} />
-          <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: '6px', color: '#f0f0f2', marginBottom: 8 }}>
-            FOCUSOS
-          </div>
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <LogoIcon size={56} style={{ marginBottom: 14 }} />
+          <div className="auth-wordmark">FOCUSOS</div>
           <p style={{ color: 'var(--muted)', fontSize: 14 }}>Create your account to get started</p>
         </div>
 
         <div className="card" style={{ padding: 28 }}>
-          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 20 }}>Create account</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 20, letterSpacing: '-0.01em' }}>Create account</h2>
 
           {/* Google OAuth */}
           <button onClick={handleGoogle} style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            gap: 10, padding: '11px 16px', borderRadius: 8, cursor: 'pointer',
+            gap: 10, padding: '13px 16px', borderRadius: 8, cursor: 'pointer',
             background: '#ffffff', color: '#1f1f1f',
             border: '1px solid rgba(255,255,255,0.15)',
             fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 600,
@@ -148,8 +146,8 @@ export default function Signup() {
                   style={{ paddingRight: 44 }}
                 />
                 <button type="button" onClick={() => setShowPass(s => !s)} style={{
-                  position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: 4,
+                  position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: 10,
                   display: 'flex', alignItems: 'center',
                 }}>
                   {showPass ? (

@@ -37,7 +37,7 @@ const SUBJECT_ICONS = { Science: FlaskConical, History: Scroll, English: BookOpe
 const CONF_LABELS = ['', 'Not sure', 'Vague idea', 'Mostly sure', 'Very sure', 'Certain']
 
 export default function Quiz() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const toast = useToast()
   const location = useLocation()
 
@@ -114,7 +114,15 @@ export default function Quiz() {
   const [generationsToday, setGenerationsToday] = useState(null)
   const [modelPref,        setModelPref]        = useState('auto')
 
-  useEffect(() => { if (user) { loadDueReview(); loadGenerationsToday() } }, [user])
+  useEffect(() => { if (user) loadDueReview() }, [user])
+
+  useEffect(() => {
+    if (!profile) return
+    const today = new Date().toISOString().split('T')[0]
+    const isReset = !profile.claude_generations_reset_date || profile.claude_generations_reset_date !== today
+    setGenerationsToday(isReset ? 0 : (profile.claude_generations_today || 0))
+    setModelPref(profile.ai_model_preference || 'auto')
+  }, [profile])
 
   async function loadDueReview() {
     const today = new Date().toISOString().split('T')[0]
@@ -126,18 +134,6 @@ export default function Quiz() {
       .order('next_review_date')
       .limit(5)
     setDueReview(data || [])
-  }
-
-  async function loadGenerationsToday() {
-    const today = new Date().toISOString().split('T')[0]
-    const { data } = await supabase
-      .from('profiles')
-      .select('claude_generations_today, claude_generations_reset_date, ai_model_preference')
-      .eq('user_id', user.id)
-      .maybeSingle()
-    const isReset = !data?.claude_generations_reset_date || data.claude_generations_reset_date !== today
-    setGenerationsToday(isReset ? 0 : (data?.claude_generations_today || 0))
-    setModelPref(data?.ai_model_preference || 'auto')
   }
 
   // Per-question reset + timer
@@ -256,7 +252,6 @@ export default function Quiz() {
         : { notes, subject, subjectType, numQuestions: count, mode: apiMode, difficulty, tone }
       const token = await getAuthToken()
       const edgeFnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-quiz`
-      console.log('[Quiz] Fetching:', edgeFnUrl, '| hasToken:', !!token, '| body:', JSON.stringify(body).slice(0, 200))
       const res = await fetch(edgeFnUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
@@ -265,7 +260,6 @@ export default function Quiz() {
       let data
       try {
         const text = await res.text()
-        console.log('[Quiz] Response status:', res.status, '| text preview:', text.slice(0, 300))
         if (!text.trimStart().startsWith('{') && !text.trimStart().startsWith('[')) {
           console.error('[Quiz] Non-JSON response from edge function:', text)
           throw new Error('Quiz generation failed. Please try again.')
@@ -370,7 +364,6 @@ export default function Quiz() {
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({ mode: 'grade', question: q.question, correctAnswer: q.answer, userAnswer }),
       })
-      console.log('[Quiz] grade response status:', res.status)
       const data = await res.json()
       if (!res.ok) console.error('[Quiz] grade error:', data)
       setSaFeedback(data)
@@ -1080,7 +1073,7 @@ export default function Quiz() {
                 <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                   {timed && (
                     <span style={{
-                      fontFamily: 'var(--mono)', fontSize: 13, fontWeight: 700,
+                      fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700,
                       color: timeLeft < 15 ? 'var(--red)' : 'var(--muted)',
                     }}>{timeLeft}s</span>
                   )}

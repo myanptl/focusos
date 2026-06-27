@@ -53,7 +53,9 @@ export default function Notes() {
   useEffect(() => {
     const loadNotes = async () => {
       const { data } = await supabase
-        .from('notes').select('*').eq('user_id', user.id)
+        .from('notes')
+        .select('id, user_id, title, content, subject, word_count, created_at, updated_at')
+        .eq('user_id', user.id)
         .order('updated_at', { ascending: false })
       setNotes(data || [])
       setListLoading(false)
