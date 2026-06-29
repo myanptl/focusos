@@ -202,9 +202,59 @@ function makeBrownNoise(ctx) {
 }
 
 // ── Ambient Sound Engine ──────────────────────────────────
-const YT_IDS = {
-  baroque:   'WPni755-Krg',
-  classical: 'jgpJVI3tDbY',
+// Baroque/Classical are self-hosted public-domain recordings decoded through
+// the shared (gesture-unlocked) AudioContext — the same path as brown noise.
+// This is what makes them play on iOS: a hidden YouTube iframe can't be
+// unlocked by a gesture and is blocked by mobile autoplay policy.
+//   baroque.mp3   — Bach, Cello Suite No. 1 Prélude (BWV 1007), CC0
+//   classical.mp3 — Satie, Gymnopédie No. 2, Public Domain
+// Both via Wikimedia Commons; CC0/PD require no attribution.
+const SOUND_FILES = {
+  baroque:   '/sounds/baroque.mp3',
+  classical: '/sounds/classical.mp3',
+}
+
+// Decode once, reuse — repeated plays are instant and don't re-download.
+const decodedBufferCache = {}
+async function loadAudioBuffer(ctx, url) {
+  if (decodedBufferCache[url]) return decodedBufferCache[url]
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`audio fetch failed (${res.status}) for ${url}`)
+  const arrayBuf = await res.arrayBuffer()
+  const audioBuf = await ctx.decodeAudioData(arrayBuf)
+  decodedBufferCache[url] = audioBuf
+  return audioBuf
+}
+
+// Looping file playback on the shared unlocked context (volume via GainNode,
+// which iOS honours — unlike HTMLMediaElement.volume).
+function createFileSound(url, volume) {
+  const ctx = getAudioCtx()
+  if (!ctx) return null
+  if (ctx.state === 'suspended') ctx.resume().catch(() => {})
+  const gain = ctx.createGain()
+  gain.gain.value = volume
+  gain.connect(ctx.destination)
+  let source = null
+  let stopped = false
+  loadAudioBuffer(ctx, url)
+    .then((buf) => {
+      if (stopped) return
+      source = ctx.createBufferSource()
+      source.buffer = buf
+      source.loop = true
+      source.connect(gain)
+      source.start()
+    })
+    .catch((err) => { console.error('[FocusOS] ambient audio failed:', err) })
+  return {
+    stop: () => {
+      stopped = true
+      if (source) { try { source.stop() } catch { /* already stopped */ } }
+      gain.disconnect()
+    },
+    setVolume: (v) => { gain.gain.value = v },
+  }
 }
 
 function createAmbientSound(type, volume) {
@@ -226,49 +276,13 @@ function createAmbientSound(type, volume) {
     }
   }
 
-  // Baroque / Classical: YouTube iframe.
-  // NOTE: mobile autoplay policies still throttle audible YouTube playback —
-  // brown noise (Web Audio above) is the reliable mobile source. We give YT its
-  // best shot: playsinline (no iOS fullscreen takeover), the enablejsapi
-  // handshake, and an explicit playVideo issued under the active gesture.
-  const iframe = document.createElement('iframe')
-  iframe.allow = 'autoplay; encrypted-media'
-  iframe.setAttribute('playsinline', '')
-  iframe.style.cssText = 'display:none;position:fixed;top:-9999px;left:-9999px;width:0;height:0;'
-  const vid = YT_IDS[type]
-  const origin = typeof window !== 'undefined' ? window.location.origin : ''
-  iframe.src = `https://www.youtube.com/embed/${vid}?autoplay=1&loop=1&playlist=${vid}&controls=0&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(origin)}`
-  document.body.appendChild(iframe)
-
-  const postCmd = (func, args = []) => {
-    try {
-      iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), '*')
-    } catch(e) {}
+  // Baroque / Classical: self-hosted public-domain MP3, decoded and looped on
+  // the shared unlocked context (works on iOS; volume honoured via GainNode).
+  if (SOUND_FILES[type]) {
+    return createFileSound(SOUND_FILES[type], volume)
   }
 
-  // Complete the enablejsapi handshake, then explicitly start + set volume.
-  // Retried a few times because the player iframe isn't ready immediately.
-  const retries = []
-  const onLoad = () => {
-    try { iframe.contentWindow?.postMessage(JSON.stringify({ event: 'listening' }), '*') } catch(e) {}
-    ;[0, 400, 1200, 2500].forEach((delay) => {
-      retries.push(setTimeout(() => {
-        postCmd('playVideo')
-        postCmd('setVolume', [Math.round(volume * 100)])
-      }, delay))
-    })
-  }
-  iframe.addEventListener('load', onLoad)
-
-  return {
-    setVolume: (v) => postCmd('setVolume', [Math.round(v * 100)]),
-    stop: () => {
-      retries.forEach(clearTimeout)
-      iframe.removeEventListener('load', onLoad)
-      postCmd('pauseVideo')
-      setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe) }, 150)
-    },
-  }
+  return null
 }
 
 // ── Circular Timer SVG ───────────────────────────────────
