@@ -115,6 +115,55 @@ function todayKey() {
 function pad(n) { return String(n).padStart(2, '0') }
 function fmt(secs) { return `${pad(Math.floor(secs / 60))}:${pad(secs % 60)}` }
 
+// ── Shared AudioContext + mobile unlock ───────────────────
+// iOS/Android silence any AudioContext that is created or resumed outside a
+// user gesture. We keep ONE shared context for the app's lifetime and unlock
+// it (resume + play a 1-sample silent buffer) the first time the user taps.
+// Once unlocked, the same context can be (re)used from effects without a
+// gesture, which is why brown noise reuses this instead of `new AudioContext`.
+let sharedCtx = null
+let audioUnlocked = false
+
+function getAudioCtx() {
+  if (!sharedCtx) {
+    const Ctor = window.AudioContext || window.webkitAudioContext
+    if (!Ctor) return null
+    sharedCtx = new Ctor()
+  }
+  return sharedCtx
+}
+
+// Call synchronously from inside a user gesture (e.g. the START tap).
+function unlockAudio() {
+  const ctx = getAudioCtx()
+  if (!ctx) return
+  if (ctx.state === 'suspended') ctx.resume().catch(() => {})
+  if (!audioUnlocked) {
+    try {
+      const buffer = ctx.createBuffer(1, 1, 22050)
+      const source = ctx.createBufferSource()
+      source.buffer = buffer
+      source.connect(ctx.destination)
+      source.start(0)
+      audioUnlocked = true
+    } catch { /* unlock best-effort */ }
+  }
+}
+
+// Belt-and-suspenders: unlock on the very first interaction anywhere, so the
+// context is ready even if the user changes the sound type before pressing start.
+if (typeof window !== 'undefined') {
+  const firstGesture = () => {
+    unlockAudio()
+    window.removeEventListener('pointerdown', firstGesture)
+    window.removeEventListener('touchend', firstGesture)
+    window.removeEventListener('keydown', firstGesture)
+  }
+  window.addEventListener('pointerdown', firstGesture, { once: false })
+  window.addEventListener('touchend', firstGesture, { once: false })
+  window.addEventListener('keydown', firstGesture, { once: false })
+}
+
 // ── Web Audio: Brown Noise ────────────────────────────────
 function makeBrownNoise(ctx) {
   const masterGain = ctx.createGain()
@@ -161,24 +210,34 @@ const YT_IDS = {
 function createAmbientSound(type, volume) {
   if (type === 'silent') return null
 
-  // Brown noise: instant Web Audio synthesis
+  // Brown noise: instant Web Audio synthesis on the shared (unlocked) context.
   if (type === 'brown') {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)()
-    ctx.resume()
+    const ctx = getAudioCtx()
+    if (!ctx) return null
+    // Resume in case we got here without a prior gesture (desktop autoplay-ok).
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {})
     const sound = makeBrownNoise(ctx)
     sound.setVolume(volume)
+    // Do NOT close the shared context on stop — just tear down this graph,
+    // so the next play can reuse the already-unlocked context.
     return {
-      stop: () => { sound.stop(); ctx.close() },
+      stop: () => { sound.stop() },
       setVolume: (v) => sound.setVolume(v),
     }
   }
 
-  // Baroque / Classical: YouTube iframe
+  // Baroque / Classical: YouTube iframe.
+  // NOTE: mobile autoplay policies still throttle audible YouTube playback —
+  // brown noise (Web Audio above) is the reliable mobile source. We give YT its
+  // best shot: playsinline (no iOS fullscreen takeover), the enablejsapi
+  // handshake, and an explicit playVideo issued under the active gesture.
   const iframe = document.createElement('iframe')
-  iframe.allow = 'autoplay'
+  iframe.allow = 'autoplay; encrypted-media'
+  iframe.setAttribute('playsinline', '')
   iframe.style.cssText = 'display:none;position:fixed;top:-9999px;left:-9999px;width:0;height:0;'
   const vid = YT_IDS[type]
-  iframe.src = `https://www.youtube.com/embed/${vid}?autoplay=1&loop=1&playlist=${vid}&controls=0&enablejsapi=1`
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  iframe.src = `https://www.youtube.com/embed/${vid}?autoplay=1&loop=1&playlist=${vid}&controls=0&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(origin)}`
   document.body.appendChild(iframe)
 
   const postCmd = (func, args = []) => {
@@ -187,12 +246,25 @@ function createAmbientSound(type, volume) {
     } catch(e) {}
   }
 
-  const initTimer = setTimeout(() => postCmd('setVolume', [Math.round(volume * 100)]), 2000)
+  // Complete the enablejsapi handshake, then explicitly start + set volume.
+  // Retried a few times because the player iframe isn't ready immediately.
+  const retries = []
+  const onLoad = () => {
+    try { iframe.contentWindow?.postMessage(JSON.stringify({ event: 'listening' }), '*') } catch(e) {}
+    ;[0, 400, 1200, 2500].forEach((delay) => {
+      retries.push(setTimeout(() => {
+        postCmd('playVideo')
+        postCmd('setVolume', [Math.round(volume * 100)])
+      }, delay))
+    })
+  }
+  iframe.addEventListener('load', onLoad)
 
   return {
     setVolume: (v) => postCmd('setVolume', [Math.round(v * 100)]),
     stop: () => {
-      clearTimeout(initTimer)
+      retries.forEach(clearTimeout)
+      iframe.removeEventListener('load', onLoad)
       postCmd('pauseVideo')
       setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe) }, 150)
     },
@@ -751,6 +823,9 @@ export default function Timer() {
 
   // ── Timer controls ───────────────────────────────────
   function toggleTimer() {
+    // Unlock audio synchronously inside the tap gesture — required for iOS
+    // Safari to allow brown-noise / chime playback that starts from effects.
+    unlockAudio()
     if (timeLeft === 0) ctx.reset('focus')
     else running ? ctx.pause() : ctx.start()
   }

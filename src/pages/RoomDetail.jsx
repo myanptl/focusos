@@ -460,7 +460,7 @@ export default function RoomDetail() {
   if (loading) {
     return (
       <div className="page-fade room-detail-grid" style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 20, alignItems: 'start' }}>
-        <div className="card" style={{ padding: 0, overflow: 'hidden', height: 'calc(100vh - 200px)', display: 'flex', flexDirection: 'column' }}>
+        <div className="card" style={{ padding: 0, overflow: 'hidden', height: 'calc(100dvh - 200px)', display: 'flex', flexDirection: 'column' }}>
           <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <span className="spinner" style={{ width: 14, height: 14, flexShrink: 0 }} />
@@ -534,7 +534,7 @@ export default function RoomDetail() {
     <div className="page-fade room-detail-grid" style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 20, alignItems: 'start' }}>
 
       {/* ── LEFT PANEL ── */}
-      <div className="card room-left-panel" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 200px)', padding: 0, overflow: 'hidden' }}>
+      <div className="card room-left-panel" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 200px)', padding: 0, overflow: 'hidden' }}>
 
         {/* Top section */}
         <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid var(--border)' }}>

@@ -367,6 +367,14 @@ footer a:hover { text-decoration: underline; }
   /* Tap targets: buttons need ≥44px min-height (Apple HIG / WCAG 2.5.5) */
   .btn, .btn-accent { min-height: 44px; }
 
+  /* iOS zooms the page when a focused input renders below 16px — force 16px on
+     mobile form controls to suppress the auto-zoom (desktop keeps its compact
+     sizes above this breakpoint). !important is required to beat the inline
+     font-size styles on the Timer task input, Quiz subject, Notes search, and
+     Session Notes textarea. Excludes range/checkbox where size is irrelevant. */
+  input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+  textarea, select { font-size: 16px !important; }
+
   /* Modal: near full-width on mobile */
   .modal { width: 92vw !important; max-width: 92vw !important; padding: 20px !important; }
 

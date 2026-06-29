@@ -200,7 +200,7 @@ export default function Notes() {
   return (
     <div className="page-fade" style={{
       display: 'flex', margin: '-28px -24px',
-      height: 'calc(100vh - 60px)', overflow: 'hidden', position: 'relative',
+      height: 'calc(100dvh - 60px)', overflow: 'hidden', position: 'relative',
     }}>
 
       {/* ── LEFT SIDEBAR ─────────────────────────────────────── */}

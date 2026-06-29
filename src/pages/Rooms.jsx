@@ -372,6 +372,8 @@ export default function Rooms() {
               padding: '32px',
               width: '440px',
               maxWidth: '92vw',
+              maxHeight: 'calc(100dvh - 120px)',
+              overflowY: 'auto',
               boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
               position: 'relative',
             }}
@@ -491,6 +493,8 @@ export default function Rooms() {
               padding: '32px',
               width: '440px',
               maxWidth: '92vw',
+              maxHeight: 'calc(100dvh - 120px)',
+              overflowY: 'auto',
               boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
               position: 'relative',
             }}

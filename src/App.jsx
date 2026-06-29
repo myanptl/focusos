@@ -53,7 +53,7 @@ const pageVariants = {
 
 function AppShell({ children }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 60px)', position: 'relative' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100dvh - 60px)', position: 'relative' }}>
       <main className="app-main" style={{ flex: 1, padding: '28px 24px', maxWidth: 1100, width: '100%', margin: '0 auto', boxSizing: 'border-box', position: 'relative', zIndex: 1 }}>
         <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit">
           {children}
