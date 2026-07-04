@@ -12,7 +12,7 @@ import LogoIcon from './components/LogoIcon'
 import Footer from './components/Footer'
 import AppBackground from './components/AppBackground'
 
-const Landing       = React.lazy(() => import('./pages/LandingV2'))
+const Landing       = React.lazy(() => import('./pages/LandingV3'))
 const Login         = React.lazy(() => import('./pages/auth/Login'))
 const Signup        = React.lazy(() => import('./pages/auth/Signup'))
 const ResetPassword = React.lazy(() => import('./pages/ResetPassword'))
