@@ -1016,40 +1016,6 @@ export default function Timer() {
         {/* ── Left column ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-          {/* Level card */}
-          <div className="card card-top">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={level.name}
-                  initial={{ opacity: 0, y: -6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 6 }}
-                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                  style={{ fontSize: 22, fontWeight: 800, color: level.color, letterSpacing: '0.02em' }}
-                >
-                  {pomodoroMode ? 'CLASSIC POMODORO' : level.name}
-                </motion.div>
-              </AnimatePresence>
-              {!pomodoroMode && nextLvl && (
-                <span style={{ fontSize: 11, color: 'var(--muted)' }}>
-                  {minsToNext} min to {nextLvl.name}
-                </span>
-              )}
-              {pomodoroMode && (
-                <span style={{ fontSize: 11, color: 'var(--muted)' }}>25 / 5 min fixed</span>
-              )}
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 10 }}>
-              {pomodoroMode ? 'Classic 25-minute Pomodoro intervals.' : level.desc}
-            </div>
-            {!pomodoroMode && (
-              <div className="progress-bar">
-                <div className="progress-bar-fill" style={{ width: `${pctToNext}%`, background: level.color }} />
-              </div>
-            )}
-          </div>
-
           {/* Timer card */}
           <div className="card card-top" style={{ textAlign: 'center' }}>
 
@@ -1355,6 +1321,41 @@ export default function Timer() {
 
         {/* ── Right column ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+          {/* Level card — lives right so the timer owns the left and the page fits one screen */}
+          <div className="card card-top">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={level.name}
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 6 }}
+                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ fontSize: 22, fontWeight: 800, color: level.color, letterSpacing: '0.02em' }}
+                >
+                  {pomodoroMode ? 'CLASSIC POMODORO' : level.name}
+                </motion.div>
+              </AnimatePresence>
+              {!pomodoroMode && nextLvl && (
+                <span style={{ fontSize: 11, color: 'var(--muted)' }}>
+                  {minsToNext} min to {nextLvl.name}
+                </span>
+              )}
+              {pomodoroMode && (
+                <span style={{ fontSize: 11, color: 'var(--muted)' }}>25 / 5 min fixed</span>
+              )}
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 10 }}>
+              {pomodoroMode ? 'Classic 25-minute Pomodoro intervals.' : level.desc}
+            </div>
+            {!pomodoroMode && (
+              <div className="progress-bar">
+                <div className="progress-bar-fill" style={{ width: `${pctToNext}%`, background: level.color }} />
+              </div>
+            )}
+          </div>
+
           {/* Task card */}
           <div className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
