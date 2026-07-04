@@ -151,7 +151,7 @@ export default function SessionStory() {
           {/* right: swapping visuals */}
           <div style={{ flex: '0 1 380px', position: 'relative', height: 'clamp(280px, 38vw, 380px)', minWidth: 290 }}>
             {/* vis 0 — timer ring */}
-            <div className="ss-vis-0" style={visBox}>
+            <div className="ss-vis-0" style={{ ...visBox, position: reduced ? 'static' : 'absolute' }}>
               <svg width="280" height="280" viewBox="0 0 280 280" role="img" aria-label="Focus timer at 25 minutes">
                 <circle cx="140" cy="140" r={RING_R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="7" />
                 <circle className="ss-ring-fg" cx="140" cy="140" r={RING_R} fill="none" stroke="var(--accent)"

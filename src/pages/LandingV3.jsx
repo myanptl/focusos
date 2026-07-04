@@ -165,7 +165,8 @@ export default function LandingV3() {
               <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                 In<span style={{ color: 'var(--accent)' }}>.</span>
                 <span className="lv3-hero-arrow" style={{ display: 'inline-flex', marginLeft: 'clamp(20px,3.5vw,56px)' }} aria-hidden>
-                  <LogoIcon size={Math.max(64, Math.min(210, Math.round(window.innerWidth * 0.145)))} />
+                  {/* size via CSS clamp in landing-v3.css — reactive to resize, unlike a JS read */}
+                  <LogoIcon size={120} />
                 </span>
               </span>
             </span>

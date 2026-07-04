@@ -69,6 +69,9 @@
 }
 .lv3-btn-ghost:hover { color: #f0f0f2; box-shadow: none; border-color: rgba(255,255,255,0.3); }
 
+/* hero arrow scales with the fluid headline (CSS wins over the svg size attrs) */
+.lv3-hero-arrow svg { width: clamp(64px, 14.5vw, 210px); height: clamp(64px, 14.5vw, 210px); }
+
 /* respect reduced motion: freeze marquee, hide scroll HUD (page reads statically) */
 @media (prefers-reduced-motion: reduce) {
   .lv3-marquee-track { animation: none; }
