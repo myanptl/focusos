@@ -1355,12 +1355,6 @@ export default function Timer() {
 
         {/* ── Right column ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div className="research-callout">
-            Generic apps assume 25 minutes. <strong>FocusOS starts at YOUR span and grows with you.</strong>{' '}
-            Brief mental breaks restore attention in sustained tasks.{' '}
-            [<em>Ariga &amp; Lleras, Cognition, 2011</em>]
-          </div>
-
           {/* Task card */}
           <div className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
@@ -1415,9 +1409,16 @@ export default function Timer() {
             )}
           </div>
 
-          <div className="card">
-            <div className="label" style={{ marginBottom: 12 }}>Attention Levels</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {/* Attention levels — collapsed by default to keep the page minimal */}
+          <details className="card v3-details">
+            <summary className="label" style={{
+              cursor: 'pointer', display: 'flex', alignItems: 'center',
+              justifyContent: 'space-between', listStyle: 'none',
+            }}>
+              Attention Levels
+              <span className="v3-details-chevron" aria-hidden style={{ fontSize: 13, color: 'var(--muted)' }}>+</span>
+            </summary>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
               {LEVELS.map(l => (
                 <div key={l.name} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                   <div style={{
@@ -1434,7 +1435,7 @@ export default function Timer() {
                 </div>
               ))}
             </div>
-          </div>
+          </details>
 
           {/* Keyboard shortcut hint */}
           <button onClick={() => setShortcutsOpen(true)} style={{

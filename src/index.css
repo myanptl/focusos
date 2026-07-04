@@ -449,6 +449,11 @@ nav, header { position: relative; z-index: 10; }
   .page-title > .pt-inner { animation: none; }
 }
 
+/* collapsible card (native <details> — no JS, no logic risk) */
+.v3-details summary::-webkit-details-marker { display: none; }
+.v3-details .v3-details-chevron { display: inline-block; transition: transform 0.18s var(--ease-out); }
+.v3-details[open] .v3-details-chevron { transform: rotate(45deg); }
+
 /* Research callout z-index fix */
 .research-callout { position: relative; z-index: 1; }
 
