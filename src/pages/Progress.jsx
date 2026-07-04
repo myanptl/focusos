@@ -318,7 +318,8 @@ export default function Progress() {
 
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, flexWrap: 'wrap', gap: 12 }}>
-        <h1 className="page-title">Progress</h1>
+        <span className="v3-kicker">Receipts · Your numbers</span>
+        <h1 className="page-title"><span className="pt-inner">Progress<span className="v3-dot">.</span></span></h1>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button className="btn btn-ghost btn-sm" onClick={() => navigate('/planner')}>
             <Calendar size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />Study Planner

@@ -968,10 +968,14 @@ export default function Timer() {
 
       {/* Greeting + quick stats */}
       <div style={{ marginBottom: 16 }}>
+        <span className="v3-kicker">Session ready · Lock in</span>
         <h1 className="page-title" style={{ marginBottom: 14 }}>
-          {getGreeting()},{' '}
-          <span className="page-title-accent">
-            {(profile?.name || profile?.username || 'there').split(' ')[0]}
+          <span className="pt-inner">
+            {getGreeting()},{' '}
+            <span className="page-title-accent">
+              {(profile?.name || profile?.username || 'there').split(' ')[0]}
+            </span>
+            <span className="v3-dot">.</span>
           </span>
         </h1>
         <div style={{ display: 'flex', gap: 10, marginTop: 4, flexWrap: 'wrap' }}>

@@ -174,7 +174,8 @@ export default function Settings() {
 
   return (
     <div className="page-fade" style={{ maxWidth: 720, margin: '0 auto', paddingTop: '40px', width: '100%' }}>
-      <h1 className="page-title" style={{ marginBottom: 24 }}>Settings</h1>
+      <span className="v3-kicker">Your setup</span>
+      <h1 className="page-title" style={{ marginBottom: 24 }}><span className="pt-inner">Settings<span className="v3-dot">.</span></span></h1>
 
       <div className="card card-top" style={{ marginBottom: 16 }}>
         <Section title="Account">

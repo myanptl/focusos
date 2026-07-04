@@ -299,7 +299,8 @@ export default function Rooms() {
     <div className="page-fade" style={{ background: 'transparent' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 className="page-title" style={{ marginBottom: 6 }}>Study Rooms</h1>
+          <span className="v3-kicker">Focus together · Live</span>
+          <h1 className="page-title" style={{ marginBottom: 6 }}><span className="pt-inner">Study Rooms<span className="v3-dot">.</span></span></h1>
           <p style={{ fontSize: 14, color: 'var(--muted)' }}>
             Focus alongside others. Silent co-working, real accountability.
           </p>

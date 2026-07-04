@@ -354,7 +354,8 @@ input[type="range"]::-moz-range-thumb {
 .text-cyan    { color: var(--cyan); }
 .text-purple  { color: var(--purple); }
 
-.label { font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+/* V3: labels speak in mono — same voice as the landing's phase kickers */
+.label { font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
 
 footer a:hover { text-decoration: underline; }
 
@@ -415,16 +416,38 @@ nav, header { position: relative; z-index: 10; }
   z-index: 1;
 }
 
-/* Heading style matching landing page */
+/* Heading style matching landing page (V3: fluid scale + mask reveal) */
 .page-title {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 36px;
+  font-size: clamp(36px, 4.6vw, 46px);
   font-weight: 400;
   letter-spacing: 0.04em;
   color: var(--text);
-  line-height: 1.05;
+  line-height: 0.98;
+  overflow: hidden;
 }
+.page-title > .pt-inner { display: inline-block; animation: v3-title-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .page-title-accent { color: var(--accent); }
+
+/* ── V3 language (shared with landing) ─────────────── */
+.v3-kicker {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.v3-dot { color: var(--accent); } /* the lime block period on Bebas headings */
+
+@keyframes v3-title-in {
+  from { transform: translateY(105%); }
+  to   { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-title > .pt-inner { animation: none; }
+}
 
 /* Research callout z-index fix */
 .research-callout { position: relative; z-index: 1; }

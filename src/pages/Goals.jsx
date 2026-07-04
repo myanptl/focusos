@@ -99,7 +99,8 @@ export default function Goals() {
     <>
       <div className="page-fade" style={{ background: 'transparent' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 className="page-title">Score Goals</h1>
+        <span className="v3-kicker">Plan backwards · From test day</span>
+        <h1 className="page-title"><span className="pt-inner">Score Goals<span className="v3-dot">.</span></span></h1>
         <button className="btn btn-accent" onClick={openModal}>
           <Plus size={14} />Add Goal
         </button>
