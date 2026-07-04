@@ -423,10 +423,11 @@ nav, header { position: relative; z-index: 10; }
   font-weight: 400;
   letter-spacing: 0.04em;
   color: var(--text);
-  line-height: 1.05; /* keep >=1: overflow:hidden below must never clip glyphs (review finding) */
-  overflow: hidden;
+  line-height: 1.05;
+  /* no overflow:hidden — app titles fade up instead of mask-reveal, so
+     glyphs can never be clipped regardless of user names/fonts (review finding) */
 }
-.page-title > .pt-inner { display: inline-block; animation: v3-title-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.page-title > .pt-inner { display: inline-block; animation: v3-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .page-title-accent { color: var(--accent); }
 
 /* ── V3 language (shared with landing) ─────────────── */
@@ -441,9 +442,9 @@ nav, header { position: relative; z-index: 10; }
 }
 .v3-dot { color: var(--accent); } /* the lime block period on Bebas headings */
 
-@keyframes v3-title-in {
-  from { transform: translateY(105%); }
-  to   { transform: translateY(0); }
+@keyframes v3-fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .page-title > .pt-inner { animation: none; }
