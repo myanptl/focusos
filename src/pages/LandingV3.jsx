@@ -160,10 +160,10 @@ export default function LandingV3() {
             ...bebas, fontSize: 'clamp(88px, 19vw, 300px)', lineHeight: 0.84,
             letterSpacing: '1px', margin: 0, textTransform: 'uppercase',
           }}>
-            <span className="lv3-line-mask lv3-hero-line"><span>Lock</span></span>
+            <span className="lv3-line-mask lv3-hero-line"><span>Deep</span></span>
             <span className="lv3-line-mask lv3-hero-line">
               <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                In<span style={{ color: 'var(--accent)' }}>.</span>
+                Work<span style={{ color: 'var(--accent)' }}>.</span>
                 <span className="lv3-hero-arrow" style={{ display: 'inline-flex', marginLeft: 'clamp(20px,3.5vw,56px)' }} aria-hidden>
                   {/* size via CSS clamp in landing-v3.css — reactive to resize, unlike a JS read */}
                   <LogoIcon size={120} />

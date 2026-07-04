@@ -1105,96 +1105,6 @@ export default function Timer() {
               </div>
             </div>
 
-            {/* Duration sliders + Pomodoro toggle */}
-            <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 14, textAlign: 'left' }}>
-              {/* Pomodoro toggle */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '8px 12px', borderRadius: 8, background: 'var(--card2)', border: '1px solid var(--border)' }}>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 600 }}>
-                    {pomodoroMode ? <><TimerIcon size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Classic Pomodoro</> : <><Zap size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Adaptive Mode</>}
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 1 }}>
-                    {pomodoroMode ? '25 min focus / 5 min break' : 'Grows with your attention span'}
-                  </div>
-                </div>
-                <label className="toggle" style={{ flexShrink: 0 }}>
-                  <input type="checkbox" checked={pomodoroMode}
-                    onChange={e => { if (!running) ctx.setPomodoroMode(e.target.checked) }} />
-                  <span className="toggle-slider" />
-                </label>
-              </div>
-
-              {/* Sliders (disabled in Pomodoro mode) */}
-              <div style={{ opacity: pomodoroMode ? 0.4 : 1, pointerEvents: pomodoroMode ? 'none' : 'auto' }}>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <label className="label">Focus</label>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent)' }}>{focusMins} min</span>
-                  </div>
-                  <input type="range" min={5} max={90} step={1} value={focusMins}
-                    onChange={e => updateFocusMins(Number(e.target.value))}
-                    disabled={running || pomodoroMode}
-                    style={{
-                      width: '100%', appearance: 'none', WebkitAppearance: 'none', outline: 'none',
-                      cursor: (running || pomodoroMode) ? 'not-allowed' : 'pointer',
-                      background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${focusPct}%, #222226 ${focusPct}%, #222226 100%)`,
-                    }} />
-                </div>
-                <div style={{ marginTop: 14 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <label className="label">Break</label>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--cyan)' }}>{breakMins} min</span>
-                  </div>
-                  <input type="range" min={1} max={30} step={1} value={breakMins}
-                    onChange={e => updateBreakMins(Number(e.target.value))}
-                    disabled={running || pomodoroMode}
-                    style={{
-                      width: '100%', appearance: 'none', WebkitAppearance: 'none', outline: 'none',
-                      cursor: (running || pomodoroMode) ? 'not-allowed' : 'pointer',
-                      background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${breakPct}%, #222226 ${breakPct}%, #222226 100%)`,
-                    }} />
-                </div>
-              </div>
-            </div>
-
-            {/* Ambient sound controls */}
-            <div style={{ marginTop: 16, textAlign: 'left' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <div className="label">Ambient Sound</div>
-                {soundType !== 'silent' && (
-                  <input type="range" min={0} max={1} step={0.05} value={volume}
-                    onChange={e => setVolume(parseFloat(e.target.value))}
-                    style={{
-                      width: 80, appearance: 'none', WebkitAppearance: 'none', outline: 'none',
-                      cursor: 'pointer',
-                      background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${volume * 100}%, #222226 ${volume * 100}%, #222226 100%)`,
-                    }} />
-                )}
-              </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {SOUND_OPTIONS.map(s => (
-                  <button key={s.id} onClick={() => setSoundType(s.id)} style={{
-                    flex: 1, padding: '7px 4px', borderRadius: 8, cursor: 'pointer',
-                    border: `1px solid ${soundType === s.id ? 'var(--accent)' : 'var(--border)'}`,
-                    background: soundType === s.id ? 'rgba(181,242,58,0.08)' : 'var(--card2)',
-                    color: soundType === s.id ? 'var(--accent)' : 'var(--muted)',
-                    fontSize: 10, fontWeight: 600, fontFamily: "'Outfit', sans-serif",
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                    transition: 'all 0.15s',
-                  }}>
-                    <s.Icon size={16} />
-                    <span>{s.label}</span>
-                  </button>
-                ))}
-              </div>
-              {soundType !== 'silent' && !running && (
-                <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>
-                  Plays when session starts
-                </div>
-              )}
-            </div>
-
             {/* Recommendation banner */}
             {recommendation && (
               <div style={{
@@ -1354,6 +1264,99 @@ export default function Timer() {
                 <div className="progress-bar-fill" style={{ width: `${pctToNext}%`, background: level.color }} />
               </div>
             )}
+          </div>
+
+          {/* Session setup — moved from the timer card so both columns stay even */}
+          <div className="card">
+            {/* Duration sliders + Pomodoro toggle */}
+            <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 14, textAlign: 'left' }}>
+              {/* Pomodoro toggle */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '8px 12px', borderRadius: 8, background: 'var(--card2)', border: '1px solid var(--border)' }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600 }}>
+                    {pomodoroMode ? <><TimerIcon size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Classic Pomodoro</> : <><Zap size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Adaptive Mode</>}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 1 }}>
+                    {pomodoroMode ? '25 min focus / 5 min break' : 'Grows with your attention span'}
+                  </div>
+                </div>
+                <label className="toggle" style={{ flexShrink: 0 }}>
+                  <input type="checkbox" checked={pomodoroMode}
+                    onChange={e => { if (!running) ctx.setPomodoroMode(e.target.checked) }} />
+                  <span className="toggle-slider" />
+                </label>
+              </div>
+
+              {/* Sliders (disabled in Pomodoro mode) */}
+              <div style={{ opacity: pomodoroMode ? 0.4 : 1, pointerEvents: pomodoroMode ? 'none' : 'auto' }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <label className="label">Focus</label>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent)' }}>{focusMins} min</span>
+                  </div>
+                  <input type="range" min={5} max={90} step={1} value={focusMins}
+                    onChange={e => updateFocusMins(Number(e.target.value))}
+                    disabled={running || pomodoroMode}
+                    style={{
+                      width: '100%', appearance: 'none', WebkitAppearance: 'none', outline: 'none',
+                      cursor: (running || pomodoroMode) ? 'not-allowed' : 'pointer',
+                      background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${focusPct}%, #222226 ${focusPct}%, #222226 100%)`,
+                    }} />
+                </div>
+                <div style={{ marginTop: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <label className="label">Break</label>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--cyan)' }}>{breakMins} min</span>
+                  </div>
+                  <input type="range" min={1} max={30} step={1} value={breakMins}
+                    onChange={e => updateBreakMins(Number(e.target.value))}
+                    disabled={running || pomodoroMode}
+                    style={{
+                      width: '100%', appearance: 'none', WebkitAppearance: 'none', outline: 'none',
+                      cursor: (running || pomodoroMode) ? 'not-allowed' : 'pointer',
+                      background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${breakPct}%, #222226 ${breakPct}%, #222226 100%)`,
+                    }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Ambient sound controls */}
+            <div style={{ marginTop: 16, textAlign: 'left' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <div className="label">Ambient Sound</div>
+                {soundType !== 'silent' && (
+                  <input type="range" min={0} max={1} step={0.05} value={volume}
+                    onChange={e => setVolume(parseFloat(e.target.value))}
+                    style={{
+                      width: 80, appearance: 'none', WebkitAppearance: 'none', outline: 'none',
+                      cursor: 'pointer',
+                      background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${volume * 100}%, #222226 ${volume * 100}%, #222226 100%)`,
+                    }} />
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {SOUND_OPTIONS.map(s => (
+                  <button key={s.id} onClick={() => setSoundType(s.id)} style={{
+                    flex: 1, padding: '7px 4px', borderRadius: 8, cursor: 'pointer',
+                    border: `1px solid ${soundType === s.id ? 'var(--accent)' : 'var(--border)'}`,
+                    background: soundType === s.id ? 'rgba(181,242,58,0.08)' : 'var(--card2)',
+                    color: soundType === s.id ? 'var(--accent)' : 'var(--muted)',
+                    fontSize: 10, fontWeight: 600, fontFamily: "'Outfit', sans-serif",
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                    transition: 'all 0.15s',
+                  }}>
+                    <s.Icon size={16} />
+                    <span>{s.label}</span>
+                  </button>
+                ))}
+              </div>
+              {soundType !== 'silent' && !running && (
+                <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>
+                  Plays when session starts
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Task card */}
