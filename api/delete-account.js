@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { verifyAuth, setSecurityHeaders } from './_auth.js'
+import { verifyAuth, setSecurityHeaders, checkIPRateLimit } from './_auth.js'
 
 const TABLES = [
   'focus_sessions', 'daily_focus_log', 'quiz_results',
@@ -12,6 +12,9 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
+
+  const allowed = await checkIPRateLimit(req, res)
+  if (!allowed) return
 
   const auth = await verifyAuth(req, res)
   if (!auth) return
