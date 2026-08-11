@@ -66,10 +66,16 @@ export default function LandingV3() {
     intro
       .from('.lv3-nav', { y: -18, autoAlpha: 0, duration: 0.6 }, 0.05)
       .from('.lv3-hero-line > span', { yPercent: 105, duration: 0.9, stagger: 0.12 }, 0.15)
-      .from('.lv3-hero-eyebrow', { autoAlpha: 0, y: 12, duration: 0.5 }, 0.5)
-      .from('.lv3-hero-sub, .lv3-hero-ctas', { autoAlpha: 0, y: 18, duration: 0.6, stagger: 0.1 }, 0.7)
+      .from('.lv3-hero-ctas', { autoAlpha: 0, y: 18, duration: 0.6 }, 0.6)
       .from('.lv3-hero-arrow', { rotate: -120, autoAlpha: 0, duration: 0.8, ease: 'back.out(1.6)' }, 0.55)
-      .from('.lv3-marquee', { autoAlpha: 0, duration: 0.6 }, 0.95)
+      .from('.lv3-marquee', { autoAlpha: 0, duration: 0.6 }, 0.85)
+
+    // HUD belongs to the scroll, not the hero — it would otherwise sit on the marquee
+    gsap.set('.lv3-hud', { autoAlpha: 0 })
+    gsap.to('.lv3-hud', {
+      autoAlpha: 1, duration: 0.4, ease: 'power2.out',
+      scrollTrigger: { trigger: '.lv3-hero', start: 'bottom 80%', toggleActions: 'play none none reverse' },
+    })
 
     // hero headline drifts up slightly as you leave it (kinetic, subtle)
     gsap.to('.lv3-hero-title', {
@@ -119,12 +125,17 @@ export default function LandingV3() {
         }} />
 
         {/* nav — kept pill style, it's brand */}
-        <nav className="lv3-nav" style={{ position: 'relative', zIndex: 10, padding: 'clamp(16px,2.5vw,24px) clamp(16px,3vw,40px) 0' }}>
+        {/* nav shares the hero's column so the pill edge lines up with the headline */}
+        <nav className="lv3-nav" style={{
+          position: 'relative', zIndex: 10,
+          padding: 'clamp(16px,2.5vw,24px) clamp(20px,4vw,56px) 0',
+          maxWidth: 1150, margin: '0 auto', width: '100%', boxSizing: 'border-box',
+        }}>
           <div style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             background: 'rgba(10,10,11,0.72)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
             border: '1px solid rgba(255,255,255,0.09)', borderRadius: 50,
-            padding: '0 6px 0 20px', height: 52, maxWidth: 1100, margin: '0 auto',
+            padding: '0 6px 0 20px', height: 52,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <LogoIcon size={22} />
@@ -150,12 +161,6 @@ export default function LandingV3() {
           padding: '0 clamp(20px,4vw,56px)', maxWidth: 1150, margin: '0 auto', width: '100%',
           position: 'relative', zIndex: 2,
         }}>
-          <span className="lv3-hero-eyebrow" style={{
-            ...mono, fontSize: 11, letterSpacing: '4px', color: 'var(--accent)', marginBottom: 'clamp(14px,2vw,22px)',
-          }}>
-            THIS PAGE IS ONE FOCUS SESSION — SCROLL TO RUN IT
-          </span>
-
           <h1 className="lv3-hero-title" style={{
             ...bebas, fontSize: 'clamp(88px, 19vw, 300px)', lineHeight: 0.84,
             letterSpacing: '1px', margin: 0, textTransform: 'uppercase',
@@ -172,21 +177,16 @@ export default function LandingV3() {
             </span>
           </h1>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', gap: 'clamp(20px,4vw,64px)', marginTop: 'clamp(24px,3.5vw,44px)' }}>
-            <p className="lv3-hero-sub" style={{
-              fontSize: 'clamp(15px,1.5vw,18px)', lineHeight: 1.65, color: 'rgba(240,240,242,0.6)', maxWidth: 460, margin: 0,
-            }}>
-              FocusOS turns study time into scores — an adaptive timer, AI quizzes built from your notes,
-              and streaks that hold. Built on the research, not vibes.
-            </p>
-            <div className="lv3-hero-ctas" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <button className="lv3-btn" onClick={() => navigate(ctaTarget)}>
-                Start your first session <span aria-hidden>→</span>
-              </button>
-              <button className="lv3-btn lv3-btn-ghost" onClick={() => document.querySelector('.lv3-story')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })}>
-                Watch one run ↓
-              </button>
-            </div>
+          <div className="lv3-hero-ctas" style={{
+            display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center',
+            marginTop: 'clamp(28px,4vw,52px)',
+          }}>
+            <button className="lv3-btn" onClick={() => navigate(ctaTarget)}>
+              Start your first session <span aria-hidden>→</span>
+            </button>
+            <button className="lv3-btn lv3-btn-ghost" onClick={() => document.querySelector('.lv3-story')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })}>
+              Watch one run ↓
+            </button>
           </div>
         </div>
 
