@@ -32,3 +32,6 @@ dist-ssr
 supabase/.temp/
 
 .env*
+
+# graphify analysis output (generated, not source)
+graphify-out/
