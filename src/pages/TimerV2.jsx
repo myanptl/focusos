@@ -340,7 +340,7 @@ export default function TimerV2() {
     try {
       const today = todayKey()
       const [logRes, sessRes] = await Promise.all([
-        supabase.from('daily_focus_log').select('total_minutes, sessions_completed, sessions_count').eq('user_id', user.id).eq('log_date', today).single(),
+        supabase.from('daily_focus_log').select('total_minutes, sessions_completed, sessions_count').eq('user_id', user.id).eq('log_date', today).maybeSingle(),
         supabase.from('focus_sessions').select('duration_minutes').eq('user_id', user.id).eq('session_date', today).eq('completed', true),
       ])
       if (logRes.data) { setSessionsToday((logRes.data.sessions_completed ?? logRes.data.sessions_count) || 0); setMinutesToday(logRes.data.total_minutes || 0) }
@@ -374,7 +374,7 @@ export default function TimerV2() {
       const today = todayKey()
       const { data: sd } = await supabase.from('focus_sessions').insert({ user_id: user.id, duration_minutes: mins, completed: true, session_date: today, completed_at: new Date().toISOString(), notes: note || null, distraction_count: tabSwitchCountRef.current }).select('id').single()
       const sessionId = sd?.id
-      const { data: existing } = await supabase.from('daily_focus_log').select('*').eq('user_id', user.id).eq('log_date', today).single()
+      const { data: existing } = await supabase.from('daily_focus_log').select('*').eq('user_id', user.id).eq('log_date', today).maybeSingle()
       if (existing) {
         const newMins = (existing.total_minutes || 0) + mins
         const newSessions = (existing.sessions_completed || existing.sessions_count || 0) + 1

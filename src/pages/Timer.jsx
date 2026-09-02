@@ -627,7 +627,7 @@ export default function Timer() {
       const [logRes, sessRes] = await Promise.all([
         supabase.from('daily_focus_log')
           .select('total_minutes, sessions_completed, sessions_count')
-          .eq('user_id', user.id).eq('log_date', today).single(),
+          .eq('user_id', user.id).eq('log_date', today).maybeSingle(),
         supabase.from('focus_sessions')
           .select('duration_minutes')
           .eq('user_id', user.id).eq('session_date', today).eq('completed', true),
@@ -685,7 +685,7 @@ export default function Timer() {
 
     const { data: existing } = await supabase.from('daily_focus_log')
       .select('id, total_minutes, sessions_completed, sessions_count')
-      .eq('user_id', user.id).eq('log_date', today).single()
+      .eq('user_id', user.id).eq('log_date', today).maybeSingle()
 
     if (existing) {
       const newMins     = (existing.total_minutes || 0) + mins
