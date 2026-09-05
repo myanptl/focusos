@@ -10,10 +10,17 @@
     <meta property="og:url" content="https://focusos.live/" />
     <meta property="og:title" content="FocusOS" />
     <meta property="og:description" content="Study smarter. Focus longer." />
-    <meta property="og:image" content="/og-image.png" />
+    <!-- Absolute, and the file now actually exists. It did not: the SPA rewrite
+         answered /og-image.png with index.html, so every scraper got a page of
+         HTML where it wanted a picture and fell back to a blank card. -->
+    <meta property="og:image" content="https://focusos.live/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The FocusOS landing page, reading DEEP WORK." />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="FocusOS" />
     <meta name="twitter:description" content="Study smarter. Focus longer." />
+    <meta name="twitter:image" content="https://focusos.live/og-image.png" />
     <meta name="theme-color" content="#0a0a0b" />
     <!-- manifest disabled: triggers vite v8 import-analysis bug -->
     <!-- <link rel="manifest" href="/manifest.json" /> -->
