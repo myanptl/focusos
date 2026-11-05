@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import { Mail } from 'lucide-react'
-import LogoIcon from '../../components/LogoIcon'
+import AuthLayout from '../../components/AuthLayout'
 
 function GoogleIcon() {
   return (
@@ -68,10 +68,16 @@ export default function Login() {
   }
 
   async function handleGoogle() {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin + '/timer' },
-    })
+    setError('')
+    try {
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin + '/timer' },
+      })
+      if (oauthError) throw oauthError
+    } catch (err) {
+      setError(friendlyError(err.message || 'Google sign-in is unavailable right now.'))
+    }
   }
 
   async function handleForgotPassword(e) {
@@ -91,23 +97,8 @@ export default function Login() {
     }
   }
 
-  const shell = (title, children) => (
-    <div className="auth-screen" style={{
-      minHeight: '100vh', display: 'flex', alignItems: 'center',
-      justifyContent: 'center', padding: 20,
-    }}>
-      <div style={{ width: '100%', maxWidth: 400 }}>
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <LogoIcon size={56} style={{ marginBottom: 14 }} />
-          <div className="auth-wordmark">FOCUSOS</div>
-          <p style={{ color: 'var(--muted)', fontSize: 14 }}>Train your focus. Own your future.</p>
-        </div>
-        <div className="card" style={{ padding: 28 }}>
-          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 20, letterSpacing: '-0.01em' }}>{title}</h2>
-          {children}
-        </div>
-      </div>
-    </div>
+  const shell = (title, children, subtitle) => (
+    <AuthLayout title={title} subtitle={subtitle}>{children}</AuthLayout>
   )
 
   /* ── Forgot-password: success ── */
@@ -122,7 +113,7 @@ export default function Login() {
         Sent to <strong style={{ color: 'var(--text)' }}>{forgotEmail}</strong>
       </p>
       <button className="btn btn-ghost btn-full" onClick={() => { setView('login'); setForgotSent(false); setForgotEmail('') }}>
-        ← Back to Sign In
+        ← Back to sign in
       </button>
     </div>
   )
@@ -133,7 +124,7 @@ export default function Login() {
     <>
       <button onClick={() => { setView('login'); setForgotError('') }}
         style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 13, padding: 0, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6 }}>
-        ← Back to Sign In
+        ← Back to sign in
       </button>
       <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20, lineHeight: 1.55 }}>
         Enter your email and we'll send you a reset link.
@@ -158,19 +149,19 @@ export default function Login() {
 
   /* ── Login: main ── */
   return shell(
-    'Sign in',
+    'Welcome back',
     <>
       {/* Google OAuth */}
       <button onClick={handleGoogle} style={{
         width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        gap: 10, padding: '13px 16px', borderRadius: 8, cursor: 'pointer',
-        background: '#ffffff', color: '#1f1f1f',
-        border: '1px solid rgba(255,255,255,0.15)',
-        fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 600,
+        gap: 10, height: 44, borderRadius: 6, cursor: 'pointer',
+        background: '#ffffff', color: '#111',
+        border: 'none',
+        fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500,
         transition: 'background 0.15s',
         marginBottom: 16,
       }}
-        onMouseEnter={e => e.currentTarget.style.background = '#f5f5f5'}
+        onMouseEnter={e => e.currentTarget.style.background = '#e9e9ea'}
         onMouseLeave={e => e.currentTarget.style.background = '#ffffff'}
       >
         <GoogleIcon />
@@ -233,14 +224,14 @@ export default function Login() {
         )}
 
         <button type="submit" className="btn btn-accent btn-full btn-lg" disabled={loading} style={{ marginTop: 4 }}>
-          {loading ? <><span className="spinner" style={{ width: 16, height: 16 }} /> Signing in...</> : 'Sign In'}
+          {loading ? <><span className="spinner" style={{ width: 16, height: 16 }} /> Signing in...</> : 'Sign in'}
         </button>
       </form>
 
       <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--muted)', marginTop: 18 }}>
         No account?{' '}
-        <Link to="/signup" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}>
-          Sign up free
+        <Link to="/signup" style={{ color: 'var(--text)', textDecoration: 'underline', textUnderlineOffset: 3 }}>
+          Create an account
         </Link>
       </p>
     </>

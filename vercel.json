@@ -1,7 +1,6 @@
 {
   "functions": {
-    "api/generate-quiz.js":   { "maxDuration": 30 },
-    "api/summarize-note.js":  { "maxDuration": 30 },
+    "api/generate-quiz.js":   { "maxDuration": 120 },
     "api/summarize-video.js": { "maxDuration": 30 },
     "api/quiz-followup.js":   { "maxDuration": 20 },
     "api/contact.js":         { "maxDuration": 10 },

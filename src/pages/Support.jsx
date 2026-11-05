@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Plus } from 'lucide-react'
 
 const FAQS = [
   {
@@ -32,26 +33,24 @@ const FAQS = [
 function FAQItem({ q, a, link }) {
   const [open, setOpen] = useState(false)
   return (
-    <div style={{ borderBottom: '1px solid var(--border)' }}>
+    <div style={{ borderTop: '1px solid var(--hairline)' }}>
       <button
         onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
         style={{
           width: '100%', textAlign: 'left', padding: '16px 0',
-          background: 'none', border: 'none', cursor: 'pointer',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          gap: 12,
+          background: 'none', border: 'none', cursor: 'pointer', font: 'inherit',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
         }}
       >
-        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{q}</span>
-        <span style={{ color: 'var(--muted)', flexShrink: 0, fontSize: 16, lineHeight: 1 }}>
-          {open ? '−' : '+'}
-        </span>
+        <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>{q}</span>
+        <Plus size={14} strokeWidth={1.6} color="var(--muted)" style={{ flexShrink: 0, transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 0.18s var(--ease-out)' }} />
       </button>
       {open && (
-        <div style={{ paddingBottom: 16, fontSize: 14, lineHeight: 1.7, color: 'var(--muted)' }}>
+        <div style={{ paddingBottom: 18, fontSize: 14, lineHeight: 1.7, color: 'var(--muted)', maxWidth: '68ch' }}>
           {a}
           {link && (
-            <span> <Link to={link.to} style={{ color: 'var(--accent)' }}>{link.label}</Link></span>
+            <span> <Link to={link.to} style={{ color: 'var(--text)' }}>{link.label}</Link></span>
           )}
         </div>
       )}
@@ -88,70 +87,70 @@ export default function Support() {
   }
 
   return (
-    <div className="page-fade">
-      <h1 style={{ fontSize: 32, fontWeight: 700, marginBottom: 6 }}>Get Help</h1>
-      <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 36 }}>
-        Find answers below or reach us at{' '}
-        <a href="mailto:support@focusos.live" style={{ color: 'var(--accent)' }}>support@focusos.live</a>
-      </p>
+    <div>
+      <header className="page-head">
+        <h1 className="page-title">Get help</h1>
+        <p>
+          Find answers below or reach us at{' '}
+          <a href="mailto:support@focusos.live" style={{ color: 'var(--text)' }}>support@focusos.live</a>
+        </p>
+      </header>
 
-      {/* FAQ */}
-      <div className="card" style={{ marginBottom: 32 }}>
-        <div className="label" style={{ marginBottom: 4 }}>Frequently Asked Questions</div>
-        <div>
-          {FAQS.map((faq, i) => (
-            <FAQItem key={i} q={faq.q} a={faq.a} link={faq.link} />
+      <section style={{ marginBottom: 48 }}>
+        <div className="label" style={{ marginBottom: 12 }}>Questions</div>
+        <div style={{ borderBottom: '1px solid var(--hairline)' }}>
+          {FAQS.map(faq => (
+            <FAQItem key={faq.q} q={faq.q} a={faq.a} link={faq.link} />
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* Contact form */}
-      <div className="card">
+      <section style={{ maxWidth: 520 }}>
         <div className="label" style={{ marginBottom: 16 }}>Send a message</div>
 
         {sent ? (
-          <div style={{
-            background: 'rgba(181,242,58,0.08)', border: '1px solid rgba(181,242,58,0.2)',
-            borderRadius: 10, padding: '20px 24px', textAlign: 'center',
-          }}>
-            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>Message received</div>
+          <div style={{ borderTop: '1px solid var(--hairline)', paddingTop: 16 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Message received</div>
             <div style={{ fontSize: 14, color: 'var(--muted)' }}>
-              Thanks! We'll get back to you within 48 hours.
+              Thanks. We&apos;ll get back to you within 48 hours.
             </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>
-              <label className="label" style={{ display: 'block', marginBottom: 6 }}>Name</label>
+              <label className="label" htmlFor="support-name" style={{ display: 'block', marginBottom: 6 }}>Name</label>
               <input
-                type="text" placeholder="Your name" value={name}
+                id="support-name" type="text" placeholder="Your name" value={name}
                 onChange={e => setName(e.target.value)} required
               />
             </div>
             <div>
-              <label className="label" style={{ display: 'block', marginBottom: 6 }}>Email</label>
+              <label className="label" htmlFor="support-email" style={{ display: 'block', marginBottom: 6 }}>Email</label>
               <input
-                type="email" placeholder="you@example.com" value={email}
+                id="support-email" type="email" placeholder="you@example.com" value={email}
                 onChange={e => setEmail(e.target.value)} required
               />
             </div>
             <div>
-              <label className="label" style={{ display: 'block', marginBottom: 6 }}>Message</label>
+              <label className="label" htmlFor="support-message" style={{ display: 'block', marginBottom: 6 }}>Message</label>
               <textarea
+                id="support-message"
                 placeholder="Describe your question or issue..."
                 value={message} onChange={e => setMessage(e.target.value)}
                 rows={5} style={{ resize: 'vertical', lineHeight: 1.6 }} required
               />
             </div>
             {error && (
-              <div style={{ color: '#f87171', fontSize: 13 }}>{error}</div>
+              <div style={{ color: 'var(--red)', fontSize: 13 }}>{error}</div>
             )}
-            <button type="submit" className="btn btn-accent btn-full" disabled={loading}>
-              {loading ? 'Sending…' : 'Send Message'}
-            </button>
+            <div>
+              <button type="submit" className="btn btn-accent" disabled={loading}>
+                {loading ? 'Sending…' : 'Send message'}
+              </button>
+            </div>
           </form>
         )}
-      </div>
+      </section>
     </div>
   )
 }

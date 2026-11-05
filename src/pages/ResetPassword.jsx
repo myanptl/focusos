@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import FMark from '../components/FMark'
+import AuthLayout from '../components/AuthLayout'
 import { CheckCircle, Eye, EyeOff } from 'lucide-react'
 
 function passwordStrength(pwd) {
@@ -72,28 +72,8 @@ export default function ResetPassword() {
   const mismatch = confirm.length > 0 && password !== confirm
 
   return (
-    <div style={{
-      minHeight: '100vh', display: 'flex', alignItems: 'center',
-      justifyContent: 'center', padding: 20, background: 'var(--bg)',
-    }}>
-      <div style={{ width: '100%', maxWidth: 400 }}>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Link to="/" style={{ textDecoration: 'none' }}>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              width: 48, height: 48, borderRadius: 12,
-              background: 'rgba(181,242,58,0.09)', border: '1px solid rgba(181,242,58,0.2)',
-              marginBottom: 14,
-            }}>
-              <FMark size={26} />
-            </div>
-          </Link>
-          <h1 className="bebas" style={{ fontSize: 38, color: 'var(--accent)', letterSpacing: '0.05em', display: 'block' }}>FOCUSOS</h1>
-          <p style={{ color: 'var(--muted)', fontSize: 14, marginTop: 5 }}>Update your password</p>
-        </div>
-
-        <div className="card" style={{ padding: 28 }}>
-
+    <AuthLayout title={success ? 'Password updated' : 'Set a new password'} subtitle={success ? 'Taking you to the app…' : 'Pick something you will remember.'}>
+      <div>
           {/* Success state */}
           {success ? (
             <div style={{ textAlign: 'center', padding: '8px 0' }}>
@@ -108,10 +88,6 @@ export default function ResetPassword() {
             </div>
           ) : (
             <>
-              <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 6 }}>Set new password</h2>
-              <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 22, lineHeight: 1.55 }}>
-                Choose a strong password for your FocusOS account.
-              </p>
 
               {!sessionOk && (
                 <div style={{
@@ -202,8 +178,7 @@ export default function ResetPassword() {
               </p>
             </>
           )}
-        </div>
       </div>
-    </div>
+    </AuthLayout>
   )
 }

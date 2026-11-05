@@ -1,5 +1,4 @@
 import { Component } from 'react'
-import { AlertTriangle } from 'lucide-react'
 
 export default class ErrorBoundary extends Component {
   state = { hasError: false, error: null }
@@ -12,27 +11,17 @@ export default class ErrorBoundary extends Component {
     if (this.state.hasError) {
       return (
         <div style={{
-          minHeight: '100vh', background: '#0a0a0b',
+          minHeight: '100dvh', background: 'var(--bg)', padding: 24,
           display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          gap: 16, color: 'white',
-          fontFamily: "'Outfit', sans-serif",
+          alignItems: 'center', justifyContent: 'center', textAlign: 'center',
         }}>
-          <AlertTriangle size={48} color="var(--amber, #f2c75a)" />
-          <h2 style={{ fontSize: 24, fontWeight: 700 }}>Something went wrong</h2>
-          <p style={{ color: '#9494a0', fontSize: 14, maxWidth: 400, textAlign: 'center', lineHeight: 1.6 }}>
+          <span className="kicker" style={{ color: 'var(--amber)' }}>Error</span>
+          <h1 className="page-title">Something went wrong</h1>
+          <p className="mono" style={{ color: 'var(--muted)', fontSize: 12.5, maxWidth: 440, marginTop: 10, lineHeight: 1.6 }}>
             {this.state.error?.message || 'An unexpected error occurred.'}
           </p>
-          <button
-            onClick={() => window.location.href = '/'}
-            style={{
-              background: '#b5f23a', color: '#000', border: 'none',
-              padding: '12px 24px', borderRadius: 8,
-              fontWeight: 700, cursor: 'pointer', fontSize: 14,
-              fontFamily: "'Outfit', sans-serif",
-            }}
-          >
-            Return to Home
+          <button className="btn btn-ghost" style={{ marginTop: 28 }} onClick={() => { window.location.href = '/' }}>
+            Return home
           </button>
         </div>
       )

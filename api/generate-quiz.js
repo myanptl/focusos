@@ -157,6 +157,20 @@ Rules:
 JSON format: ${schema}`
 }
 
+const PLAN_ATTEMPTS = 2
+
+/** Returns the plan object, or null when the model output is not a usable plan. */
+export function parsePlan(raw) {
+  const match = String(raw || '').match(/\{[\s\S]*\}/)
+  if (!match) return null
+  try {
+    const plan = JSON.parse(match[0])
+    return Array.isArray(plan?.weeks) && plan.weeks.length > 0 ? plan : null
+  } catch {
+    return null
+  }
+}
+
 function buildPlannerPrompt(testType, subject, testDate, hoursPerWeek, weakAreas, currentLevel) {
   const weeksLeft = testDate
     ? Math.max(1, Math.round((new Date(testDate) - new Date()) / (7 * 24 * 60 * 60 * 1000)))
@@ -291,13 +305,20 @@ export default async function handler(req, res) {
     if (!testType) return res.status(400).json({ error: 'testType is required for study plan.' })
     try {
       const prompt = buildPlannerPrompt(testType, subject, testDate, hoursPerWeek, weakAreas, currentLevel)
-      const { raw, modelUsed, ollamaFailed } = await callAI(prompt, { useOllama, apiKey, maxTokens: 4000 })
-      const match = raw.match(/\{[\s\S]*\}/)
-      if (!match) return res.status(502).json({ error: 'No plan generated. Please try again.' })
-      if (modelUsed === 'claude') await incrementClaudeCount(supabase, user.id, generationsToday, today)
-      return res.status(200).json({ plan: JSON.parse(match[0]), model_used: modelUsed, ollama_fallback: ollamaFailed })
+      // Long plans occasionally come back as malformed JSON; one retry fixes almost all of them.
+      for (let attempt = 1; attempt <= PLAN_ATTEMPTS; attempt++) {
+        const { raw, modelUsed, ollamaFailed } = await callAI(prompt, { useOllama, apiKey, maxTokens: 6000 })
+        const plan = parsePlan(raw)
+        if (plan) {
+          if (modelUsed === 'claude') await incrementClaudeCount(supabase, user.id, generationsToday, today)
+          return res.status(200).json({ plan, model_used: modelUsed, ollama_fallback: ollamaFailed })
+        }
+        console.error(`[planner] unparseable plan (attempt ${attempt}, ${raw.length} chars)`)
+      }
+      return res.status(502).json({ error: 'Could not build a plan this time. Please try again.' })
     } catch (err) {
-      return res.status(502).json({ error: err.message || 'Failed to generate study plan.' })
+      console.error('[planner]', err)
+      return res.status(502).json({ error: 'Could not build a plan this time. Please try again.' })
     }
   }
 

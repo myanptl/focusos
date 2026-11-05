@@ -10,9 +10,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Nav from './components/Nav'
 import LogoIcon from './components/LogoIcon'
 import Footer from './components/Footer'
-import AppBackground from './components/AppBackground'
+import SubNav from './components/SubNav'
+import { useTimerContext } from './context/TimerContext'
 
-const Landing       = React.lazy(() => import('./pages/LandingV3'))
+const Landing       = React.lazy(() => import('./pages/Landing'))
 const Login         = React.lazy(() => import('./pages/auth/Login'))
 const Signup        = React.lazy(() => import('./pages/auth/Signup'))
 const ResetPassword = React.lazy(() => import('./pages/ResetPassword'))
@@ -20,11 +21,8 @@ const Onboarding    = React.lazy(() => import('./pages/Onboarding'))
 const Timer         = React.lazy(() => import('./pages/Timer'))
 const Quiz          = React.lazy(() => import('./pages/Quiz'))
 const Goals         = React.lazy(() => import('./pages/Goals'))
-const Streak        = React.lazy(() => import('./pages/Streak'))
 const Progress      = React.lazy(() => import('./pages/Progress'))
-const Review        = React.lazy(() => import('./pages/Review'))
 const Planner       = React.lazy(() => import('./pages/Planner'))
-const Notes         = React.lazy(() => import('./pages/Notes'))
 const Rooms         = React.lazy(() => import('./pages/Rooms'))
 const RoomDetail    = React.lazy(() => import('./pages/RoomDetail'))
 const Settings      = React.lazy(() => import('./pages/Settings'))
@@ -51,27 +49,38 @@ const pageVariants = {
   exit:    { opacity: 0, y: -8, transition: { duration: 0.15, ease: [0.32, 0, 0.67, 0] } },
 }
 
-function AppShell({ children }) {
+function AppShell({ children, group }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100dvh - 60px)', position: 'relative' }}>
-      <main className="app-main" style={{ flex: 1, padding: '28px 24px', maxWidth: 1100, width: '100%', margin: '0 auto', boxSizing: 'border-box', position: 'relative', zIndex: 1 }}>
+    <div className="shell-main">
+      <main className="app-main">
+        {group && <SubNav group={group} />}
         <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit">
           {children}
         </motion.div>
       </main>
-      <div className="app-shell-footer"><Footer /></div>
     </div>
   )
+}
+
+// While a focus block runs, flag <body> so the chrome can recede (see index.css).
+function FocusModeFlag() {
+  const { running, phase } = useTimerContext()
+  const on = running && phase === 'focus'
+  useEffect(() => {
+    document.body.dataset.focus = on ? 'on' : 'off'
+  }, [on])
+  return null
 }
 
 function LegalShell({ children }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <div style={{ borderBottom: '1px solid var(--border)', padding: '0 24px', height: 60, display: 'flex', alignItems: 'center' }}>
+      <div style={{ borderBottom: '1px solid var(--hairline)', padding: '0 clamp(16px, 4vw, 40px)', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <LogoIcon size={24} />
-          <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: '4px', color: 'white' }}>FOCUSOS</span>
+          <LogoIcon size={20} />
+          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>FocusOS</span>
         </Link>
+        <Link to="/" className="btn btn-ghost btn-sm" style={{ textDecoration: 'none' }}>Back</Link>
       </div>
       <main style={{ flex: 1, padding: '40px 24px', maxWidth: 760, width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
         {children}
@@ -87,7 +96,7 @@ function AppRoutes() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const TAB_ROUTES = ['/timer', '/quiz', '/notes', '/goals', '/streak', '/progress', '/rooms', '/settings']
+    const TAB_ROUTES = ['/timer', '/quiz', '/goals', '/progress', '/rooms']
     function handleTabShortcut(e) {
       const tag = document.activeElement?.tagName
       const editable = document.activeElement?.isContentEditable
@@ -114,7 +123,7 @@ function AppRoutes() {
   return (
     <>
       {showNav && <Nav />}
-      {showNav && <AppBackground />}
+      <FocusModeFlag />
     <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span className="spinner" style={{ width: 32, height: 32 }} /></div>}>
     <AnimatePresence mode="wait" initial={false}>
     <Routes location={location} key={location.pathname}>
@@ -126,14 +135,13 @@ function AppRoutes() {
       <Route path="/timer"    element={<ProtectedRoute><ErrorBoundary><AppShell><Timer /></AppShell></ErrorBoundary></ProtectedRoute>} />
       <Route path="/quiz"     element={<ProtectedRoute><ErrorBoundary><AppShell><Quiz /></AppShell></ErrorBoundary></ProtectedRoute>} />
 
-      <Route path="/goals"    element={<ProtectedRoute><ErrorBoundary><AppShell><Goals /></AppShell></ErrorBoundary></ProtectedRoute>} />
-      <Route path="/streak"   element={<ProtectedRoute><ErrorBoundary><AppShell><Streak /></AppShell></ErrorBoundary></ProtectedRoute>} />
+      <Route path="/goals"    element={<ProtectedRoute><ErrorBoundary><AppShell group="plan"><Goals /></AppShell></ErrorBoundary></ProtectedRoute>} />
+      <Route path="/streak"   element={<Navigate to="/progress" replace />} />
       <Route path="/progress" element={<ProtectedRoute><ErrorBoundary><AppShell><Progress /></AppShell></ErrorBoundary></ProtectedRoute>} />
-      <Route path="/planner"  element={<ProtectedRoute><ErrorBoundary><AppShell><Planner /></AppShell></ErrorBoundary></ProtectedRoute>} />
-      <Route path="/notes"    element={<ProtectedRoute><ErrorBoundary><AppShell><Notes /></AppShell></ErrorBoundary></ProtectedRoute>} />
+      <Route path="/planner"  element={<ProtectedRoute><ErrorBoundary><AppShell group="plan"><Planner /></AppShell></ErrorBoundary></ProtectedRoute>} />
       <Route path="/rooms"    element={<ProtectedRoute><ErrorBoundary><AppShell><Rooms /></AppShell></ErrorBoundary></ProtectedRoute>} />
       <Route path="/rooms/:roomId" element={<ProtectedRoute><ErrorBoundary><AppShell><RoomDetail /></AppShell></ErrorBoundary></ProtectedRoute>} />
-      <Route path="/review"   element={<ProtectedRoute><ErrorBoundary><AppShell><Review /></AppShell></ErrorBoundary></ProtectedRoute>} />
+      <Route path="/review"   element={<Navigate to="/progress" replace />} />
       <Route path="/settings" element={<ProtectedRoute><ErrorBoundary><AppShell><Settings /></AppShell></ErrorBoundary></ProtectedRoute>} />
 
       <Route path="/reset-password" element={<ResetPassword />} />

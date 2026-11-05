@@ -1,38 +1,30 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
-import { Check, X, Bot, BarChart2 } from 'lucide-react'
+import { X } from 'lucide-react'
 
-const CITATIONS = [
-  { ref: 'Pew Research Center, April 2025 (N=1,391 U.S. teens)', note: 'Teen social media and attention study' },
-  { ref: 'Nivins et al., Pediatrics Open Science, Dec 2025', note: 'Screen time and cognitive outcomes in adolescents' },
-  { ref: 'Dunlosky et al., Psychological Science in the Public Interest, 2013', note: 'Improving students\' learning with effective study techniques' },
-  { ref: 'Kornell et al., Frontiers in Education, 2021', note: 'Retrieval practice confirmed across 242 studies and 169,179 participants' },
-  { ref: 'Xu et al., Journal of Affective Disorders, 2024', note: 'Social media use and academic performance in adolescents' },
-  { ref: 'Ariga & Lleras, Cognition, 2011', note: 'Brief and rare mental "breaks" keep you focused' },
-  { ref: 'Gollwitzer, American Psychologist, 1999', note: 'Implementation intentions: strong effects of simple plans' },
-]
+const LEGAL_LINKS = [['/privacy', 'Privacy'], ['/terms', 'Terms'], ['/support', 'Help']]
 
 function Section({ title, children }) {
   return (
-    <div style={{ marginBottom: 24 }}>
-      <div className="label" style={{ marginBottom: 14, paddingBottom: 10, borderBottom: '1px solid var(--border)' }}>{title}</div>
-      {children}
-    </div>
+    <section style={{ marginBottom: 40 }}>
+      <h2 className="label" style={{ marginBottom: 4 }}>{title}</h2>
+      <div style={{ borderBottom: '1px solid var(--hairline)' }}>{children}</div>
+    </section>
   )
 }
 
-function Row({ label, sub, right }) {
+function Row({ label, sub, children, htmlFor }) {
+  const Label = htmlFor ? 'label' : 'div'
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
-      <div>
-        <div style={{ fontSize: 14, fontWeight: 500 }}>{label}</div>
-        {sub && <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{sub}</div>}
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px 24px', padding: '16px 0', borderTop: '1px solid var(--hairline)' }}>
+      <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+        <Label htmlFor={htmlFor} style={{ display: 'block', fontSize: 14 }}>{label}</Label>
+        {sub && <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 2 }}>{sub}</div>}
       </div>
-      <div>{right}</div>
+      {children && <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, maxWidth: '100%' }}>{children}</div>}
     </div>
   )
 }
@@ -44,89 +36,18 @@ export default function Settings() {
 
   const displayName = profile?.name || profile?.username || ''
   const [name, setName] = useState(displayName)
-  const [focusMins, setFocusMins] = useState(profile?.focus_duration ?? profile?.baseline_attention_span ?? 25)
-  const [breakMins, setBreakMins] = useState(profile?.break_duration ?? 5)
-  const [autoBreak, setAutoBreak] = useState(profile?.auto_start_break ?? false)
-  const [sound, setSound] = useState(profile?.sound_enabled ?? true)
+  const [showResetModal, setShowResetModal] = useState(false)
   const [resetText, setResetText] = useState('')
-  const [showCitations, setShowCitations] = useState(false)
-  const [stats, setStats] = useState({ sessions: 0, mins: 0, goals: 0 })
-  const [aiModelPref, setAiModelPref] = useState(profile?.ai_model_preference || 'auto')
-  const [ollamaStatus, setOllamaStatus] = useState(null) // null=pending, 'running', 'offline'
-  const [ollamaChecking, setOllamaChecking] = useState(false)
-
-  const [copiedCmd, setCopiedCmd] = useState(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteText, setDeleteText]           = useState('')
   const [deleteLoading, setDeleteLoading]     = useState(false)
   const [deleteError, setDeleteError]         = useState('')
 
-  useEffect(() => { loadStats(); checkOllama() }, [user])
-  useEffect(() => {
-    if (!profile) return
-    setName(profile.name || profile.username || '')
-    setFocusMins(profile.focus_duration ?? profile.baseline_attention_span ?? 25)
-    setBreakMins(profile.break_duration ?? 5)
-    setAutoBreak(profile.auto_start_break ?? false)
-    setSound(profile.sound_enabled ?? true)
-    if (profile.ai_model_preference) setAiModelPref(profile.ai_model_preference)
-  }, [profile])
-
-  async function checkOllama() {
-    // localhost:11434 is only reachable from http:// origins (dev).
-    // In production (https) browsers block mixed-content requests, so Ollama
-    // will always appear offline — that's expected and handled gracefully.
-    if (location.protocol === 'https:') { setOllamaStatus('offline'); return }
-    try {
-      const res = await fetch('http://localhost:11434/api/tags', { signal: AbortSignal.timeout(3000) })
-      setOllamaStatus(res.ok ? 'running' : 'offline')
-    } catch {
-      setOllamaStatus('offline')
-    }
-  }
-
-  function copyCmd(text) {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopiedCmd(text)
-      setTimeout(() => setCopiedCmd(null), 1800)
-    })
-  }
-
-  async function recheckOllama() {
-    setOllamaChecking(true)
-    if (location.protocol === 'https:') { setOllamaStatus('offline'); setOllamaChecking(false); return }
-    try {
-      const res = await fetch('http://localhost:11434/api/tags', { signal: AbortSignal.timeout(3000) })
-      setOllamaStatus(res.ok ? 'running' : 'offline')
-    } catch {
-      setOllamaStatus('offline')
-    }
-    setOllamaChecking(false)
-  }
-
-  async function saveAiModelPref(pref) {
-    setAiModelPref(pref)
-    const err = await updateProfile({ ai_model_preference: pref })
-    if (!err) toast('AI model preference saved!', 'success')
-  }
-
-  async function loadStats() {
-    if (!user) return
-    const [sessRes, goalRes] = await Promise.all([
-      supabase.from('focus_sessions').select('id', { count: 'exact' }).eq('user_id', user.id),
-      supabase.from('score_goals').select('id', { count: 'exact' }).eq('user_id', user.id),
-    ])
-    setStats({ sessions: sessRes.count || 0, mins: profile?.total_focus_minutes || 0, goals: goalRes.count || 0 })
-  }
+  const nameChanged = name.trim() && name.trim() !== displayName
 
   async function saveName() {
-    const err = await updateProfile({ name, username: name })
-    if (!err) toast('Name updated!', 'success')
-  }
-
-  async function savePreferences() {
-    const err = await updateProfile({ focus_duration: focusMins, break_duration: breakMins, auto_start_break: autoBreak, sound_enabled: sound })
-    if (!err) toast('Preferences saved!', 'success')
+    const err = await updateProfile({ name: name.trim(), username: name.trim() })
+    if (!err) toast('Name updated', 'success')
   }
 
   async function handleSignOut() {
@@ -135,17 +56,21 @@ export default function Settings() {
   }
 
   async function handleReset() {
-    if (resetText !== 'RESET') { toast('Type RESET to confirm', 'error'); return }
-    await Promise.all([
-      supabase.from('focus_sessions').delete().eq('user_id', user.id),
-      supabase.from('daily_focus_log').delete().eq('user_id', user.id),
-      supabase.from('quiz_results').delete().eq('user_id', user.id),
-      supabase.from('score_goals').delete().eq('user_id', user.id),
-      supabase.from('profiles').update({ streak_count: 0, total_focus_minutes: 0, total_sessions: 0 }).eq('user_id', user.id),
-    ])
-    toast('All data reset.', 'info')
+    if (resetText !== 'RESET') return
+    try {
+      await Promise.all([
+        supabase.from('focus_sessions').delete().eq('user_id', user.id),
+        supabase.from('daily_focus_log').delete().eq('user_id', user.id),
+        supabase.from('quiz_results').delete().eq('user_id', user.id),
+        supabase.from('score_goals').delete().eq('user_id', user.id),
+        supabase.from('profiles').update({ streak_count: 0, total_focus_minutes: 0, total_sessions: 0 }).eq('user_id', user.id),
+      ])
+      toast('Your history was cleared', 'info')
+    } catch {
+      toast('Could not clear data. Try again.', 'error')
+    }
     setResetText('')
-    loadStats()
+    setShowResetModal(false)
   }
 
   async function handleDeleteAccount() {
@@ -167,344 +92,74 @@ export default function Settings() {
     }
   }
 
-  const initials = (displayName || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
-  const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '—'
-  const focusPct = ((focusMins - 5) / (90 - 5)) * 100
-  const breakPct = ((breakMins - 1) / (30 - 1)) * 100
-
   return (
-    <div className="page-fade" style={{ maxWidth: 720, margin: '0 auto', paddingTop: '40px', width: '100%' }}>
-      <span className="v3-kicker">Your setup</span>
-      <h1 className="page-title" style={{ marginBottom: 24 }}><span className="pt-inner">Settings<span className="v3-dot">.</span></span></h1>
+    <div style={{ maxWidth: 620 }}>
+      <header className="page-head">
+        <h1 className="page-title">Settings</h1>
+      </header>
 
-      <div className="card card-top" style={{ marginBottom: 16 }}>
-        <Section title="Account">
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 20 }}>
-            <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(181,242,58,0.15)', border: '2px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: 'var(--accent)', flexShrink: 0 }}>
-              {initials}
-            </div>
-            <div>
-              <div style={{ fontWeight: 600, fontSize: 16 }}>{displayName || 'User'}</div>
-              <div style={{ fontSize: 13, color: 'var(--muted)' }}>{user?.email}</div>
-              <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>Member since {memberSince}</div>
-            </div>
-          </div>
-          <div style={{ marginBottom: 14 }}>
-            <label className="label" style={{ display: 'block', marginBottom: 6 }}>Display Name</label>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input type="text" value={name} onChange={e => setName(e.target.value)} style={{ flex: 1 }} />
-              <button className="btn btn-ghost" onClick={saveName}>Save</button>
-            </div>
-          </div>
-          <div style={{ marginBottom: 4 }}>
-            <label className="label" style={{ display: 'block', marginBottom: 6 }}>Email</label>
-            <input type="email" value={user?.email || ''} disabled style={{ opacity: 0.5 }} />
-          </div>
-          <button className="btn btn-full" onClick={handleSignOut}
-            style={{ marginTop: 16, background: 'transparent', border: '1px solid var(--red)', color: 'var(--red)' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(242,90,90,0.1)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}>Sign Out</button>
-        </Section>
-      </div>
+      <Section title="Profile">
+        <Row label="Name" htmlFor="settings-name">
+          <input id="settings-name" type="text" value={name} maxLength={40} onChange={e => setName(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && nameChanged) saveName() }}
+            style={{ width: 200, maxWidth: '100%', height: 32, padding: '0 10px', fontSize: 14 }} />
+          {nameChanged && <button className="btn btn-accent btn-sm" onClick={saveName}>Save</button>}
+        </Row>
+        <Row label="Email" sub={user?.email} />
+      </Section>
 
-      <div className="card card-top" style={{ marginBottom: 16 }}>
-        <Section title="Focus Preferences">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 16 }}>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <label className="label">Default Session</label>
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent)' }}>{focusMins} min</span>
-              </div>
-              <input type="range" min={5} max={90} step={1} value={focusMins}
-                onChange={e => setFocusMins(Number(e.target.value))}
-                style={{
-                  width: '100%', height: '4px', borderRadius: '2px',
-                  appearance: 'none', WebkitAppearance: 'none', outline: 'none', cursor: 'pointer',
-                  background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${focusPct}%, var(--card2) ${focusPct}%, var(--card2) 100%)`,
-                }} />
-            </div>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <label className="label">Default Break</label>
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--cyan)' }}>{breakMins} min</span>
-              </div>
-              <input type="range" min={1} max={30} step={1} value={breakMins}
-                onChange={e => setBreakMins(Number(e.target.value))}
-                style={{
-                  width: '100%', height: '4px', borderRadius: '2px',
-                  appearance: 'none', WebkitAppearance: 'none', outline: 'none', cursor: 'pointer',
-                  background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${breakPct}%, var(--card2) ${breakPct}%, var(--card2) 100%)`,
-                }} />
+      <Section title="Account">
+        <Row label="Sign out">
+          <button className="btn btn-ghost btn-sm" onClick={handleSignOut}>Sign out</button>
+        </Row>
+        <Row label="Clear my history" sub="Removes your sessions, quiz results and goals. Your account stays.">
+          <button className="btn btn-ghost btn-sm" onClick={() => { setShowResetModal(true); setResetText('') }}>Clear</button>
+        </Row>
+        <Row label="Delete account" sub="Removes your account and everything in it.">
+          <button className="btn btn-danger btn-sm" onClick={() => { setShowDeleteModal(true); setDeleteText(''); setDeleteError('') }}>Delete</button>
+        </Row>
+      </Section>
+
+      <nav aria-label="Legal" style={{ display: 'flex', gap: 20, fontSize: 12.5 }}>
+        {LEGAL_LINKS.map(([to, label]) => (
+          <Link key={to} to={to} style={{ color: 'var(--muted)', textDecoration: 'none' }}>{label}</Link>
+        ))}
+      </nav>
+
+      {showResetModal && (
+        <div className="modal-backdrop" onClick={() => setShowResetModal(false)}>
+          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="reset-title" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
+            <h2 id="reset-title" style={{ fontSize: 16, marginBottom: 8 }}>Clear your history?</h2>
+            <p style={{ fontSize: 13.5, color: 'var(--muted)', marginBottom: 16, lineHeight: 1.6 }}>
+              Your sessions, quiz results, goals and streak go back to zero. This can't be undone.
+            </p>
+            <label className="label" htmlFor="reset-confirm" style={{ display: 'block', marginBottom: 6 }}>Type RESET to confirm</label>
+            <input id="reset-confirm" className="mono" placeholder="RESET" value={resetText} onChange={e => setResetText(e.target.value)} autoFocus />
+            <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+              <button className="btn btn-ghost" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setShowResetModal(false)}>Cancel</button>
+              <button className="btn btn-danger" style={{ flex: 1, justifyContent: 'center' }} disabled={resetText !== 'RESET'} onClick={handleReset}>Clear history</button>
             </div>
           </div>
-          <Row label="Auto-start break" sub="Automatically start break when session ends"
-            right={<label className="toggle"><input type="checkbox" checked={autoBreak} onChange={e => setAutoBreak(e.target.checked)} /><span className="toggle-slider" /></label>}
-          />
-          <Row label="Sound alerts" sub="Play a sound when timer completes"
-            right={<label className="toggle"><input type="checkbox" checked={sound} onChange={e => setSound(e.target.checked)} /><span className="toggle-slider" /></label>}
-          />
-          <button className="btn btn-accent btn-full" onClick={savePreferences} style={{ marginTop: 16 }}>Save Preferences</button>
-        </Section>
-      </div>
-
-      <div className="card card-top" style={{ marginBottom: 16 }}>
-        <Section title="AI Preferences">
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>AI Model</div>
-            <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 14 }}>Choose how your quizzes and notes are generated</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {[
-                {
-                  key: 'auto',
-                  Icon: Bot,
-                  title: 'Auto (recommended)',
-                  desc: 'Uses Claude for best quality (5/day free), switches to Llama when limit reached',
-                  badge: null,
-                },
-                {
-                  key: 'ollama',
-                  Icon: Bot,
-                  title: 'Llama 3.1 (Free)',
-                  desc: 'Always use local Ollama model. Completely free, good quality.',
-                  badge: 'Requires Ollama installed',
-                },
-              ].map(opt => (
-                <button
-                  key={opt.key}
-                  onClick={() => saveAiModelPref(opt.key)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 10, border: 'none',
-                    cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
-                    background: aiModelPref === opt.key ? 'rgba(181,242,58,0.08)' : 'var(--card2)',
-                    outline: aiModelPref === opt.key ? '1.5px solid var(--accent)' : '1.5px solid var(--border)',
-                  }}
-                >
-                  <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', color: 'var(--text)' }}>{opt.Icon ? <opt.Icon size={22} /> : null}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2, color: aiModelPref === opt.key ? 'var(--accent)' : 'var(--text)' }}>{opt.title}</div>
-                    <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.4 }}>{opt.desc}</div>
-                  </div>
-                  {opt.badge && (
-                    <span style={{ fontSize: 10, fontWeight: 600, background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', borderRadius: 20, padding: '2px 8px', color: 'var(--muted)', flexShrink: 0 }}>
-                      {opt.badge}
-                    </span>
-                  )}
-                  {aiModelPref === opt.key && (
-                    <span style={{ width: 16, height: 16, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <Check size={10} color="#0a0a0b" strokeWidth={3} />
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Ollama Setup Guide — always visible */}
-          <div style={{ marginTop: 8, marginBottom: 8, borderRadius: 10, border: '1px solid var(--border)', overflow: 'hidden' }}>
-            <div style={{ padding: '10px 14px', background: 'var(--card2)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Bot size={14} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Llama Setup Guide</span>
-            </div>
-            <div>
-                <div style={{ padding: '4px 14px 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-                  {/* Step 1 */}
-                  <div style={{ display: 'flex', gap: 12, paddingTop: 14 }}>
-                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(181,242,58,0.15)', border: '1px solid rgba(181,242,58,0.35)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>1</div>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>Download Ollama</div>
-                      <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.55, marginBottom: 6 }}>
-                        Go to ollama.com and download for your OS (Mac, Windows, or Linux)
-                      </div>
-                      <a
-                        href="https://ollama.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          display: 'inline-flex', alignItems: 'center', gap: 5,
-                          fontSize: 12, fontWeight: 600, color: 'var(--accent)',
-                          textDecoration: 'none', padding: '4px 10px',
-                          background: 'rgba(181,242,58,0.08)', border: '1px solid rgba(181,242,58,0.25)',
-                          borderRadius: 6,
-                        }}
-                      >
-                        → ollama.com
-                      </a>
-                    </div>
-                  </div>
-
-                  {/* Step 2 */}
-                  <div style={{ display: 'flex', gap: 12 }}>
-                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(181,242,58,0.15)', border: '1px solid rgba(181,242,58,0.35)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>2</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>Install a model</div>
-                      <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.55, marginBottom: 6 }}>Open your terminal and run:</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: 'var(--bg)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 7, overflow: 'hidden' }}>
-                        <code style={{ flex: 1, padding: '8px 12px', fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: 'var(--accent)', display: 'block' }}>
-                          ollama pull llama3.2
-                        </code>
-                        <button
-                          onClick={() => copyCmd('ollama pull llama3.2')}
-                          style={{
-                            padding: '0 12px', height: '100%', background: 'none', border: 'none',
-                            borderLeft: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer',
-                            fontSize: 11, color: copiedCmd === 'ollama pull llama3.2' ? 'var(--accent)' : 'var(--muted)',
-                            fontFamily: "'Outfit', sans-serif", fontWeight: 600, whiteSpace: 'nowrap',
-                            transition: 'color 0.15s', minWidth: 48,
-                          }}
-                        >
-                          {copiedCmd === 'ollama pull llama3.2' ? 'Copied!' : 'Copy'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Step 3 */}
-                  <div style={{ display: 'flex', gap: 12 }}>
-                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(181,242,58,0.15)', border: '1px solid rgba(181,242,58,0.35)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>3</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>Start Ollama</div>
-                      <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.55, marginBottom: 6 }}>Run this in terminal to start the server:</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: 'var(--bg)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 7, overflow: 'hidden' }}>
-                        <code style={{ flex: 1, padding: '8px 12px', fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: 'var(--accent)', display: 'block' }}>
-                          ollama serve
-                        </code>
-                        <button
-                          onClick={() => copyCmd('ollama serve')}
-                          style={{
-                            padding: '0 12px', height: '100%', background: 'none', border: 'none',
-                            borderLeft: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer',
-                            fontSize: 11, color: copiedCmd === 'ollama serve' ? 'var(--accent)' : 'var(--muted)',
-                            fontFamily: "'Outfit', sans-serif", fontWeight: 600, whiteSpace: 'nowrap',
-                            transition: 'color 0.15s', minWidth: 48,
-                          }}
-                        >
-                          {copiedCmd === 'ollama serve' ? 'Copied!' : 'Copy'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Step 4 */}
-                  <div style={{ display: 'flex', gap: 12 }}>
-                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(181,242,58,0.15)', border: '1px solid rgba(181,242,58,0.35)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>4</div>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>Come back here</div>
-                      <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.55 }}>
-                        Click <strong style={{ color: 'var(--text)' }}>Recheck</strong> below — it should turn green
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 8, background: 'var(--card2)', border: '1px solid var(--border)' }}>
-            <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-              {ollamaChecking || ollamaStatus === null
-                ? <span className="spinner" style={{ width: 14, height: 14 }} />
-                : <span style={{ width: 12, height: 12, borderRadius: '50%', background: ollamaStatus === 'running' ? '#4ade80' : 'var(--red)', display: 'inline-block' }} />}
-            </span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 12, fontWeight: 600 }}>
-                {ollamaChecking ? 'Checking...' : ollamaStatus === null ? 'Checking Ollama...' : ollamaStatus === 'running' ? 'Ollama running locally' : 'Ollama not detected'}
-              </div>
-              {ollamaStatus === 'offline' && !ollamaChecking && (
-                <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>
-                  Install from ollama.com for free AI — then run <code style={{ background: 'rgba(255,255,255,0.08)', padding: '1px 5px', borderRadius: 4 }}>ollama pull llama3.1</code>
-                </div>
-              )}
-            </div>
-            <button className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 10px' }} onClick={recheckOllama} disabled={ollamaChecking}>
-              {ollamaChecking ? 'Checking...' : 'Recheck'}
-            </button>
-          </div>
-        </Section>
-      </div>
-
-      <div className="card card-top" style={{ marginBottom: 16 }}>
-        <Section title="Notifications">
-          <Row label="Weekly progress email"
-            sub={<span>Disabled · <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 20, padding: '2px 8px', fontSize: 11 }}>Coming V2</span></span>}
-            right={<label className="toggle"><input type="checkbox" disabled /><span className="toggle-slider" /></label>}
-          />
-          <Row label="Streak reminder"
-            sub={<span>Disabled · <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 20, padding: '2px 8px', fontSize: 11 }}>Coming V2</span></span>}
-            right={<label className="toggle"><input type="checkbox" disabled /><span className="toggle-slider" /></label>}
-          />
-        </Section>
-      </div>
-
-      <div className="card card-top" style={{ marginBottom: 16 }}>
-        <Section title="Data">
-          <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
-            {[
-              { label: 'Total Sessions', value: stats.sessions },
-              { label: 'Minutes Focused', value: stats.mins },
-              { label: 'Goals Set', value: stats.goals },
-            ].map(s => (
-              <div key={s.label} style={{ background: 'var(--card2)', borderRadius: 8, padding: '10px 16px', textAlign: 'center' }}>
-                <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--accent)' }}>{s.value}</div>
-                <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ marginBottom: 10 }}>
-            <label className="label" style={{ display: 'block', marginBottom: 6 }}>Reset All Data</label>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input type="text" placeholder="Type RESET to confirm" value={resetText} onChange={e => setResetText(e.target.value)} style={{ flex: 1 }} />
-              <button className="btn btn-danger" onClick={handleReset}>Reset</button>
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>Permanently deletes all sessions, quiz results, and goals.</div>
-          </div>
-          <div style={{ marginBottom: 16 }}>
-            <button
-              onClick={() => { setShowDeleteModal(true); setDeleteText(''); setDeleteError('') }}
-              className="btn btn-danger btn-full"
-            >
-              Delete Account &amp; All Data
-            </button>
-            <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>Permanently deletes your account and all associated data.</div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button className="btn btn-ghost" disabled style={{ opacity: 0.4 }}>Export Data</button>
-            <span style={{ fontSize: 11, background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', borderRadius: 20, padding: '2px 8px', color: 'var(--muted)' }}>Coming V2</span>
-          </div>
-        </Section>
-      </div>
-
-      <div className="card">
-        <Section title="About">
-          <Row label="Version" right={<span style={{ color: 'var(--muted)', fontSize: 13 }}>FocusOS V1.0 · May 2026</span>} />
-          <Row label="Built by" right={<span style={{ color: 'var(--muted)', fontSize: 13 }}>Myan Patel · Westford Academy · Class of 2028</span>} />
-          <div style={{ paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Link to="/review" className="btn btn-ghost btn-full" style={{ textDecoration: 'none', justifyContent: 'center' }}>
-              <BarChart2 size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />Weekly Review
-            </Link>
-            <button className="btn btn-ghost btn-full" onClick={() => setShowCitations(true)}>View Research Citations (7 papers)</button>
-          </div>
-        </Section>
-      </div>
+        </div>
+      )}
 
       {showDeleteModal && (
         <div className="modal-backdrop" onClick={() => !deleteLoading && setShowDeleteModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
+          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="delete-title" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--red)' }}>Delete Account</h2>
-              <button onClick={() => setShowDeleteModal(false)} disabled={deleteLoading}
-                style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', display: 'flex' }}><X size={20} /></button>
+              <h2 id="delete-title" style={{ fontSize: 16, fontWeight: 600 }}>Delete account</h2>
+              <button className="btn-quiet" onClick={() => setShowDeleteModal(false)} disabled={deleteLoading} aria-label="Close"><X size={16} strokeWidth={1.6} /></button>
             </div>
-            <p style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 16, lineHeight: 1.6 }}>
-              This will permanently delete your account and all associated data — sessions, quiz results, goals, notes, and streaks. <strong style={{ color: 'var(--text)' }}>This cannot be undone.</strong>
+            <p style={{ fontSize: 13.5, color: 'var(--muted)', marginBottom: 20, lineHeight: 1.6 }}>
+              This permanently deletes your account and all its data: sessions, quiz results, goals and streak. <strong style={{ color: 'var(--text)', fontWeight: 500 }}>This cannot be undone.</strong>
             </p>
             <div style={{ marginBottom: 16 }}>
-              <label className="label" style={{ display: 'block', marginBottom: 6 }}>Type DELETE to confirm</label>
+              <label className="label" htmlFor="delete-confirm" style={{ display: 'block', marginBottom: 6 }}>Type DELETE to confirm</label>
               <input
-                type="text" placeholder="DELETE" value={deleteText}
+                id="delete-confirm" type="text" placeholder="DELETE" value={deleteText}
+                className="mono"
                 onChange={e => setDeleteText(e.target.value)}
                 disabled={deleteLoading}
-                style={{ width: '100%', boxSizing: 'border-box' }}
               />
             </div>
             {deleteError && <div style={{ color: 'var(--red)', fontSize: 13, marginBottom: 12 }}>{deleteError}</div>}
@@ -513,35 +168,18 @@ export default function Settings() {
               disabled={deleteLoading}
               className="btn btn-danger btn-full"
               style={{
-                background: deleteText === 'DELETE' ? 'var(--red)' : 'rgba(242,90,90,0.3)',
-                color: deleteText === 'DELETE' ? '#0a0a0b' : 'var(--red)',
+                justifyContent: 'center',
+                background: deleteText === 'DELETE' ? 'var(--red)' : undefined,
+                color: deleteText === 'DELETE' ? 'var(--bg)' : undefined,
                 opacity: deleteLoading ? 0.7 : 1,
               }}
             >
-              {deleteLoading ? 'Deleting…' : 'Delete Account & All Data'}
+              {deleteLoading ? 'Deleting…' : 'Delete account and all data'}
             </button>
           </div>
         </div>
       )}
 
-      {showCitations && (
-        <div className="modal-backdrop" onClick={() => setShowCitations(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 700 }}>Research Citations</h2>
-              <button onClick={() => setShowCitations(false)} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', display: 'flex' }}><X size={20} /></button>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {CITATIONS.map((c, i) => (
-                <div key={i} style={{ borderLeft: '2px solid var(--accent)', paddingLeft: 12 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>{c.ref}</div>
-                  <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>{c.note}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

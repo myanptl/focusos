@@ -3,15 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
-import { Target, Database, DoorOpen, Flame, Mic, Clipboard } from 'lucide-react'
-
-const AVATAR_COLORS = ['#b5f23a', '#60d3f8', '#a78bfa', '#fb923c', '#f472b6', '#4ade80']
-
-function avatarColor(str = '') {
-  let h = 0
-  for (const c of str) h = c.charCodeAt(0) + ((h << 5) - h)
-  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]
-}
+import { AnimatePresence, motion } from 'framer-motion'
+import { Database, DoorOpen, Copy, X, ArrowLeft } from 'lucide-react'
 
 function getInitial(name = '') {
   return (name.trim()[0] || '?').toUpperCase()
@@ -38,35 +31,42 @@ function todayKey() {
   return new Date().toISOString().split('T')[0]
 }
 
-const R = 100
+const R = 104
 const CIRC = 2 * Math.PI * R
+const SPRING = { type: 'spring', stiffness: 500, damping: 40 }
 
-function CircularTimer({ secs, totalSecs }) {
+function CircularTimer({ secs, totalSecs, running }) {
   const progress = totalSecs > 0 ? secs / totalSecs : 1
   const offset = CIRC * (1 - progress)
   const timeStr = `${pad(Math.floor(secs / 60))}:${pad(secs % 60)}`
 
   return (
-    <svg width="240" height="240" viewBox="0 0 240 240" style={{ display: 'block', margin: '0 auto' }}>
-      <circle cx="120" cy="120" r={R} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
-      <circle
-        cx="120" cy="120" r={R} fill="none"
-        stroke="#b5f23a" strokeWidth="10" strokeLinecap="round"
-        strokeDasharray={CIRC} strokeDashoffset={offset}
-        transform="rotate(-90 120 120)"
-        style={{ transition: 'stroke-dashoffset 0.5s linear' }}
-      />
-      <text x="120" y="112" textAnchor="middle"
-        fontFamily="'Bebas Neue', sans-serif" fontSize="48"
-        fill="#b5f23a" letterSpacing="2">
-        {timeStr}
-      </text>
-      <text x="120" y="134" textAnchor="middle"
-        fontFamily="'Outfit', sans-serif" fontSize="11"
-        fill="rgba(255,255,255,0.4)" letterSpacing="2">
-        FOCUS
-      </text>
-    </svg>
+    <div style={{ position: 'relative', width: 232, height: 232, margin: '0 auto' }}>
+      <svg width="232" height="232" viewBox="0 0 232 232" style={{ display: 'block' }} aria-hidden="true">
+        <circle cx="116" cy="116" r={R} fill="none" stroke="var(--surface-3)" strokeWidth="1.5" />
+        <circle
+          cx="116" cy="116" r={R} fill="none"
+          stroke="var(--accent)" strokeWidth="2" strokeLinecap="round"
+          strokeDasharray={CIRC} strokeDashoffset={offset}
+          transform="rotate(-90 116 116)"
+          style={{ transition: 'stroke-dashoffset 0.5s linear' }}
+        />
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <span className="num" style={{ fontSize: 48, lineHeight: 1, color: 'var(--text)' }} role="timer" aria-live="off">{timeStr}</span>
+        <span className="label" style={{ marginTop: 8, color: running ? 'var(--accent)' : 'var(--faint)' }}>{running ? 'Focusing' : 'Focus'}</span>
+      </div>
+    </div>
+  )
+}
+
+function StatusDot({ on }) {
+  return (
+    <span
+      className={on ? 'live-dot' : undefined}
+      aria-hidden="true"
+      style={{ width: 6, height: 6, borderRadius: '50%', background: on ? 'var(--accent)' : 'var(--faint)', display: 'inline-block', flexShrink: 0 }}
+    />
   )
 }
 
@@ -459,70 +459,44 @@ export default function RoomDetail() {
 
   if (loading) {
     return (
-      <div className="page-fade room-detail-grid" style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 20, alignItems: 'start' }}>
-        <div className="card" style={{ padding: 0, overflow: 'hidden', height: 'calc(100dvh - 200px)', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <span className="spinner" style={{ width: 14, height: 14, flexShrink: 0 }} />
-              <span style={{ fontSize: 13, color: 'var(--muted)' }}>Joining room...</span>
-            </div>
-            <div className="skeleton" style={{ height: 20, width: '65%', marginBottom: 8 }} />
-            <div className="skeleton" style={{ height: 13, width: '38%' }} />
-          </div>
-          <div style={{ padding: 14, flex: 1 }}>
-            <div className="skeleton" style={{ height: 10, width: '28%', marginBottom: 14 }} />
+      <div>
+        <header className="page-head">
+          <span className="kicker" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span className="spinner" style={{ width: 12, height: 12 }} /> Joining room
+          </span>
+          <div className="skeleton" style={{ height: 30, width: 260, maxWidth: '70%' }} />
+        </header>
+        <div className="room-detail-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 48, alignItems: 'start' }}>
+          <div className="skeleton" style={{ width: 232, height: 232, borderRadius: '50%', margin: '0 auto' }} />
+          <div>
             {[58, 72, 45].map((w, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                <div className="skeleton" style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0 }} />
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
-                  <div className="skeleton" style={{ height: 13, width: `${w}%` }} />
-                  <div className="skeleton" style={{ height: 11, width: '26%' }} />
-                </div>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderTop: '1px solid var(--hairline)' }}>
+                <div className="skeleton" style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0 }} />
+                <div className="skeleton" style={{ height: 12, width: `${w}%` }} />
               </div>
             ))}
           </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div className="card" style={{ textAlign: 'center', padding: 32 }}>
-            <div className="skeleton" style={{ height: 13, width: '44%', margin: '0 auto 20px' }} />
-            <div className="skeleton" style={{ width: 240, height: 240, borderRadius: '50%', margin: '0 auto 24px' }} />
-            <div className="skeleton" style={{ height: 52, borderRadius: 10 }} />
-          </div>
-        </div>
       </div>
     )
   }
 
-  if (tableError) {
+  if (tableError || notFound) {
+    const Icon = tableError ? Database : DoorOpen
     return (
-      <div className="page-fade">
-        <div className="card" style={{ maxWidth: 520, margin: '60px auto', textAlign: 'center', padding: 36 }}>
-          <div style={{ marginBottom: 14, display: 'flex', justifyContent: 'center' }}><Database size={36} color="var(--muted)" /></div>
-          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 10 }}>Database Setup Required</h2>
-          <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.65 }}>
-            The Study Rooms tables don't exist yet. Run the Rooms migration SQL in your Supabase dashboard to get started.
-          </p>
-          <button className="btn btn-ghost" style={{ marginTop: 20 }} onClick={() => navigate('/rooms')}>
-            ← Back to Rooms
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  if (notFound) {
-    return (
-      <div className="page-fade">
-        <div className="card" style={{ maxWidth: 420, margin: '60px auto', textAlign: 'center', padding: 36 }}>
-          <div style={{ marginBottom: 14, display: 'flex', justifyContent: 'center' }}><DoorOpen size={36} color="var(--muted)" /></div>
-          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 10 }}>Room not found</h2>
-          <p style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 20 }}>
-            This room may have been deleted or the link is invalid.
-          </p>
-          <button className="btn btn-ghost" onClick={() => navigate('/rooms')}>
-            ← Back to Rooms
-          </button>
-        </div>
+      <div style={{ maxWidth: 440, margin: '60px auto', textAlign: 'center' }}>
+        <Icon size={16} strokeWidth={1.6} color="var(--muted)" />
+        <h2 style={{ fontSize: 18, marginTop: 12, marginBottom: 8 }}>
+          {tableError ? 'Database setup required' : 'Room not found'}
+        </h2>
+        <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.65 }}>
+          {tableError
+            ? 'The Study Rooms tables don\'t exist yet. Run the Rooms migration SQL in your Supabase dashboard to get started.'
+            : 'This room may have been deleted or the link is invalid.'}
+        </p>
+        <button className="btn btn-ghost" style={{ marginTop: 20 }} onClick={() => navigate('/rooms')}>
+          Back to rooms
+        </button>
       </div>
     )
   }
@@ -531,315 +505,194 @@ export default function RoomDetail() {
   const showReset = !timerRunning && timerSecs < totalSecs && !sessionComplete
 
   return (
-    <div className="page-fade room-detail-grid" style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 20, alignItems: 'start' }}>
-
-      {/* ── LEFT PANEL ── */}
-      <div className="card room-left-panel" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 200px)', padding: 0, overflow: 'hidden' }}>
-
-        {/* Top section */}
-        <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid var(--border)' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
-            <div style={{ fontWeight: 700, fontSize: 18, lineHeight: 1.3 }}>{room?.name}</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-              <span style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 12, fontWeight: 600,
-                background: 'var(--card2)', border: '1px solid var(--border)',
-                borderRadius: 6, padding: '3px 8px', color: 'var(--muted)', letterSpacing: '0.08em',
-              }}>{room?.room_code}</span>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(room?.room_code || '')
-                  toast('Code copied!', 'success')
-                }}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--muted)', padding: 2, display: 'flex',
-                }}
-                title="Copy room code"
-              >
-                <Clipboard size={14} />
-              </button>
-            </div>
-          </div>
-
-          <div style={{ fontSize: 13, color: 'var(--muted)' }}>
+    <div>
+      <header className="page-head" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+        <div style={{ minWidth: 0 }}>
+          <span className="kicker" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            Room · {room?.room_code}
+            <button
+              className="btn-quiet"
+              style={{ padding: 2 }}
+              onClick={() => {
+                navigator.clipboard.writeText(room?.room_code || '')
+                toast('Code copied', 'success')
+              }}
+              title="Copy room code"
+              aria-label="Copy room code"
+            >
+              <Copy size={12} strokeWidth={1.6} />
+            </button>
+          </span>
+          <h1 className="page-title">{room?.name}</h1>
+          <p className="mono" style={{ fontSize: 12.5, display: 'flex', alignItems: 'center', gap: 8 }}>
             <span>{members.length} member{members.length !== 1 ? 's' : ''}</span>
             {focusingCount > 0 && (
-              <span> · <span style={{ color: 'var(--accent)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 3 }}>{focusingCount} focusing now <Flame size={12} /></span></span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text)' }}>
+                <StatusDot on /> {focusingCount} focusing
+              </span>
             )}
-          </div>
-
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '14px 16px',
-            borderRadius: '10px',
-            border: '1px solid rgba(255,255,255,0.07)',
-            background: 'rgba(255,255,255,0.02)',
-            marginTop: '12px'
-          }}>
-            <div style={{ display: 'flex',
-              alignItems: 'center', gap: '10px' }}>
-              <Mic size={18} color="var(--muted)" />
-              <div>
-                <div style={{ fontSize: '13px',
-                  fontWeight: 600, color: 'white' }}>
-                  Voice Chat
-                </div>
-                <div style={{ fontSize: '11px',
-                  color: '#9494a0' }}>
-                  Talk with your room members
-                </div>
-              </div>
-            </div>
-            <span style={{
-              fontSize: '10px',
-              fontWeight: 700,
-              letterSpacing: '1px',
-              color: 'var(--accent)',
-              background: 'rgba(181,242,58,0.1)',
-              border: '1px solid rgba(181,242,58,0.2)',
-              padding: '4px 10px',
-              borderRadius: '20px',
-            }}>
-              COMING V2
-            </span>
-          </div>
+          </p>
         </div>
+        <button className="btn btn-ghost btn-sm" onClick={handleLeave}>
+          <ArrowLeft size={14} strokeWidth={1.6} /> Leave room
+        </button>
+      </header>
 
-        {/* Members list */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px', maxHeight: 300 }}>
-          <div className="label" style={{ marginBottom: 10 }}>Members</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {sortedMembers.map(m => {
-              const isMe = m.user_id === user.id
-              const online = onlineUserIds.has(m.user_id)
-              const color = avatarColor(m.user_id || m.display_name)
-              const dur = m.is_focusing ? focusingDuration(m.focus_start_time) : 0
+      <div className="room-detail-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 48, alignItems: 'start' }}>
 
-              return (
-                <div key={m.id || m.user_id} style={{
-                  display: 'flex', alignItems: 'flex-start', gap: 10,
-                  borderLeft: m.is_focusing ? '2px solid var(--accent)' : '2px solid transparent',
-                  paddingLeft: m.is_focusing ? 8 : 10,
-                  borderRadius: 4,
-                  transition: 'border-color 0.4s ease, padding-left 0.4s ease',
-                }}>
-                  <div style={{ position: 'relative', flexShrink: 0 }}>
-                    <div style={{
-                      width: 28, height: 28, borderRadius: '50%',
-                      background: color,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 11, fontWeight: 700, color: '#0a0a0b',
-                    }}>
-                      {getInitial(m.display_name)}
-                    </div>
-                    <div
-                      className={online ? 'status-dot-online' : ''}
-                      style={{
-                        position: 'absolute', bottom: 0, right: 0,
-                        width: 8, height: 8, borderRadius: '50%',
-                        background: online ? '#4ade80' : 'var(--muted)',
-                        border: '1.5px solid var(--card)',
-                      }}
-                    />
-                  </div>
-
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontWeight: 700, fontSize: 13 }}>{m.display_name}</span>
-                      {isMe && (
-                        <span style={{
-                          fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 20,
-                          background: 'rgba(181,242,58,0.12)', border: '1px solid rgba(181,242,58,0.3)',
-                          color: 'var(--accent)', letterSpacing: '0.05em',
-                        }}>You</span>
-                      )}
-                    </div>
-                    <div style={{ fontSize: 12 }}>
-                      {m.is_focusing ? (
-                        <span style={{ color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)', display: 'inline-block', flexShrink: 0 }} />Focusing — {dur}m</span>
-                      ) : (
-                        <span style={{ color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--muted)', display: 'inline-block', flexShrink: 0 }} />Idle</span>
-                      )}
-                    </div>
-                    {m.current_task && (
-                      <div style={{
-                        fontSize: 12, color: 'var(--muted)', fontStyle: 'italic',
-                        marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      }}>
-                        {m.current_task}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Chat */}
-        <div style={{ borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', height: 240, padding: '12px 14px 14px' }}>
-          <div className="label" style={{ marginBottom: 8 }}>Room Chat</div>
-
-          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 10 }}>
-            {messages.length === 0 && (
-              <div style={{ fontSize: 12, color: 'var(--muted)', fontStyle: 'italic' }}>
-                No messages yet. Say hi!
-              </div>
-            )}
-            {messages.map((msg, i) => {
-              const isOwn = msg.user_id === user.id
-              return (
-                <div key={msg.id || i} style={{
-                  display: 'flex', flexDirection: 'column',
-                  alignItems: isOwn ? 'flex-end' : 'flex-start',
-                }}>
-                  <span style={{
-                    fontSize: 11, fontWeight: 700, marginBottom: 2,
-                    color: isOwn ? 'var(--accent)' : '#60d3f8',
-                  }}>
-                    {msg.display_name}
-                  </span>
-                  <div style={{
-                    maxWidth: '85%',
-                    background: isOwn ? 'rgba(181,242,58,0.1)' : 'rgba(255,255,255,0.05)',
-                    border: `1px solid ${isOwn ? 'rgba(181,242,58,0.2)' : 'rgba(255,255,255,0.08)'}`,
-                    borderRadius: 8, padding: '5px 9px',
-                    fontSize: 13, lineHeight: 1.45,
-                    color: 'var(--text)', wordBreak: 'break-word',
-                  }}>
-                    {msg.message}
-                  </div>
-                  <span style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>
-                    {timeAgo(msg.created_at)}
-                  </span>
-                </div>
-              )
-            })}
-            <div ref={messagesEndRef} />
-          </div>
-
-          <div style={{ display: 'flex', gap: 6 }}>
-            <input
-              placeholder="Send a message..."
-              value={chatInput}
-              onChange={e => setChatInput(e.target.value.slice(0, 2000))}
-              onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
-              style={{ flex: 1, fontSize: 13, padding: '7px 10px' }}
-            />
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={handleSendMessage}
-              disabled={!chatInput.trim() || sendingMsg}
-            >
-              Send
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* ── RIGHT PANEL ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-        {/* Focus Timer Card */}
-        <div className="card" style={{ textAlign: 'center' }}>
-          <div className="label" style={{ marginBottom: 14 }}>Focus Timer</div>
-
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 18 }}>
+        {/* ── Timer + task ── */}
+        <section>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 28 }}>
             {[25, 50, 90].map(len => (
               <button
                 key={len}
-                className={`pill${sessionLen === len ? ' active' : ''}`}
+                className={`pill mono${sessionLen === len ? ' active' : ''}`}
                 onClick={() => handleSessionLenChange(len)}
                 disabled={timerRunning}
-                style={{ opacity: timerRunning ? 0.5 : 1, cursor: timerRunning ? 'not-allowed' : 'pointer' }}
+                style={{ opacity: timerRunning ? 0.4 : 1, cursor: timerRunning ? 'not-allowed' : 'pointer' }}
               >
-                {len} min
+                {len}m
               </button>
             ))}
           </div>
 
-          <div style={{
-            display: 'inline-block', borderRadius: '50%',
-            boxShadow: timerRunning ? '0 0 60px rgba(181,242,58,0.15)' : 'none',
-            transition: 'box-shadow 0.4s ease',
-          }}>
-            <CircularTimer secs={timerSecs} totalSecs={totalSecs} />
-          </div>
+          <CircularTimer secs={timerSecs} totalSecs={totalSecs} running={timerRunning} />
 
-          {sessionComplete ? (
-            <div style={{
-              marginTop: 18, padding: '16px 20px', borderRadius: 12,
-              background: 'rgba(181,242,58,0.12)', border: '1px solid rgba(181,242,58,0.3)',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
-            }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Target size={15} /> Session Complete! {completedLen} min logged
-              </div>
-              <button
-                className="btn btn-accent btn-sm"
-                onClick={() => {
-                  setTimerSecs(sessionLen * 60)
-                  setSessionComplete(false)
-                }}
-              >
-                Start Another →
-              </button>
-            </div>
-          ) : (
-            <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <button
-                className="btn btn-accent btn-full"
-                style={{ height: 52, fontSize: 15, fontWeight: 700 }}
-                onClick={timerRunning ? handlePause : handleStart}
-              >
-                {timerRunning ? 'PAUSE' : 'START'}
-              </button>
-              {showReset && (
-                <button className="btn btn-ghost btn-full" onClick={handleReset}>
-                  Reset
+          <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, minHeight: 44 }}>
+            {sessionComplete ? (
+              <>
+                <span className="mono" style={{ fontSize: 13, color: 'var(--accent)' }}>{completedLen} min logged</span>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => {
+                    setTimerSecs(sessionLen * 60)
+                    setSessionComplete(false)
+                  }}
+                >
+                  Start another
                 </button>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Current Task Card */}
-        <div className="card">
-          <div className="label" style={{ marginBottom: 10 }}>What are you working on?</div>
-          <div style={{ display: 'flex', gap: 6 }}>
-            <input
-              placeholder="e.g. Chapter 4 review, practice problems..."
-              value={taskInput}
-              onChange={e => setTaskInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSetTask()}
-              maxLength={120}
-              style={{ flex: 1, fontSize: 13 }}
-            />
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={handleSetTask}
-              disabled={!taskInput.trim()}
-            >
-              Set
-            </button>
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={handleClearTask}
-              disabled={!currentTask}
-            >
-              ×
-            </button>
+              </>
+            ) : (
+              <>
+                <button
+                  className="btn btn-accent btn-lg"
+                  style={{ minWidth: 140, justifyContent: 'center' }}
+                  onClick={timerRunning ? handlePause : handleStart}
+                >
+                  {timerRunning ? 'Pause' : 'Start'}
+                </button>
+                {showReset && (
+                  <button className="btn btn-ghost btn-lg" onClick={handleReset}>Reset</button>
+                )}
+              </>
+            )}
           </div>
-        </div>
 
-        {/* Leave Room */}
-        <button className="btn btn-ghost" onClick={handleLeave} style={{ alignSelf: 'flex-start' }}>
-          ← Leave Room
-        </button>
+          <div style={{ marginTop: 40, borderTop: '1px solid var(--hairline)', paddingTop: 20 }}>
+            <label className="label" htmlFor="room-task" style={{ display: 'block', marginBottom: 8 }}>Working on</label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                id="room-task"
+                placeholder="e.g. Chapter 4 review"
+                value={taskInput}
+                onChange={e => setTaskInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSetTask()}
+                maxLength={120}
+                style={{ flex: 1, minWidth: 0 }}
+              />
+              <button className="btn btn-ghost" onClick={handleSetTask} disabled={!taskInput.trim()}>Set</button>
+              <button className="btn-quiet" onClick={handleClearTask} disabled={!currentTask} aria-label="Clear task" style={{ opacity: currentTask ? 1 : 0.4 }}>
+                <X size={14} strokeWidth={1.6} />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Presence + chat ── */}
+        <aside style={{ display: 'flex', flexDirection: 'column', gap: 32, minWidth: 0 }}>
+          <section>
+            <div className="label" style={{ marginBottom: 8 }}>Here now</div>
+            <ul style={{ maxHeight: 320, overflowY: 'auto', borderBottom: '1px solid var(--hairline)' }}>
+              <AnimatePresence initial={false}>
+                {sortedMembers.map(m => {
+                  const isMe = m.user_id === user.id
+                  const online = onlineUserIds.has(m.user_id)
+                  const dur = m.is_focusing ? focusingDuration(m.focus_start_time) : 0
+                  const status = m.is_focusing ? `focusing ${dur}m` : online ? 'idle' : 'away'
+
+                  return (
+                    <motion.li
+                      key={m.id || m.user_id}
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={SPRING}
+                      style={{ listStyle: 'none', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderTop: '1px solid var(--hairline)' }}
+                    >
+                      <span className="avatar" style={{ opacity: online || m.is_focusing ? 1 : 0.5 }}>{getInitial(m.display_name)}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                          <span style={{ fontSize: 13.5, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.display_name}</span>
+                          {isMe && <span className="mono" style={{ fontSize: 10.5, color: 'var(--faint)' }}>you</span>}
+                        </div>
+                        {m.current_task && (
+                          <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {m.current_task}
+                          </div>
+                        )}
+                      </div>
+                      <span className="mono" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, flexShrink: 0, color: m.is_focusing ? 'var(--accent)' : 'var(--faint)' }}>
+                        {m.is_focusing && <StatusDot on />}
+                        {status}
+                      </span>
+                    </motion.li>
+                  )
+                })}
+              </AnimatePresence>
+            </ul>
+          </section>
+
+          <section style={{ display: 'flex', flexDirection: 'column' }}>
+            <div className="label" style={{ marginBottom: 8 }}>Chat</div>
+            <div style={{ height: 260, overflowY: 'auto', borderTop: '1px solid var(--hairline)', padding: '4px 0 8px' }}>
+              {messages.length === 0 && (
+                <div style={{ fontSize: 13, color: 'var(--faint)', padding: '12px 0' }}>No messages yet.</div>
+              )}
+              {messages.map((msg, i) => {
+                const isOwn = msg.user_id === user.id
+                return (
+                  <div key={msg.id || i} style={{ padding: '8px 0' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 500, color: isOwn ? 'var(--muted)' : 'var(--text)' }}>
+                        {isOwn ? 'You' : msg.display_name}
+                      </span>
+                      <span className="mono" style={{ fontSize: 10.5, color: 'var(--faint)' }}>{timeAgo(msg.created_at)}</span>
+                    </div>
+                    <div style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--text)', wordBreak: 'break-word', marginTop: 2 }}>
+                      {msg.message}
+                    </div>
+                  </div>
+                )
+              })}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, borderTop: '1px solid var(--hairline)', paddingTop: 12 }}>
+              <input
+                placeholder="Message"
+                aria-label="Chat message"
+                value={chatInput}
+                onChange={e => setChatInput(e.target.value.slice(0, 2000))}
+                onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
+                style={{ flex: 1, minWidth: 0 }}
+              />
+              <button className="btn btn-ghost" onClick={handleSendMessage} disabled={!chatInput.trim() || sendingMsg}>
+                Send
+              </button>
+            </div>
+          </section>
+        </aside>
       </div>
     </div>
   )

@@ -1,7 +1,12 @@
 import { createContext, useContext, useState, useCallback } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Check, X, Info } from 'lucide-react'
 
 const ToastContext = createContext(null)
+
+const ICONS = { success: Check, error: X, info: Info }
+const ICON_COLORS = { success: 'var(--accent)', error: 'var(--red)', info: 'var(--muted)' }
+const SPRING = { type: 'spring', stiffness: 500, damping: 40 }
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([])
@@ -9,49 +14,50 @@ export function ToastProvider({ children }) {
   const addToast = useCallback((message, type = 'success', duration = 4000) => {
     const id = Date.now() + Math.random()
     setToasts(prev => [...prev, { id, message, type }])
-    setTimeout(() => {
-      setToasts(prev => prev.map(t => t.id === id ? { ...t, leaving: true } : t))
-      setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 350)
-    }, duration)
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), duration)
   }, [])
-
-  const icons = { success: Check, error: X, info: Info }
-  const colors = {
-    success: { bg: 'rgba(181,242,58,0.12)', border: 'rgba(181,242,58,0.3)', icon: '#b5f23a' },
-    error:   { bg: 'rgba(242,90,90,0.12)',  border: 'rgba(242,90,90,0.3)',  icon: '#f25a5a' },
-    info:    { bg: 'rgba(96,211,248,0.12)', border: 'rgba(96,211,248,0.3)', icon: '#60d3f8' },
-  }
 
   return (
     <ToastContext.Provider value={addToast}>
       {children}
-      <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {toasts.map(t => {
-          const c = colors[t.type] || colors.success
-          return (
-            <div key={t.id} style={{
-              background: 'rgba(20,20,23,0.82)',
-              border: '1px solid var(--border)',
-              borderLeft: `2px solid ${c.icon}`,
-              borderRadius: 'var(--radius-md)', padding: '12px 16px',
-              display: 'flex', alignItems: 'center', gap: 11,
-              fontSize: 14, color: 'var(--text)', letterSpacing: '-0.005em',
-              minWidth: 260, maxWidth: 'min(360px, calc(100vw - 48px))',
-              backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-              animation: t.leaving ? 'slideOutRight 0.35s ease forwards' : 'slideInRight 0.3s var(--ease-out)',
-              boxShadow: 'var(--shadow-lg)',
-            }}>
-              <span style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                width: 24, height: 24, borderRadius: 7, flexShrink: 0,
-                background: c.bg, border: `1px solid ${c.border}`,
-              }}>
-                {(() => { const Icon = icons[t.type] || Check; return <Icon size={14} color={c.icon} strokeWidth={2.5} /> })()}
-              </span>
-              <span>{t.message}</span>
-            </div>
-          )
-        })}
+      <div
+        role="status"
+        aria-live="polite"
+        style={{
+          position: 'fixed', left: '50%', transform: 'translateX(-50%)',
+          bottom: 'var(--toast-bottom)', zIndex: 9999,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+          width: 'max-content', maxWidth: 'calc(100vw - 32px)', pointerEvents: 'none',
+        }}
+      >
+        <AnimatePresence initial={false}>
+          {toasts.map(t => {
+            const Icon = ICONS[t.type] || Check
+            return (
+              <motion.div
+                key={t.id}
+                layout
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 6 }}
+                transition={SPRING}
+                style={{
+                  background: 'var(--surface-3)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-full)',
+                  padding: '8px 16px 8px 12px',
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  fontSize: 13, color: 'var(--text)',
+                  boxShadow: 'var(--shadow-lg)',
+                  pointerEvents: 'auto',
+                }}
+              >
+                <Icon size={14} strokeWidth={1.6} color={ICON_COLORS[t.type] || ICON_COLORS.info} style={{ flexShrink: 0 }} />
+                <span>{t.message}</span>
+              </motion.div>
+            )
+          })}
+        </AnimatePresence>
       </div>
     </ToastContext.Provider>
   )

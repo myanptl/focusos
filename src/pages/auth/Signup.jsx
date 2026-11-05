@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
-import { Mail } from 'lucide-react'
-import LogoIcon from '../../components/LogoIcon'
+import AuthLayout from '../../components/AuthLayout'
 
 function GoogleIcon() {
   return (
@@ -24,9 +23,9 @@ function passwordStrength(pwd) {
   if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score++
   if (/\d/.test(pwd)) score++
   if (/[^A-Za-z0-9]/.test(pwd)) score++
-  if (score <= 2) return { score, label: 'Weak',   color: '#f25a5a', pct: 33 }
-  if (score <= 3) return { score, label: 'Fair',   color: '#f2c75a', pct: 66 }
-  return              { score, label: 'Strong', color: '#b5f23a', pct: 100 }
+  if (score <= 2) return { score, label: 'Weak',   color: 'var(--red)', pct: 33 }
+  if (score <= 3) return { score, label: 'Fair',   color: 'var(--amber)', pct: 66 }
+  return              { score, label: 'Strong', color: 'var(--accent)', pct: 100 }
 }
 
 export default function Signup() {
@@ -65,51 +64,36 @@ export default function Signup() {
   }
 
   async function handleGoogle() {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin + '/timer' },
-    })
+    setError('')
+    try {
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin + '/timer' },
+      })
+      if (oauthError) throw oauthError
+    } catch (err) {
+      setError(friendlyError(err.message || 'Google sign-in is unavailable right now.'))
+    }
   }
 
   if (success) return (
-    <div className="auth-screen" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div style={{ textAlign: 'center', maxWidth: 400 }}>
-        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}><Mail size={56} color="var(--accent)" /></div>
-        <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 10 }}>Check your email</h2>
-        <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.6 }}>
-          We sent a confirmation link to <strong style={{ color: 'var(--text)' }}>{email}</strong>.
-          Click it to activate your account, then come back and sign in.
-        </p>
-        <Link to="/login" className="btn btn-accent btn-lg" style={{ marginTop: 24, display: 'inline-flex', textDecoration: 'none' }}>
-          Go to Sign In
-        </Link>
-      </div>
-    </div>
+    <AuthLayout title="Check your email" subtitle={`We sent a confirmation link to ${email}. Open it, then sign in.`}>
+      <Link to="/login" className="btn btn-accent btn-full btn-lg" style={{ textDecoration: 'none' }}>Go to sign in</Link>
+    </AuthLayout>
   )
 
   return (
-    <div className="auth-screen" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div style={{ width: '100%', maxWidth: 400 }}>
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <LogoIcon size={56} style={{ marginBottom: 14 }} />
-          <div className="auth-wordmark">FOCUSOS</div>
-          <p style={{ color: 'var(--muted)', fontSize: 14 }}>Create your account to get started</p>
-        </div>
-
-        <div className="card" style={{ padding: 28 }}>
-          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 20, letterSpacing: '-0.01em' }}>Create account</h2>
-
+    <AuthLayout title="Create your account" subtitle="Free. Takes about a minute.">
           {/* Google OAuth */}
           <button onClick={handleGoogle} style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            gap: 10, padding: '13px 16px', borderRadius: 8, cursor: 'pointer',
-            background: '#ffffff', color: '#1f1f1f',
-            border: '1px solid rgba(255,255,255,0.15)',
-            fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 600,
+            gap: 10, height: 44, borderRadius: 6, cursor: 'pointer',
+            background: '#ffffff', color: '#111', border: 'none',
+            fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500,
             transition: 'background 0.15s',
             marginBottom: 16,
           }}
-            onMouseEnter={e => e.currentTarget.style.background = '#f5f5f5'}
+            onMouseEnter={e => e.currentTarget.style.background = '#e9e9ea'}
             onMouseLeave={e => e.currentTarget.style.background = '#ffffff'}
           >
             <GoogleIcon />
@@ -188,10 +172,8 @@ export default function Signup() {
 
           <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--muted)', marginTop: 18 }}>
             Already have an account?{' '}
-            <Link to="/login" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}>Sign in</Link>
+            <Link to="/login" style={{ color: 'var(--text)', textDecoration: 'underline', textUnderlineOffset: 3 }}>Sign in</Link>
           </p>
-        </div>
-      </div>
-    </div>
+    </AuthLayout>
   )
 }

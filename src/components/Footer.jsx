@@ -1,46 +1,29 @@
 import { Link } from 'react-router-dom'
 
-const footerLinkStyle = {
-  color: 'var(--muted)',
-  textDecoration: 'none',
-  transition: 'color 0.15s',
-}
-
-function FooterLink({ to, children }) {
-  return (
-    <Link
-      to={to}
-      style={footerLinkStyle}
-      onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)' }}
-      onMouseLeave={e => { e.currentTarget.style.color = 'var(--muted)' }}
-    >
-      {children}
-    </Link>
-  )
-}
+const LINKS = [
+  { to: '/privacy', label: 'Privacy' },
+  { to: '/terms', label: 'Terms' },
+  { to: '/support', label: 'Support' },
+]
 
 export default function Footer() {
   return (
     <footer style={{
-      borderTop: '1px solid var(--border)',
-      padding: '16px 24px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '6px',
-      fontSize: '12px',
-      color: 'var(--muted)',
-      flexWrap: 'wrap',
-      textAlign: 'center',
+      borderTop: '1px solid var(--hairline)',
+      padding: '16px clamp(16px, 4vw, 40px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      gap: 16, flexWrap: 'wrap',
+      fontSize: 12, color: 'var(--faint)',
       marginTop: 'auto',
     }}>
-      <span>© 2026 FocusOS. All rights reserved.</span>
-      <span style={{ color: 'var(--border)' }}>·</span>
-      <FooterLink to="/privacy">Privacy Policy</FooterLink>
-      <span style={{ color: 'var(--border)' }}>·</span>
-      <FooterLink to="/terms">Terms of Service</FooterLink>
-      <span style={{ color: 'var(--border)' }}>·</span>
-      <FooterLink to="/support">Support</FooterLink>
+      <span className="mono">© 2026 FocusOS</span>
+      <nav style={{ display: 'flex', gap: 20 }}>
+        {LINKS.map(l => (
+          <Link key={l.to} to={l.to} className="btn-quiet" style={{ padding: 0, fontSize: 12, textDecoration: 'none' }}>
+            {l.label}
+          </Link>
+        ))}
+      </nav>
     </footer>
   )
 }

@@ -5,28 +5,18 @@ export default function NotFound() {
   const navigate = useNavigate()
   return (
     <div style={{
-      minHeight: '100vh', background: '#0a0a0b',
+      minHeight: '100dvh', background: 'var(--bg)', padding: 24,
       display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center', gap: 16,
+      alignItems: 'center', justifyContent: 'center', textAlign: 'center',
     }}>
-      <LogoIcon size={48} />
-      <div style={{
-        fontFamily: "'Bebas Neue', sans-serif",
-        fontSize: 120, color: 'var(--accent)',
-        lineHeight: 1, letterSpacing: 4,
-      }}>404</div>
-      <div style={{ fontSize: 18, fontWeight: 600, color: 'white' }}>Page not found</div>
-      <div style={{ fontSize: 14, color: 'var(--muted)' }}>That URL doesn't exist in FocusOS.</div>
-      <button
-        onClick={() => navigate('/')}
-        style={{
-          marginTop: 8, background: 'var(--accent)', color: '#000',
-          border: 'none', padding: '12px 28px', borderRadius: 8,
-          fontWeight: 700, fontSize: 14, cursor: 'pointer',
-          fontFamily: "'Outfit', sans-serif",
-        }}
-      >
-        Go Home
+      <LogoIcon size={22} />
+      <span className="kicker" style={{ marginTop: 28 }}>Error · 404</span>
+      <h1 className="page-title">Page not found</h1>
+      <p style={{ color: 'var(--muted)', marginTop: 8, maxWidth: '40ch' }}>
+        That URL doesn&apos;t exist in FocusOS.
+      </p>
+      <button className="btn btn-ghost" style={{ marginTop: 28 }} onClick={() => navigate('/')}>
+        Go home
       </button>
     </div>
   )

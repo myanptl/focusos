@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
-import { X, Calendar, Pencil, Plus } from 'lucide-react'
+import { X, Plus } from 'lucide-react'
 
-const TEST_COLORS = { SAT: 'var(--purple)', ACT: 'var(--amber)', AP: 'var(--accent)' }
+const SPRING = { type: 'spring', stiffness: 500, damping: 40 }
 
 function daysUntil(dateStr) {
   if (!dateStr) return null
@@ -21,6 +21,8 @@ function sessionsNeeded(current, target, daysLeft) {
   const sessionsTotal = Math.ceil((gap / (target * 0.01)) * 10)
   return Math.ceil(sessionsTotal / weeksLeft)
 }
+
+const fieldLabel = { display: 'block', marginBottom: 6 }
 
 export default function Goals() {
   const { user } = useAuth()
@@ -74,7 +76,7 @@ export default function Goals() {
     }).select().single()
     if (!error) {
       setGoals(prev => [data, ...prev])
-      toast('Goal added!', 'success')
+      toast('Goal added', 'success')
     }
     setSaving(false)
     setShowModal(false)
@@ -84,7 +86,7 @@ export default function Goals() {
     const { error } = await supabase.from('score_goals').update({ current_score: Number(score) }).eq('id', goalId)
     if (!error) {
       setGoals(prev => prev.map(g => g.id === goalId ? { ...g, current_score: Number(score) } : g))
-      toast('Score updated!', 'success')
+      toast('Score updated', 'success')
     }
     setEditingScore({})
   }
@@ -97,188 +99,63 @@ export default function Goals() {
 
   return (
     <>
-      <div className="page-fade" style={{ background: 'transparent' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <span className="v3-kicker">Plan backwards · From test day</span>
-        <h1 className="page-title"><span className="pt-inner">Score Goals<span className="v3-dot">.</span></span></h1>
-        <button className="btn btn-accent" onClick={openModal}>
-          <Plus size={14} />Add Goal
-        </button>
-      </div>
+      <header className="page-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
+        <div>
+          <h1 className="page-title">Goals</h1>
+          <p>Work backwards from test day.</p>
+        </div>
+        {goals.length > 0 && (
+          <button className="btn btn-accent" onClick={openModal}>
+            <Plus size={14} strokeWidth={1.6} />Add goal
+          </button>
+        )}
+      </header>
 
-      {loading && <div style={{ textAlign: 'center', padding: 48, color: 'var(--muted)' }}>Loading goals...</div>}
+      {loading && <div style={{ padding: '48px 0', color: 'var(--muted)', fontSize: 13 }}>Loading goals…</div>}
 
       {!loading && goals.length === 0 && (
-        <div className="card" style={{ textAlign: 'center', padding: 48, border: '1px dashed rgba(255,255,255,0.1)' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
-            <svg viewBox="0 0 120 120" width="112" height="112">
-              {/* Outer marching-ants ring */}
-              <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(181,242,58,0.15)" strokeWidth="1.5" strokeDasharray="8 5">
-                <animateTransform attributeName="transform" type="rotate" from="0 60 60" to="360 60 60" dur="22s" repeatCount="indefinite"/>
-              </circle>
-              {/* Middle ring */}
-              <circle cx="60" cy="60" r="40" fill="none" stroke="rgba(181,242,58,0.12)" strokeWidth="1.5"/>
-              {/* Inner ring — slow pulse */}
-              <circle cx="60" cy="60" r="26" fill="none" stroke="rgba(181,242,58,0.22)" strokeWidth="1.5">
-                <animate attributeName="r" values="25;28;25" dur="3s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0.5;1;0.5" dur="3s" repeatCount="indefinite"/>
-              </circle>
-              {/* Bullseye */}
-              <circle cx="60" cy="60" r="10" fill="rgba(181,242,58,0.15)" stroke="rgba(181,242,58,0.55)" strokeWidth="1.5">
-                <animate attributeName="r" values="9;12;9" dur="2.2s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0.7;1;0.7" dur="2.2s" repeatCount="indefinite"/>
-              </circle>
-              {/* Crosshairs — top */}
-              <line x1="60" y1="4" x2="60" y2="30" stroke="rgba(181,242,58,0.28)" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="4 3"/>
-              {/* Crosshairs — bottom */}
-              <line x1="60" y1="90" x2="60" y2="116" stroke="rgba(181,242,58,0.28)" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="4 3"/>
-              {/* Crosshairs — left */}
-              <line x1="4" y1="60" x2="30" y2="60" stroke="rgba(181,242,58,0.28)" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="4 3"/>
-              {/* Crosshairs — right */}
-              <line x1="90" y1="60" x2="116" y2="60" stroke="rgba(181,242,58,0.28)" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="4 3"/>
-            </svg>
-          </div>
-          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>No goals yet</h3>
-          <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 20 }}>Set your first score goal and FocusOS will build your study plan.</p>
-          <button className="btn btn-accent" onClick={openModal}>Add Your First Goal</button>
+        <div style={{ borderTop: '1px solid var(--hairline)', borderBottom: '1px solid var(--hairline)', padding: '48px 0' }}>
+          <div style={{ fontSize: 15, fontWeight: 500, marginBottom: 6 }}>No goals yet</div>
+          <p style={{ color: 'var(--muted)', fontSize: 13.5, marginBottom: 20, maxWidth: '48ch' }}>
+            Set a target score and a test date. FocusOS works out how many sessions a week it takes.
+          </p>
+          <button className="btn btn-accent" onClick={openModal}><Plus size={14} strokeWidth={1.6} />Add your first goal</button>
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {goals.map(goal => {
-          const days = daysUntil(goal.test_date)
-          const pct = goal.current_score && goal.target_score
-            ? Math.min(100, Math.round((goal.current_score / goal.target_score) * 100))
-            : 0
-          const color = TEST_COLORS[goal.test_type] || 'var(--accent)'
-          const spw = sessionsNeeded(goal.current_score, goal.target_score, days)
-          const dayColor = days !== null ? (days < 14 ? 'var(--red)' : days < 60 ? 'var(--amber)' : 'var(--muted)') : 'var(--muted)'
+      {goals.length > 0 && (
+        <ul style={{ listStyle: 'none', borderBottom: '1px solid var(--hairline)' }}>
+          <AnimatePresence initial={false}>
+            {goals.map(goal => (
+              <GoalRow
+                key={goal.id}
+                goal={goal}
+                editingValue={editingScore[goal.id]}
+                onEditStart={() => setEditingScore(prev => ({ ...prev, [goal.id]: goal.current_score || '' }))}
+                onEditChange={v => setEditingScore(prev => ({ ...prev, [goal.id]: v }))}
+                onEditCommit={() => updateCurrentScore(goal.id, editingScore[goal.id])}
+                onDelete={() => deleteGoal(goal.id)}
+              />
+            ))}
+          </AnimatePresence>
+        </ul>
+      )}
 
-          return (
-            <div key={goal.id} className="card card-top">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{
-                    padding: '4px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700,
-                    background: `${color}22`, color,
-                  }}>{goal.test_type}</span>
-                  <span style={{ fontWeight: 600, fontSize: 16 }}>{goal.subject}</span>
-                </div>
-                <button onClick={() => deleteGoal(goal.id)} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', display: 'flex' }}><X size={18} /></button>
-              </div>
-
-              <div style={{ display: 'flex', gap: 20, marginBottom: 14, flexWrap: 'wrap' }}>
-                <div>
-                  <div className="label" style={{ marginBottom: 4 }}>Current</div>
-                  {editingScore[goal.id] !== undefined ? (
-                    <input
-                      type="number"
-                      value={editingScore[goal.id]}
-                      onChange={e => setEditingScore(prev => ({ ...prev, [goal.id]: e.target.value }))}
-                      onBlur={() => updateCurrentScore(goal.id, editingScore[goal.id])}
-                      onKeyDown={e => e.key === 'Enter' && updateCurrentScore(goal.id, editingScore[goal.id])}
-                      autoFocus
-                      style={{ width: 80, padding: '4px 8px', fontSize: 16 }}
-                    />
-                  ) : (
-                    <div
-                      style={{ fontSize: 22, fontWeight: 700, color, cursor: 'pointer' }}
-                      onClick={() => setEditingScore(prev => ({ ...prev, [goal.id]: goal.current_score || '' }))}
-                      title="Click to edit"
-                    >
-                      {goal.current_score ?? '—'} <Pencil size={12} color="var(--muted)" style={{ display: 'inline', verticalAlign: 'middle' }} />
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <div className="label" style={{ marginBottom: 4 }}>Target</div>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)' }}>{goal.target_score}</div>
-                </div>
-                {days !== null && (
-                  <div>
-                    <div className="label" style={{ marginBottom: 4 }}>Test Date</div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: dayColor }}>{days > 0 ? `${days}d left` : 'Today!'}</div>
-                  </div>
-                )}
-              </div>
-
-              {goal.current_score && (
-                <>
-                  <div className="progress-bar" style={{ marginBottom: 6 }}>
-                    <div className="progress-bar-fill" style={{ width: `${pct}%`, background: color }} />
-                  </div>
-                  <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 10 }}>{pct}% of the way to your goal</div>
-                </>
-              )}
-
-              {spw && (
-                <div style={{ fontSize: 13, color: 'var(--muted)', background: 'var(--card2)', borderRadius: 8, padding: '8px 12px' }}>
-                  <Calendar size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Study plan: <strong style={{ color: 'var(--text)' }}>{spw} sessions/week</strong> to reach your goal by {new Date(goal.test_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                </div>
-              )}
+      {showModal && (
+        <div className="modal-backdrop" onClick={e => { if (e.target === e.currentTarget) setShowModal(false) }}>
+          <div className="modal goal-modal" role="dialog" aria-modal="true" aria-labelledby="goal-modal-title">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <h2 id="goal-modal-title" style={{ fontSize: 16, fontWeight: 600 }}>New score goal</h2>
+              <button className="btn-quiet" onClick={() => setShowModal(false)} aria-label="Close"><X size={16} strokeWidth={1.6} /></button>
             </div>
-          )
-        })}
-      </div>
-    </div>
 
-    <AnimatePresence>
-    {showModal && (
-        <motion.div
-          key="goal-modal-bg"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          transition={{ duration: 0.18 }}
-          onClick={e => { if (e.target === e.currentTarget) setShowModal(false) }}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.75)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingTop: '80px',
-            paddingBottom: '40px',
-            zIndex: 9999,
-          }}
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.93, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 38 }}
-            className="goal-modal"
-            style={{
-              background: 'var(--card)',
-              border: '1px solid rgba(255,255,255,0.07)',
-              borderRadius: '16px',
-              padding: '32px',
-              width: '440px',
-              maxWidth: '92vw',
-              maxHeight: 'calc(100dvh - 100px)',
-              overflowY: 'auto',
-              position: 'relative',
-              boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
-            }}>
-            <button
-              onClick={() => setShowModal(false)}
-              style={{
-                position: 'absolute', top: 16, right: 16,
-                background: 'none', border: 'none',
-                color: 'var(--muted)',
-                cursor: 'pointer', display: 'flex',
-              }}
-            ><X size={20} /></button>
-
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: 'white', marginBottom: 24 }}>Add Score Goal</h2>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
-                <label className="label" style={{ display: 'block', marginBottom: 6 }}>Test Type</label>
+                <span className="label" style={fieldLabel}>Test</span>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {['SAT', 'ACT', 'AP'].map(t => (
                     <button key={t} className={`pill ${testType === t ? 'active' : ''}`}
-                      onClick={() => setTestType(t)} style={{ flex: 1, textAlign: 'center' }}>
+                      onClick={() => setTestType(t)} style={{ flex: 1 }}>
                       {t}
                     </button>
                   ))}
@@ -287,44 +164,114 @@ export default function Goals() {
 
               {testType === 'AP' && (
                 <div>
-                  <label className="label" style={{ display: 'block', marginBottom: 6 }}>Subject</label>
-                  <input type="text" placeholder="e.g. AP Calculus BC" value={subject} onChange={e => setSubject(e.target.value)} />
+                  <label className="label" style={fieldLabel} htmlFor="goal-subject">Subject</label>
+                  <input id="goal-subject" type="text" placeholder="e.g. AP Calculus BC" value={subject} onChange={e => setSubject(e.target.value)} />
                 </div>
               )}
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
-                  <label className="label" style={{ display: 'block', marginBottom: 6 }}>Current Score</label>
-                  <input type="number"
+                  <label className="label" style={fieldLabel} htmlFor="goal-current">Current</label>
+                  <input id="goal-current" type="number" className="mono"
                     placeholder={testType === 'SAT' ? '1000' : testType === 'ACT' ? '22' : '3'}
                     value={modalCurrent} onChange={e => setModalCurrent(e.target.value)} />
                 </div>
                 <div>
-                  <label className="label" style={{ display: 'block', marginBottom: 6 }}>Target Score</label>
-                  <input type="number"
+                  <label className="label" style={fieldLabel} htmlFor="goal-target">Target</label>
+                  <input id="goal-target" type="number" className="mono"
                     placeholder={testType === 'SAT' ? '1500' : testType === 'ACT' ? '32' : '5'}
                     value={modalTarget} onChange={e => setModalTarget(e.target.value)} />
                 </div>
               </div>
 
               <div>
-                <label className="label" style={{ display: 'block', marginBottom: 6 }}>Test Date</label>
-                <input type="date" value={modalDate} onChange={e => setModalDate(e.target.value)} />
-              </div>
-
-              <div className="research-callout">
-                <strong>Implementation intentions</strong> — writing down when and where you'll study
-                increases follow-through by up to 3x. [<em>Gollwitzer, 1999</em>]
+                <label className="label" style={fieldLabel} htmlFor="goal-date">Test date</label>
+                <input id="goal-date" type="date" value={modalDate} onChange={e => setModalDate(e.target.value)} />
               </div>
 
               <button className="btn btn-accent btn-full" onClick={handleSave} disabled={saving || !modalTarget}>
-                {saving ? 'Saving...' : 'Add Goal'}
+                {saving ? 'Saving…' : 'Add goal'}
               </button>
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
-    </AnimatePresence>
     </>
+  )
+}
+
+function GoalRow({ goal, editingValue, onEditStart, onEditChange, onEditCommit, onDelete }) {
+  const days = daysUntil(goal.test_date)
+  const pct = goal.current_score && goal.target_score
+    ? Math.min(100, Math.round((goal.current_score / goal.target_score) * 100))
+    : 0
+  const spw = sessionsNeeded(goal.current_score, goal.target_score, days)
+  const dayColor = days !== null && days < 14 ? 'var(--red)' : days !== null && days < 60 ? 'var(--amber)' : 'var(--muted)'
+  const isEditing = editingValue !== undefined
+
+  return (
+    <motion.li
+      layout
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={SPRING}
+      style={{ borderTop: '1px solid var(--hairline)', padding: '20px 0' }}
+    >
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+        <span className="mono" style={{ fontSize: 11, letterSpacing: '0.08em', color: 'var(--muted)', minWidth: 30 }}>{goal.test_type}</span>
+        <span style={{ fontWeight: 500, fontSize: 14.5, flex: '1 1 140px', minWidth: 0 }}>{goal.subject}</span>
+        {days !== null && (
+          <span className="mono" style={{ fontSize: 12, color: dayColor }}>
+            {days > 0 ? `${days}d left` : 'Test day'}
+          </span>
+        )}
+        <button className="btn-quiet" onClick={onDelete} aria-label={`Remove ${goal.subject} goal`} style={{ alignSelf: 'center' }}>
+          <X size={14} strokeWidth={1.6} />
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '12px 0 12px 42px', flexWrap: 'wrap' }}>
+        {isEditing ? (
+          <input
+            type="number"
+            className="mono"
+            aria-label="Current score"
+            value={editingValue}
+            onChange={e => onEditChange(e.target.value)}
+            onBlur={onEditCommit}
+            onKeyDown={e => e.key === 'Enter' && onEditCommit()}
+            autoFocus
+            style={{ width: 96, padding: '4px 8px', fontSize: 16 }}
+          />
+        ) : (
+          <button
+            onClick={onEditStart}
+            title="Edit current score"
+            className="num"
+            style={{ background: 'none', border: 'none', borderBottom: '1px dashed var(--border-strong)', color: 'var(--text)', fontSize: 22, cursor: 'pointer', padding: 0 }}
+          >
+            {goal.current_score ?? '—'}
+          </button>
+        )}
+        <span className="mono" style={{ color: 'var(--faint)', fontSize: 14 }}>→</span>
+        <span className="num" style={{ fontSize: 22, color: 'var(--muted)' }}>{goal.target_score}</span>
+      </div>
+
+      <div style={{ marginLeft: 42 }}>
+        <div className="progress-bar">
+          <div className="progress-bar-fill" style={{ width: `${pct}%` }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginTop: 8, fontSize: 12, color: 'var(--muted)' }}>
+          <span className="mono">{goal.current_score ? `${pct}%` : 'Set a current score'}</span>
+          {spw && (
+            <span>
+              <span className="mono" style={{ color: 'var(--text)' }}>{spw}</span> sessions/week until{' '}
+              {new Date(goal.test_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </span>
+          )}
+        </div>
+      </div>
+    </motion.li>
   )
 }

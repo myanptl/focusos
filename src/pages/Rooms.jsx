@@ -3,19 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { supabase } from '../lib/supabase'
-import { X, Database, Trash2, Flame } from 'lucide-react'
-
-const AVATAR_COLORS = ['#b5f23a', '#60d3f8', '#a78bfa', '#fb923c', '#f472b6', '#4ade80']
-
-function avatarColor(str = '') {
-  let h = 0
-  for (const c of str) h = c.charCodeAt(0) + ((h << 5) - h)
-  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]
-}
-
-function getInitial(name = '') {
-  return (name.trim()[0] || '?').toUpperCase()
-}
+import { AnimatePresence, motion } from 'framer-motion'
+import { X, Database, Trash2, ArrowRight } from 'lucide-react'
 
 function isOnline(last_seen) {
   if (!last_seen) return false
@@ -39,12 +28,7 @@ function generateRoomCode() {
   return out.join('')
 }
 
-function getRoomGradient(name = '') {
-  if (name === 'SAT Prep Squad') return 'linear-gradient(135deg, rgba(181,242,58,0.22) 0%, rgba(10,10,11,0) 80%)'
-  if (name === 'AP Gauntlet')    return 'linear-gradient(135deg, rgba(96,211,248,0.20) 0%, rgba(10,10,11,0) 80%)'
-  if (name === 'General Focus')  return 'linear-gradient(135deg, rgba(168,139,250,0.20) 0%, rgba(10,10,11,0) 80%)'
-  return 'linear-gradient(135deg, rgba(181,242,58,0.14) 0%, rgba(10,10,11,0) 80%)'
-}
+const SPRING = { type: 'spring', stiffness: 500, damping: 40 }
 
 export default function Rooms() {
   const { user, profile } = useAuth()
@@ -56,7 +40,6 @@ export default function Rooms() {
   const [tableError, setTableError] = useState(false)
 
   const [createOpen, setCreateOpen] = useState(false)
-  const [joinOpen, setJoinOpen] = useState(false)
 
   const [roomName, setRoomName] = useState('')
   const [roomDesc, setRoomDesc] = useState('')
@@ -67,7 +50,6 @@ export default function Rooms() {
 
   const [joinCode, setJoinCode] = useState('')
   const [joining, setJoining] = useState(false)
-  const [hoveredRoom, setHoveredRoom] = useState(null)
 
   useEffect(() => {
     loadRooms()
@@ -169,29 +151,26 @@ export default function Rooms() {
       return
     }
 
-    setJoinOpen(false)
     setJoinCode('')
     navigate(`/rooms/${data.id}`)
   }
 
   if (loading) {
     return (
-      <div className="page-fade" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
-        <span className="spinner" style={{ width: 32, height: 32 }} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
+        <span className="spinner" />
       </div>
     )
   }
 
   if (tableError) {
     return (
-      <div className="page-fade">
-        <div className="card" style={{ maxWidth: 520, margin: '60px auto', textAlign: 'center', padding: 36 }}>
-          <div style={{ marginBottom: 14, display: 'flex', justifyContent: 'center' }}><Database size={36} color="var(--muted)" /></div>
-          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 10 }}>Database Setup Required</h2>
-          <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.65 }}>
-            The Study Rooms tables don't exist yet. Run the Rooms migration SQL in your Supabase dashboard to get started.
-          </p>
-        </div>
+      <div style={{ maxWidth: 480, margin: '60px auto', textAlign: 'center' }}>
+        <Database size={16} strokeWidth={1.6} color="var(--muted)" />
+        <h2 style={{ fontSize: 18, marginTop: 12, marginBottom: 8 }}>Database setup required</h2>
+        <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.65 }}>
+          The Study Rooms tables don&apos;t exist yet. Run the Rooms migration SQL in your Supabase dashboard to get started.
+        </p>
       </div>
     )
   }
@@ -199,198 +178,129 @@ export default function Rooms() {
   const publicRooms = rooms.filter(r => r.created_by === 'system')
   const yourRooms = rooms.filter(r => r.created_by === user?.id)
 
-  function renderRoomCard(room, showDelete) {
-    const members = room.room_members || []
-    const onlineMembers = members.filter(m => isOnline(m.last_seen))
+  function openCreate() {
+    setRoomName(''); setRoomDesc(''); setIsPublic(true); setMaxMembers(20); setCreateError(''); setCreateOpen(true)
+  }
+
+  function renderRoomRow(room, showDelete) {
+    const onlineMembers = (room.room_members || []).filter(m => isOnline(m.last_seen))
     const focusingCount = onlineMembers.filter(m => m.is_focusing).length
     const onlineCount = onlineMembers.length
-    const displayMembers = onlineMembers.slice(0, 5)
-    const extraCount = onlineMembers.length - displayMembers.length
 
     return (
-      <div
+      <motion.li
         key={room.id}
-        className="card"
-        style={{
-          display: 'flex', flexDirection: 'column', position: 'relative',
-          padding: 0, overflow: 'hidden',
-          transform: hoveredRoom === room.id ? 'translateY(-4px)' : 'translateY(0)',
-          boxShadow: hoveredRoom === room.id ? '0 16px 48px rgba(0,0,0,0.5)' : '0 4px 16px rgba(0,0,0,0.22)',
-          transition: 'transform 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out)',
-          cursor: 'default',
-        }}
-        onMouseEnter={() => setHoveredRoom(room.id)}
-        onMouseLeave={() => setHoveredRoom(null)}
+        layout
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={SPRING}
+        style={{ listStyle: 'none', borderTop: '1px solid var(--hairline)', display: 'flex', alignItems: 'center', gap: 12 }}
       >
-        <div style={{
-          height: 80,
-          background: getRoomGradient(room.name),
-          padding: '12px 18px',
-          display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-          position: 'relative',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
-        }}>
-          {showDelete && hoveredRoom === room.id && (
-            <button
-              onClick={e => { e.stopPropagation(); handleDeleteRoom(room.id) }}
-              style={{
-                position: 'absolute', top: 10, right: 10,
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: 'var(--muted)', padding: 4, display: 'flex',
-              }}
-              title="Delete room"
-            >
-              <Trash2 size={15} />
-            </button>
-          )}
-          <div style={{ fontWeight: 700, fontSize: 15 }}>{room.name}</div>
-          {room.description && (
-            <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.4, marginTop: 2 }}>{room.description}</div>
-          )}
-        </div>
-
-        <div style={{ padding: '14px 18px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              {displayMembers.map((m, i) => {
-                const key = m.user_id || m.display_name || String(i)
-                const color = avatarColor(key)
-                return (
-                  <div key={key + i} style={{
-                    width: 28, height: 28, borderRadius: '50%',
-                    background: color,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 11, fontWeight: 700, color: '#0a0a0b',
-                    border: '2px solid var(--card)',
-                    marginLeft: i === 0 ? 0 : -8,
-                    zIndex: displayMembers.length - i,
-                    position: 'relative',
-                  }}>
-                    {getInitial(m.display_name)}
-                  </div>
-                )
-              })}
-            </div>
-            {extraCount > 0 && (
-              <span style={{ fontSize: 12, color: 'var(--muted)' }}>+{extraCount} more</span>
-            )}
-            {onlineMembers.length === 0 && (
-              <span style={{ fontSize: 12, color: 'var(--muted)' }}>No one online</span>
+        <button
+          onClick={() => navigate(`/rooms/${room.id}`)}
+          style={{
+            flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 16,
+            padding: '16px 0', background: 'none', border: 'none', cursor: 'pointer',
+            font: 'inherit', color: 'inherit', textAlign: 'left',
+          }}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>{room.name}</div>
+            {room.description && (
+              <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {room.description}
+              </div>
             )}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 12, color: focusingCount > 0 ? 'var(--accent)' : 'var(--muted)' }}>
-              {focusingCount > 0 ? <>{focusingCount} focusing now <Flame size={12} style={{ display: 'inline', verticalAlign: 'middle' }} /></> : `${onlineCount} online`}
-            </span>
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={() => navigate(`/rooms/${room.id}`)}
-            >
-              Join Room →
-            </button>
-          </div>
-        </div>
-      </div>
+          <span className="mono" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--muted)', flexShrink: 0 }}>
+            {focusingCount > 0 && (
+              <span className="live-dot" style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent)' }} aria-hidden="true" />
+            )}
+            {focusingCount > 0 ? `${focusingCount} focusing` : `${onlineCount} online`}
+          </span>
+          <ArrowRight size={14} strokeWidth={1.6} color="var(--faint)" style={{ flexShrink: 0 }} />
+        </button>
+        {showDelete && (
+          <button
+            className="btn-quiet"
+            onClick={() => handleDeleteRoom(room.id)}
+            title="Delete room"
+            aria-label={`Delete ${room.name}`}
+          >
+            <Trash2 size={14} strokeWidth={1.6} />
+          </button>
+        )}
+      </motion.li>
     )
   }
 
   return (
     <>
-    <div className="page-fade" style={{ background: 'transparent' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
-        <div>
-          <span className="v3-kicker">Focus together · Live</span>
-          <h1 className="page-title" style={{ marginBottom: 6 }}><span className="pt-inner">Study Rooms<span className="v3-dot">.</span></span></h1>
-          <p style={{ fontSize: 14, color: 'var(--muted)' }}>
-            Focus alongside others. Silent co-working, real accountability.
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn btn-ghost" onClick={() => { setJoinCode(''); setJoinOpen(true) }}>
-            Join with Code
-          </button>
-          <button className="btn btn-accent" onClick={() => { setRoomName(''); setRoomDesc(''); setIsPublic(true); setMaxMembers(20); setCreateError(''); setCreateOpen(true) }}>
-            + Create Room
-          </button>
-        </div>
+      <header className="page-head">
+        <h1 className="page-title">Study rooms</h1>
+        <p>Silent co-working. See who is focusing and work alongside them.</p>
+      </header>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 40 }}>
+        <input
+          placeholder="Room code"
+          aria-label="Room code"
+          value={joinCode}
+          onChange={e => setJoinCode(e.target.value.toUpperCase().slice(0, 6))}
+          maxLength={6}
+          onKeyDown={e => e.key === 'Enter' && handleJoinWithCode()}
+          className="mono code-input"
+          style={{ width: 150, height: 38 }}
+        />
+        <button className="btn btn-ghost" disabled={!joinCode.trim() || joining} onClick={handleJoinWithCode}>
+          {joining ? <span className="spinner" style={{ width: 14, height: 14 }} /> : 'Join'}
+        </button>
+        <button className="btn btn-accent" onClick={openCreate} style={{ marginLeft: 'auto' }}>
+          New room
+        </button>
       </div>
 
-      <div style={{ marginBottom: 36 }}>
-        <div style={{
-          fontSize: 11, fontWeight: 700, letterSpacing: '0.12em',
-          color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 14,
-        }}>Public Rooms</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
-          {publicRooms.map(room => renderRoomCard(room, false))}
-        </div>
-      </div>
+      <section style={{ marginBottom: 40 }}>
+        <div className="label" style={{ marginBottom: 8 }}>Public</div>
+        <ul style={{ borderBottom: '1px solid var(--hairline)' }}>
+          <AnimatePresence initial={false}>
+            {publicRooms.map(room => renderRoomRow(room, false))}
+          </AnimatePresence>
+        </ul>
+      </section>
 
-      <div>
-        <div style={{
-          fontSize: 11, fontWeight: 700, letterSpacing: '0.12em',
-          color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 14,
-        }}>Your Rooms</div>
+      <section>
+        <div className="label" style={{ marginBottom: 8 }}>Yours</div>
         {yourRooms.length === 0 ? (
-          <div style={{ fontSize: 14, color: 'var(--muted)' }}>
-            No rooms created yet.{' '}
-            <button
-              onClick={() => { setRoomName(''); setRoomDesc(''); setIsPublic(true); setMaxMembers(20); setCreateError(''); setCreateOpen(true) }}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: 14, padding: 0 }}
-            >
-              Create your first room →
+          <div style={{ borderTop: '1px solid var(--hairline)', padding: '16px 0', fontSize: 14, color: 'var(--muted)' }}>
+            No rooms yet.{' '}
+            <button className="btn-quiet" onClick={openCreate} style={{ padding: 0, color: 'var(--text)' }}>
+              Create one
             </button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
-            {yourRooms.map(room => renderRoomCard(room, true))}
-          </div>
+          <ul style={{ borderBottom: '1px solid var(--hairline)' }}>
+            <AnimatePresence initial={false}>
+              {yourRooms.map(room => renderRoomRow(room, true))}
+            </AnimatePresence>
+          </ul>
         )}
-      </div>
-    </div>
+      </section>
 
       {createOpen && (
-        <div
-          onClick={() => setCreateOpen(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.75)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingTop: '80px',
-            paddingBottom: '40px',
-            zIndex: 9999,
-          }}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{
-              background: '#111113',
-              border: '1px solid rgba(255,255,255,0.07)',
-              borderRadius: '16px',
-              padding: '32px',
-              width: '440px',
-              maxWidth: '92vw',
-              maxHeight: 'calc(100dvh - 120px)',
-              overflowY: 'auto',
-              boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
-              position: 'relative',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
-              <h2 style={{ fontSize: 19, fontWeight: 700 }}>Create a Room</h2>
-              <button onClick={() => setCreateOpen(false)} style={{
-                background: 'none', border: 'none', color: 'var(--muted)',
-                cursor: 'pointer', padding: 0, display: 'flex',
-              }}><X size={20} /></button>
+        <div className="modal-backdrop" onClick={() => setCreateOpen(false)}>
+          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="create-room-title" onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h2 id="create-room-title" style={{ fontSize: 16 }}>New room</h2>
+              <button className="btn-quiet" onClick={() => setCreateOpen(false)} aria-label="Close"><X size={16} strokeWidth={1.6} /></button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label className="label" style={{ display: 'block', marginBottom: 7 }}>Room Name</label>
+                <label className="label" htmlFor="room-name" style={{ display: 'block', marginBottom: 6 }}>Name</label>
                 <input
+                  id="room-name"
                   placeholder="e.g. Late Night Grind"
                   value={roomName}
                   onChange={e => setRoomName(e.target.value)}
@@ -401,8 +311,11 @@ export default function Rooms() {
               </div>
 
               <div>
-                <label className="label" style={{ display: 'block', marginBottom: 7 }}>Description <span style={{ color: 'var(--muted)', fontWeight: 400, textTransform: 'none', fontSize: 11 }}>(optional)</span></label>
+                <label className="label" htmlFor="room-desc" style={{ display: 'block', marginBottom: 6 }}>
+                  Description <span style={{ color: 'var(--faint)', textTransform: 'none', letterSpacing: 0 }}>optional</span>
+                </label>
                 <input
+                  id="room-desc"
                   placeholder="What's this room for?"
                   value={roomDesc}
                   onChange={e => setRoomDesc(e.target.value)}
@@ -411,19 +324,13 @@ export default function Rooms() {
               </div>
 
               <div>
-                <label className="label" style={{ display: 'block', marginBottom: 7 }}>Visibility</label>
-                <div style={{ display: 'flex', background: 'var(--card2)', border: '1px solid var(--border)', borderRadius: 8, padding: 3 }}>
+                <div className="label" style={{ marginBottom: 6 }}>Visibility</div>
+                <div style={{ display: 'flex', gap: 8 }}>
                   {[{ label: 'Public', val: true }, { label: 'Private', val: false }].map(opt => (
                     <button
                       key={String(opt.val)}
+                      className={`pill${isPublic === opt.val ? ' active' : ''}`}
                       onClick={() => setIsPublic(opt.val)}
-                      style={{
-                        flex: 1, padding: '8px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
-                        fontFamily: "'Outfit', sans-serif", fontSize: 13, fontWeight: 600,
-                        transition: 'all 0.15s',
-                        background: isPublic === opt.val ? 'var(--accent)' : 'transparent',
-                        color: isPublic === opt.val ? '#0a0a0b' : 'var(--muted)',
-                      }}
                     >
                       {opt.label}
                     </button>
@@ -432,12 +339,12 @@ export default function Rooms() {
               </div>
 
               <div>
-                <label className="label" style={{ display: 'block', marginBottom: 7 }}>Max Members</label>
+                <div className="label" style={{ marginBottom: 6 }}>Max members</div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {[5, 10, 20].map(n => (
                     <button
                       key={n}
-                      className={`pill${maxMembers === n ? ' active' : ''}`}
+                      className={`pill mono${maxMembers === n ? ' active' : ''}`}
                       onClick={() => setMaxMembers(n)}
                     >
                       {n}
@@ -447,94 +354,16 @@ export default function Rooms() {
               </div>
 
               {createError && (
-                <div style={{
-                  padding: '10px 14px', borderRadius: 8, fontSize: 13,
-                  background: 'rgba(242,90,90,0.1)', border: '1px solid rgba(242,90,90,0.25)',
-                  color: 'var(--red)', lineHeight: 1.5,
-                }}>
-                  {createError}
-                </div>
+                <div style={{ fontSize: 13, color: 'var(--red)', lineHeight: 1.5 }}>{createError}</div>
               )}
 
               <button
                 className="btn btn-accent btn-full"
-                style={{ marginTop: 4, height: 46 }}
+                style={{ marginTop: 4 }}
                 disabled={!roomName.trim() || creating}
                 onClick={handleCreateRoom}
               >
-                {creating ? <span className="spinner" /> : 'Create Room →'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {joinOpen && (
-        <div
-          onClick={() => setJoinOpen(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.75)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingTop: '80px',
-            paddingBottom: '40px',
-            zIndex: 9999,
-          }}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{
-              background: '#111113',
-              border: '1px solid rgba(255,255,255,0.07)',
-              borderRadius: '16px',
-              padding: '32px',
-              width: '440px',
-              maxWidth: '92vw',
-              maxHeight: 'calc(100dvh - 120px)',
-              overflowY: 'auto',
-              boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
-              position: 'relative',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
-              <h2 style={{ fontSize: 19, fontWeight: 700 }}>Join with Code</h2>
-              <button onClick={() => setJoinOpen(false)} style={{
-                background: 'none', border: 'none', color: 'var(--muted)',
-                cursor: 'pointer', padding: 0, display: 'flex',
-              }}><X size={20} /></button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <label className="label" style={{ display: 'block', marginBottom: 7 }}>Room Code</label>
-                <input
-                  placeholder="XXXXXX"
-                  value={joinCode}
-                  onChange={e => setJoinCode(e.target.value.toUpperCase().slice(0, 6))}
-                  maxLength={6}
-                  autoFocus
-                  onKeyDown={e => e.key === 'Enter' && handleJoinWithCode()}
-                  style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: 22,
-                    letterSpacing: '0.3em',
-                    textAlign: 'center',
-                    textTransform: 'uppercase',
-                  }}
-                />
-              </div>
-
-              <button
-                className="btn btn-accent btn-full"
-                style={{ height: 46 }}
-                disabled={!joinCode.trim() || joining}
-                onClick={handleJoinWithCode}
-              >
-                {joining ? <span className="spinner" /> : 'Join Room →'}
+                {creating ? <span className="spinner" style={{ width: 14, height: 14, borderTopColor: 'var(--on-accent)' }} /> : 'Create room'}
               </button>
             </div>
           </div>
