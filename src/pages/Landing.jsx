@@ -3,9 +3,8 @@ import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import LogoIcon from '../components/LogoIcon'
 
-/* Text on the left, a running focus block on the right. Every few seconds
-   (or when you reach for the button) the distractions around the dial
-   blur away and it turns lime — the product, acted out. */
+/* Text on the left, a running focus block on the right. Hovering the main
+   button clears the distractions around the dial and turns it lime. */
 
 // Corners and top edge only, so no word ever crosses the tick ring.
 const DISTRACTIONS = [
@@ -52,7 +51,7 @@ function Dial({ calm, left }) {
             x2={C + r2 * Math.cos(a)} y2={C + r2 * Math.sin(a)}
             stroke={on ? (calm ? 'var(--accent)' : 'rgba(255,255,255,0.7)') : 'rgba(255,255,255,0.13)'}
             strokeWidth={major ? 1.6 : 1}
-            style={{ transition: 'stroke 0.6s ease' }} />
+            style={{ transition: 'stroke 0.2s ease' }} />
         )
       })}
       <circle cx={C} cy={C} r={R - 16} fill="none" stroke="rgba(255,255,255,0.06)" />
@@ -67,7 +66,8 @@ export default function Landing() {
   const [cycle, setCycle] = useState(false)
 
   useEffect(() => {
-    if (reduce) return
+    // Desktop gets the effect from hovering the button; touch screens can't hover, so it plays on a loop.
+    if (reduce || !window.matchMedia('(hover: none)').matches) return
     let off
     const id = setInterval(() => {
       setCycle(true)
@@ -96,25 +96,24 @@ export default function Landing() {
         <section className="landing-copy">
           <motion.span {...fade(0.1)} className="kicker landing-status">
             <motion.span style={{ width: 6, height: 6, borderRadius: '50%' }}
-              animate={{ background: calm ? 'var(--accent)' : 'var(--faint)' }} />
+              animate={{ background: calm ? 'var(--accent)' : 'var(--faint)' }} transition={{ duration: 0.15 }} />
             {calm ? 'Status: focused' : 'Status: distracted'}
           </motion.span>
 
           <h1 className="landing-title">
-            {['Train your', 'attention span.'].map((line, i) => (
+            {['Focus longer.'].map((line, i) => (
               <span key={line} style={{ display: 'block', overflow: 'hidden', paddingBottom: '0.08em' }}>
                 <motion.span style={{ display: 'inline-block' }}
                   initial={{ y: '105%' }} animate={{ y: 0 }}
                   transition={{ duration: 0.9, delay: 0.15 + i * 0.12, ease: EASE }}>
-                  {i === 1 ? <>attention <span style={{ color: 'var(--accent)' }}>span.</span></> : line}
+                  {line}
                 </motion.span>
               </span>
             ))}
           </h1>
 
           <motion.p {...fade(0.5)} className="landing-sub">
-            Focus blocks start where your attention is and grow two minutes every time you finish one.
-            Then quiz yourself on your own notes.
+            Each block you finish adds two minutes to the next.
           </motion.p>
 
           <motion.div {...fade(0.65)} style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -129,7 +128,6 @@ export default function Landing() {
           <motion.div {...fade(0.9)} className="mono landing-readout" aria-hidden="true">
             <span>distractions <b style={{ color: calm ? 'var(--accent)' : 'var(--muted)' }}>{calm ? 0 : DISTRACTIONS.length}</b></span>
             <span>next block <b>+2 min</b></span>
-            <span>cost <b>$0</b></span>
           </motion.div>
         </section>
 
@@ -137,11 +135,11 @@ export default function Landing() {
           initial={{ opacity: 0, scale: 0.94, rotate: -12 }}
           animate={{ opacity: 1, scale: 1, rotate: 0 }}
           transition={{ duration: 1.4, ease: EASE }}>
-          <motion.div style={{ position: 'absolute', inset: 0 }} animate={{ scale: calm ? 1.03 : 1 }} transition={{ duration: 0.8, ease: EASE }}>
+          <motion.div style={{ position: 'absolute', inset: 0 }} animate={{ scale: calm ? 1.03 : 1 }} transition={{ duration: 0.25, ease: EASE }}>
             <Dial calm={calm} left={left} />
           </motion.div>
           <div className="landing-readout-center">
-            <span className="mono" style={{ fontSize: 11, letterSpacing: '0.12em', color: calm ? 'var(--accent)' : 'var(--faint)', transition: 'color 0.6s' }}>
+            <span className="mono" style={{ fontSize: 11, letterSpacing: '0.12em', color: calm ? 'var(--accent)' : 'var(--faint)', transition: 'color 0.2s' }}>
               FOCUS · BLOCK 03
             </span>
             <span className="num landing-clock">
@@ -158,8 +156,8 @@ export default function Landing() {
                 y: calm ? 0 : [0, -8, 0],
               }}
               transition={{
-                opacity: { duration: calm ? 0.5 : 1.2, delay: calm ? 0 : 0.6 + w.d * 0.3 },
-                filter: { duration: 0.6 },
+                opacity: { duration: calm ? 0.15 : 0.6, delay: calm ? 0 : w.d * 0.15 },
+                filter: { duration: calm ? 0.15 : 0.4 },
                 y: { duration: 5 + w.d, repeat: Infinity, ease: 'easeInOut' },
               }}>
               <span style={{ color: 'var(--faint)' }}>› </span>{w.text}
